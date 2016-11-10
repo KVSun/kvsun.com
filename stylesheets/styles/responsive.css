@@ -1,0 +1,12 @@
+@media (max-width: 800px) {
+	body > header {
+		order: 1;
+	}
+	aside, main {
+		flex-basis: 100%;
+	}
+	nav {
+		position: relative;
+		order: 0;
+	}
+}
