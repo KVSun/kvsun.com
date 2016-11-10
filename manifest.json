@@ -1,0 +1,39 @@
+{
+	"name": "Kern Valley Sun",
+	"short_name": "KV Sun",
+	"description": "The valley's choice for hometown news",
+	"start_url": "https://kernvalleysun.com",
+	"theme_color": "#EA5708",
+	"background_color": "#EA5708",
+	"display": "standalone",
+	"icons": [{
+			"src": "/images/sun-icons/any.svg",
+			"sizes": "any",
+			"type": "image/svg+xml"
+		}, {
+			"src": "/images/sun-icons/16.png",
+			"sizes": "16x16",
+			"type": "image/png"
+		}, {
+			"src": "/images/sun-icons/32.png",
+			"sizes": "32x32",
+			"type": "image/png"
+		}, {
+			"src": "/images/sun-icons/72.png",
+			"sizes": "72x72",
+			"type": "image/png"
+		}, {
+			"src": "/images/sun-icons/144.png",
+			"sizes": "144x144",
+			"type": "image/png"
+		}, {
+			"src": "/images/sun-icons/256.png",
+			"sizes": "256x256",
+			"type": "image/png"
+	}],
+	"screenshots": [{
+		"src": "/screenshot.png",
+		"sizes": "1350x603",
+		"type": "image/png"
+	}]
+}
