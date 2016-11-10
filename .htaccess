@@ -1,0 +1,275 @@
+Options -Indexes +SymLinksIfOwnerMatch
+# php_value auto_prepend_file ./autoloader.php
+php_flag display_startup_errors on
+php_flag display_errors on
+php_flag html_errors on
+php_flag log_errors on
+
+#Configure PHP's autoloader and set include_path, min PHP version
+<IfModule headers_module>
+	Header set X-Frame-Options "SAMEORIGIN"
+	Header set X-Content-Type-Options nosniff
+	Header set X-XSS-Protection "1; mode=block"
+	Header set Cache-Control "public, must-revalidate, proxy-revalidate, no-transform"
+	Header set X-UA-Compatible "IE=edge,chrome=1"
+	Header set Connection "Keep-Alive"
+	# Header set Content-Security-Policy "default-src 'self'; img-src 'self' https://travis-ci.org https://api.travis-ci.org https://badges.gitter.im https://i.imgur.com"
+	# `mod_headers` can't match based on the content-type, however, we only
+	# want to send this header for HTML pages and not for the other resources
+	<FilesMatch "\.(appcache|crx|css|eot|gif|htc|ico|jpe?g|js|m4a|m4v|manifest|mp4|oex|oga|ogg|ogv|otf|pdf|png|safariextz|svg|svgz|ttf|vcf|webapp|webm|webp|woff2?|xml|xpi)$">
+		Header set Cache-Control "public, must-revalidate, proxy-revalidate, no-transform"
+		Header unset X-Frame-Options
+		Header unset X-XSS-Protection
+		Header unset X-UA-Compatible
+	</FilesMatch>
+	<Files manifest.appcache>
+		# Header set Cache-Control "public, no-cache, no-store, must-revalidate, proxy-revalidate, no-transform"
+		Header unset Accept-Ranges
+	</Files>
+	<IfModule ssl_module>
+		Header set Strict-Transport-Security max-age=16070400;
+	</IfModule>
+	<IfModule setenvif_module>
+		<FilesMatch "\.(gif|ico|jpe?g|png|svgz?|webp)$">
+			SetEnvIf Origin ":" IS_CORS
+			Header set Access-Control-Allow-Origin "*" env=IS_CORS
+		</FilesMatch>
+	</IfModule>
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# | UTF-8 encoding															 |
+# ------------------------------------------------------------------------------
+
+# Use UTF-8 encoding for anything served as `text/html` or `text/plain`.
+AddDefaultCharset utf-8
+
+# ------------------------------------------------------------------------------
+# | Proper MIME types for all files											|
+# ------------------------------------------------------------------------------
+<IfModule mime_module>
+	AddCharset utf-8 .atom .css .js .json .rss .vtt .webapp .xml
+	# Audio
+	AddType audio/mp4									.m4a .f4a .f4b
+	AddType audio/ogg									.oga .ogg
+
+	# JavaScript
+	# Normalize to standard type (it's sniffed in IE anyways):
+	# http://tools.ietf.org/html/rfc4329#section-7.2
+	AddType application/javascript						.js .es6 .jsonp
+	AddType application/json							.json
+
+	# Video
+	AddType video/mp4									.mp4 .m4v .f4v .f4p
+	AddType video/ogg									.ogv
+	AddType video/webm									.webm
+	AddType video/x-flv									.flv
+
+	# Web fonts
+	AddType application/font-woff						.woff
+	AddType application/font-woff2						.woff2
+	AddType application/vnd.ms-fontobject				.eot
+
+	# Browsers usually ignore the font MIME types and sniff the content,
+	# however, Chrome shows a warning if other MIME types are used for the
+	# following fonts.
+	AddType application/x-font-ttf						.ttc .ttf
+	AddType font/opentype								.otf
+
+	# Make SVGZ fonts work on iPad:
+	# https://twitter.com/FontSquirrel/status/14855840545
+	AddType	 image/svg+xml								.svg .svgz
+	AddEncoding gzip									.svgz
+
+	# Other
+	AddType application/octet-stream					.safariextz
+	AddType application/x-chrome-extension				.crx
+	AddType application/x-opera-extension				.oex
+	AddType application/x-shockwave-flash				.swf
+	AddType application/x-web-app-manifest+json			.webapp
+	AddType application/x-xpinstall						.xpi
+	AddType application/xml								.atom .rdf .rss .xml
+	AddType text/x-markdown                             .md
+	AddType image/webp									.webp
+	AddType image/x-icon								.ico
+	AddType text/cache-manifest							.appcache .manifest
+	AddType text/vtt									.vtt
+	AddType text/x-component							.htc
+	AddType text/x-vcard								.vcf
+	AddType application/pgp-keys                        .gpg .pgp
+</IfModule>
+
+# Block access to backup and source files.
+# These files may be left by some text editors and can pose a great security
+# danger when anyone has access to them.
+
+<FilesMatch "(^#.*|~.*|\.(bak|ht.*|dav|conf(ig)?|dist|fla|inc|ini|log|psd|sql|sw[op]|asc|(ba)?sh|md|yml|lock|log|git.*|gpg|pgp))$">
+	Require all denied
+</FilesMatch>
+<FilesMatch "(autoloader|consts|unit|functions).php$">
+	Require all denied
+</FilesMatch>
+<FilesMatch "\.html$">
+	Require all granted
+</FilesMatch>
+<IfModule deflate_module>
+	# Force compression for mangled headers.
+	# http://developer.yahoo.com/blogs/ydn/posts/2010/12/pushing-beyond-gzipping
+	<IfModule setenvif_module>
+		<IfModule headers_module>
+			SetEnvIfNoCase ^(Accept-EncodXng|X-cept-Encoding|X{15}|~{15}|-{15})$ ^((gzip|deflate)\s*,?\s*)+|[X~-]{4,13}$ HAVE_Accept-Encoding
+			RequestHeader append Accept-Encoding "gzip,deflate" env=HAVE_Accept-Encoding
+		</IfModule>
+	</IfModule>
+
+	# Compress all output labeled with one of the following MIME-types
+	# (for Apache versions below 2.3.7, you don't need to enable `mod_filter`
+	#  and can remove the `<IfModule filter_module>` and `</IfModule>` lines
+	#  as `AddOutputFilterByType` is still in the core directives).
+	<IfModule filter_module>
+		AddOutputFilterByType DEFLATE application/atom+xml \
+		application/javascript \
+		application/json \
+		application/rss+xml \
+		application/vnd.ms-fontobject \
+		application/x-font-ttf \
+		application/x-web-app-manifest+json \
+		application/xhtml+xml \
+		application/xml \
+		font/opentype \
+		image/svg+xml \
+		image/x-icon \
+		text/css \
+		text/html \
+		text/plain \
+		text/x-component \
+		text/xml
+	</IfModule>
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# | Content transformations													|
+# ------------------------------------------------------------------------------
+
+# Prevent some of the mobile network providers from modifying the content of
+# your site: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.5.
+
+
+# ------------------------------------------------------------------------------
+# | ETag removal																|
+# ------------------------------------------------------------------------------
+# Since we're sending far-future expires headers (see below), ETags can
+# be removed: http://developer.yahoo.com/performance/rules.html#etags.
+
+# `FileETag None` is not enough for every server.
+<IfModule headers_module>
+	Header unset ETag
+</IfModule>
+FileETag None
+
+# ------------------------------------------------------------------------------
+# | Expires headers (for better cache control)								 |
+# ------------------------------------------------------------------------------
+
+# The following expires headers are set pretty far in the future. If you don't
+# control versioning with filename-based cache busting, consider lowering the
+# cache time for resources like CSS and JS to something like 1 week.
+
+
+# The following expires headers are set pretty far in the future. If you don't
+# control versioning with filename-based cache busting, consider lowering the
+# cache time for resources like CSS and JS to something like 1 week.
+
+<IfModule expires_module>
+	ExpiresActive on
+	ExpiresDefault										"access plus 1 month"
+
+	# CSS
+	ExpiresByType text/css								"access plus 1 year"
+
+	# Data interchange
+	ExpiresByType application/json						"access plus 0 seconds"
+	ExpiresByType application/xml						"access plus 0 seconds"
+	ExpiresByType text/xml								"access plus 0 seconds"
+
+	# Favicon (cannot be renamed!)
+	ExpiresByType image/x-icon							"access plus 1 week"
+
+	# HTML components (HTCs)
+	ExpiresByType text/x-component						"access plus 1 month"
+
+	# HTML
+	ExpiresByType text/html								"access plus 0 seconds"
+
+	# JavaScript
+	ExpiresByType application/javascript				"access plus 1 year"
+
+	# Manifest files
+	ExpiresByType application/x-web-app-manifest+json	"access plus 0 seconds"
+	ExpiresByType text/cache-manifest					"access plus 0 seconds"
+
+	# Media
+	ExpiresByType audio/ogg								"access plus 1 month"
+	ExpiresByType image/gif								"access plus 1 month"
+	ExpiresByType image/jpeg							"access plus 1 month"
+	ExpiresByType image/png								"access plus 1 month"
+	ExpiresByType video/mp4								"access plus 1 month"
+	ExpiresByType video/ogg								"access plus 1 month"
+	ExpiresByType video/webm							"access plus 1 month"
+
+	# Web feeds
+	ExpiresByType application/atom+xml					"access plus 1 hour"
+	ExpiresByType application/rss+xml					"access plus 1 hour"
+
+	# Web fonts
+	ExpiresByType application/font-woff					"access plus 1 month"
+	ExpiresByType application/vnd.ms-fontobject			"access plus 1 month"
+	ExpiresByType application/x-font-ttf				"access plus 1 month"
+	ExpiresByType font/opentype							"access plus 1 month"
+	ExpiresByType image/svg+xml							"access plus 1 month"
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# | Filename-based cache busting												|
+# ------------------------------------------------------------------------------
+
+# If you're not using a build process to manage your filename version revving,
+# you might want to consider enabling the following directives to route all
+# requests such as `/css/style.12345.css` to `/css/style.css`.
+
+# To understand why this is important and a better idea than `*.css?v231`, read:
+# http://stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring
+
+# ------------------------------------------------------------------------------
+# | File concatenation														 |
+# ------------------------------------------------------------------------------
+
+# Allow concatenation from within specific CSS and JS files, e.g.:
+# Inside of `script.combined.js` you could have
+#	<!--#include file="libs/jquery.js" -->
+#	<!--#include file="plugins/jquery.idletimer.js" -->
+# and they would be included into this single file.
+
+<IfModule rewrite_module>
+	# Redirect all non-existing to index.php
+	RewriteEngine on
+	<IfModule ssl_module>
+		# Force HTTPS
+		RewriteCond %{HTTPS} !=on
+		RewriteRule .* https://%{SERVER_NAME}%{REQUEST_URI} [R=301,L]
+	</IfModule>
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteCond %{REQUEST_FILENAME} !-l
+	RewriteRule . ./index.php [L]
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# | Error pages		  													 	 |
+# ------------------------------------------------------------------------------
+ErrorDocument 400 /index.php
+ErrorDocument 401 /index.php
+ErrorDocument 402 /index.php
+ErrorDocument 403 /index.php
+ErrorDocument 404 /index.php
+ErrorDocument 500 /index.php

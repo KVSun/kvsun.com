@@ -1,0 +1,7 @@
+nav {
+	order: 1;
+	position: sticky;
+	top: 0;
+	padding: 1em 0;
+	background: orange;
+}

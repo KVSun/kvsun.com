@@ -1,0 +1,5 @@
+aside {
+	order: 3;
+	flex-basis: calc(100% - var(--main-width));
+	background: purple;
+}

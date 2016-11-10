@@ -1,0 +1,21 @@
+@media screen and (min-width:1000px) {
+	:root {
+		font-size: 1.3vw;
+	}
+}
+@media screen and (max-width:999px) and (min-width:500px) {
+	:root {
+		font-size: 2vw;
+	}
+}
+@media screen and (max-width: 499px) {
+	:root {
+		font-size: 3vw;
+	}
+}
+body {
+	min-height: 100vh;
+	align-content: space-between;
+	align-items: stretch;
+	justify-content: space-between;
+}
