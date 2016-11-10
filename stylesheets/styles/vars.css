@@ -1,3 +1,40 @@
 :root {
 	--main-width: 70%;
+	/*================= Set color vars here =================*/
+	--default-color: rgb(252, 252, 252);
+	--alt-color: rgb(41, 41, 41);
+	--primary-color: rgb(237, 24, 24);
+	--highlight-color: rgb(129, 23, 23);
+	--link-color: hsl(209, 62%, 45%);
+	--visited-color: #551A8B;
+	--border-color: rgb(45, 45, 45);
+	--default-cursor: auto;
+	--pointer: pointer;
+	/*========== Set background images, etc here ==========*/
+	/*--main-bg: url(../../images/backgrounds/dark_abstract.svgz);*/
+	--glass-grad: linear-gradient(to top left, rgba(80, 80, 80, 0.7), rgba(140, 140, 140, 0.9), rgba(40, 40, 40, 0.7));
+	--shadow: rgba(20, 20, 20, 0.9);
+	--tint-glass: linear-gradient(rgba(40, 40, 40, 0.8), rgba(80, 80, 80, 0.7));
+	--header-bg: linear-gradient(rgba(40, 40, 40, 1), rgba(80, 80, 80, 0.97));
+	--progress-grad: linear-gradient(var(--highlight-color), var(--primary-color), var(--highlight-color));
+	/*==================== Set fonts here ====================*/
+	--header-font: 'PressStart';
+	--article-font: 'Ubuntu';
+	--article-header-font: var(--header-font);
+	--icon-font: 'Web Symbols';
+	/*================ Set various icons here ================*/
+	--link-icon: '  K';
+	--tag-icon: '  , ';
+	--new-tab-icon: '  D';
+	--download-icon: '  A';
+	--next-icon: ')';
+	--prev-icon: '(';
+	--unchecked-icon: '  \\';
+	--checked-icon: '  .';
+	--dropdown-open-icon: '[ ';
+	--dropdown-closed-icon: '] ';
+	--close-icon: '\'';
+	--search-icon: 'L';
+	--attachmnent-icon: 'A';
+	--fullscreen-icon: '%';
 }
