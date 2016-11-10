@@ -1,0 +1,48 @@
+[submodule "classes/dom"]
+	path = classes/shgysk8zer0/dom
+	url = git://github.com/shgysk8zer0/dom.git
+[submodule "classes/core"]
+	path = classes/shgysk8zer0/core
+	url = git://github.com/shgysk8zer0/core.git
+[submodule "classes/core_api"]
+	path = classes/shgysk8zer0/core_api
+	url = git://github.com/shgysk8zer0/core_api.git
+[submodule "fonts"]
+	path = fonts
+	url = git://github.com/shgysk8zer0/fonts.git
+[submodule "classes/shgysk8zer0/curl"]
+	path = classes/shgysk8zer0/curl
+	url = git://github.com/shgysk8zer0/curl.git
+[submodule "classes/shgysk8zer0/shareapi"]
+	path = classes/shgysk8zer0/shareapi
+	url = git://github.com/shgysk8zer0/shareapi.git
+[submodule "classes/kvsun/classifieds"]
+	path = classes/kvsun/classifieds
+	url = git://github.com/KVSun/classifieds.git
+[submodule "components/forms"]
+	path = components/forms
+	url = git://github.com/KVSun/KVSun-Forms.git
+[submodule "images/web-art"]
+	path = images/web-art
+	url = git://github.com/KVSun/web-art.git
+[submodule "images/sun-icons"]
+	path = images/sun-icons
+	url = git://github.com/KVSun/sun-icons.git
+[submodule "images/octicons"]
+	path = images/octicons
+	url = git://github.com/primer/octicons.git
+[submodule "images/SVG-icons"]
+	path = images/SVG-icons
+	url = git://github.com/shgysk8zer0/SVG-icons.git
+[submodule "classes/shgysk8zer0/domvalidator"]
+	path = classes/shgysk8zer0/domvalidator
+	url = git://github.com/shgysk8zer0/domvalidator.git
+[submodule "stylesheets/core-css"]
+	path = stylesheets/core-css
+	url = git://github.com/shgysk8zer0/core-css.git
+[submodule "stylesheets/normalize"]
+	path = stylesheets/normalize
+	url = git://github.com/necolas/normalize.css.git
+[submodule "scripts/std-js"]
+	path = scripts/std-js
+	url = git://github.com/shgysk8zer0/std-js.git
