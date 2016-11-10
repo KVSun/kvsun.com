@@ -1,6 +1,6 @@
 /config/*.json
 /node_modules/
-/stylesheets/styles/style.css
+/stylesheets/styles/styles.css
 /images/icons.svg
 /scripts/custom.js
 *.js.map

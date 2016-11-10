@@ -2,7 +2,7 @@
 namespace KVSun\Components\Head;
 
 const DEV_STYLE  = '/stylesheets/styles/import.css';
-const STYLE      = '/stylesheets/styles/style.css';
+const STYLE      = '/stylesheets/styles/styles.css';
 
 return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
 {

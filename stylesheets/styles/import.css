@@ -1,6 +1,7 @@
 @charset "UTF-8";
 @import url("../core-css/viewport.css");
 @import url("vars.css");
+@import url("viewport.css");
 @import url("../normalize/normalize.css");
 @import url("../core-css/fonts.css");
 @import url("../core-css/details.css");
@@ -8,6 +9,9 @@
 @import url("../core-css/class_rules.css");
 @import url("../core-css/data-filter.css");
 @import url("../core-css/animations.css");
+@import url("../core-css/scroll-snap.css");
+@import url("../core-css/misc.css");
+@import url("../core-css/links.css");
 @import url("body.css");
 @import url("header.css");
 @import url("nav.css");
