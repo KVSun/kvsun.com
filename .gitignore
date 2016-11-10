@@ -1,5 +1,7 @@
 /config/*.json
 /node_modules/
+/stylesheets/styles/style.css
+/images/icons.svg
 #################
 ## Eclipse
 #################
