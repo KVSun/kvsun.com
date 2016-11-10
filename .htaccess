@@ -106,6 +106,9 @@ AddDefaultCharset utf-8
 <FilesMatch "(^#.*|~.*|\.(bak|ht.*|dav|conf(ig)?|dist|fla|inc|ini|log|psd|sql|sw[op]|asc|(ba)?sh|md|yml|lock|log|git.*|gpg|pgp))$">
 	Require all denied
 </FilesMatch>
+<FilesMatch "(autoloader|consts|unit|functions).php$">
+	Require all denied
+</FilesMatch>
 <FilesMatch "\.html$">
 	Require all granted
 </FilesMatch>
