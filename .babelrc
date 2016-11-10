@@ -1,0 +1,7 @@
+{
+	"presets": ["es2015"],
+	"sourceMaps": true,
+	"only": "*.es6",
+	"compact": true,
+	"comments": false
+}
