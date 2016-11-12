@@ -4,6 +4,8 @@
 /images/icons.svg
 /scripts/custom.js
 *.js.map
+/pages/current
+/pages/e-edition
 #################
 ## Eclipse
 #################
