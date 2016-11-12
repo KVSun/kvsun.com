@@ -12,6 +12,7 @@
 @import url("../core-css/scroll-snap.css");
 @import url("../core-css/misc.css");
 @import url("../core-css/links.css");
+@import url("cols.css");
 @import url("body.css");
 @import url("header.css");
 @import url("nav.css");

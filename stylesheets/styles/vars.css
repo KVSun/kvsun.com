@@ -3,8 +3,8 @@
 	/*================= Set color vars here =================*/
 	--default-color: rgb(252, 252, 252);
 	--alt-color: rgb(41, 41, 41);
-	--primary-color: rgb(237, 24, 24);
-	--highlight-color: rgb(129, 23, 23);
+	--primary-color: #EA5708;
+	--highlight-color: #EA5708;
 	--link-color: hsl(209, 62%, 45%);
 	--visited-color: #551A8B;
 	--border-color: rgb(45, 45, 45);
@@ -37,4 +37,8 @@
 	--search-icon: 'L';
 	--attachmnent-icon: 'A';
 	--fullscreen-icon: '%';
+	/*==================== Column Rules ====================*/
+	--col-width: 200px;
+	--col-gap: 3em;
+	--col-rule: 5px dashed #333;
 }
