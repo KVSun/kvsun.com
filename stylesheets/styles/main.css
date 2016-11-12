@@ -1,7 +1,5 @@
 main {
 	order: 2;
 	flex-basis: var(--main-width);
-	flex-grow: 0;
-	background: blue;
 	min-height: 100vh;
 }

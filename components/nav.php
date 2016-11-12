@@ -1,22 +1,20 @@
 <?php
 namespace KVSun\Components\Nav;
 
-const CATEGORIES = array(
-	'News'          => 'news',
-	'Sports'        => 'sports',
-	'Life'          => 'life',
-	'Obituaries'    => 'obituaries',
-	'Entertainment' => 'entertainment',
-	'Opinion'       => 'opinion',
+const ATTRS = array(
+	'class' => 'cat-link',
+	'role' => 'button',
 );
+
 return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
 {
-	\shgysk8zer0\Core\Console::getInstance()->log($_SERVER);
 	$nav = $dom->body->append('nav');
-	foreach(CATEGORIES as $cat => $link) {
-		$nav->append('a', $cat, [
-			'href' => \KVSun\DOMAIN . $link,
-			'class' => 'cat-link',
-		]);
+	$nav->append('a', 'Home', array_merge(ATTRS, ['href' => \KVSun\DOMAIN]));
+
+	$categories = $pdo('SELECT `name`, `url-name` as `url` FROM `categories` ORDER BY `sort`');
+	$pages = $pdo('SELECT `name`, `url` FROM `pages`');
+
+	foreach(array_merge($categories, $pages) as $cat) {
+		$nav->append('a', $cat->name, array_merge(ATTRS, ['href' => \KVSun\DOMAIN . $cat->url]));
 	}
 };

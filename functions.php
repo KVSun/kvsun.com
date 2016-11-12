@@ -30,3 +30,12 @@ function load_file($file, $ext = EXT)
 		trigger_error("$file did not return a function.");
 	}
 }
+
+function get_path()
+{
+	static $path = null;
+	if (is_null($path)) {
+		$path = array_filter(explode('/', trim($_SERVER['REQUEST_URI'], '/')));
+	}
+	return $path;
+}

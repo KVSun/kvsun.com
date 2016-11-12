@@ -3,5 +3,10 @@ nav {
 	position: sticky;
 	top: 0;
 	padding: 1em 0;
-	background: orange;
+	background: var(--primary-color);
+	display: flex;
+	justify-content: space-around;
+}
+nav > * {
+	display: inline-block;
 }
