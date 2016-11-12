@@ -4,6 +4,7 @@ const EXT        = '.php';
 const COMPONENTS = __DIR__ . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR;
 const CLASSES    = __DIR__ . DIRECTORY_SEPARATOR . 'classes';
 const CONFIG     = __DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR;
+const PAGES_DIR  = __DIR__ . DIRECTORY_SEPARATOR . 'pages' . DIRECTORY_SEPARATOR;
 if (! array_key_exists('SERVER_NAME', $_SERVER)) {
 	$_SERVER['SERVER_NAME'] = 'localhost';
 }
