@@ -17,7 +17,7 @@ function load_file($file, $ext = EXT)
 	if (is_null($args)) {
 		$args = array(
 			DOM\HTML::getInstance(),
-			Core\PDO::load('connect'),
+			Core\PDO::load(DB_CREDS),
 		);
 	}
 	$ret = require_once(COMPONENTS . $file . $ext);
@@ -27,7 +27,7 @@ function load_file($file, $ext = EXT)
 	} elseif (is_string($ret)) {
 		return $ret;
 	} else {
-		trigger_error("$file did not return a function.");
+		trigger_error("$file did not return a function or string.");
 	}
 }
 
