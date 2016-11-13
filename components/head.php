@@ -1,23 +1,18 @@
 <?php
 namespace KVSun\Components\Head;
 
-const DEV_STYLE   = 'stylesheets/styles/import.css';
-const STYLE       = 'stylesheets/styles/styles.css';
-const SCRIPTS_DIR = 'scripts/';
-const SCRIPTS     = array('custom.js');
-
 return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
 {
 	$head = $dom->head;
 	$head->append('link', null, [
 		'rel' => 'stylesheet',
 		'type' => 'text/css',
-		'href' => \KVSun\DEBUG ? \KVSun\DOMAIN . DEV_STYLE : \KVSun\DOMAIN . STYLE,
+		'href' => \KVSun\DEBUG ? \KVSun\DOMAIN . \KVSun\DEV_STYLE : \KVSun\DOMAIN . \KVSun\STYLE,
 	]);
 
-	foreach(SCRIPTS as $script) {
+	foreach(\KVSun\SCRIPTS as $script) {
 		$head->append('script', null, [
-			'src' => \KVSun\DOMAIN . SCRIPTS_DIR . $script,
+			'src' => \KVSun\DOMAIN . \KVSun\SCRIPTS_DIR . $script,
 			'async' => '',
 			'type' => 'application/javascript',
 		]);
