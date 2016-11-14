@@ -32,5 +32,5 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
 		]);
 		$container->append('hr');
 	}
-	return $dialog->id;
+	return $dialog;
 };
