@@ -30,11 +30,16 @@ switch($_REQUEST['form']) {
 					$pdo = new Core\PDO();
 					if ($pdo->connected) {
 						if (empty($pdo->showTables())) {
-							if (! $pdo->restore(\KVSun\DB_INSTALLER)) {
+							$pdo->restore(\KVSun\DB_INSTALLER);
+							if (! $pdo->showTables()) {
 								$resp->notify('Error', 'Could not restore database.');
 							} else {
 								$resp->notify('Installed', 'Created new default database.');
-								$resp->reload();
+								//$resp->reload();
+								$resp->remove('form');
+								$dom = DOM\HTML::getInstance();
+								$form = load('registration-form');
+								$resp->append(['body' => "{$form[0]}"]);
 							}
 						} else {
 							$resp->notify('Installed', 'Using existing database.');
@@ -52,6 +57,38 @@ switch($_REQUEST['form']) {
 			}
 		}
 		break;
+
+	case 'login':
+		$login = Core\Login::load(\KVSun\DB_CREDS);
+		$creds = [
+			'user'     => $_POST['login']['email'],
+			'password' => $_POST['login']['password']
+		];
+		if ($login->loginWith($creds)) {
+			$resp->notify('Login Successful', "Welcome back, {$creds['user']}");
+		} else {
+			$resp->notify('Login Rejected');
+		}
+		break;
+	case 'registration-form':
+		$users = $pdo('SELECT count(*) FROM `users`;');
+
+		break;
+
+	case 'search':
+		$resp->notify('Search results', 'Check console for more info');
+		$pdo = Core\PDO::load();
+		try {
+			$stm = $pdo->prepare('SELECT * FROM `posts` WHERE `title` LIKE :query');
+			// $stm->query = "%{$_REQUEST['search']['query']}%";
+			$stm->query = str_replace(' ', '%', "%{$_REQUEST['search']['query']}%");
+			$results = $stm->execute()->getResults();
+			Core\Console::getInstance()->table($results);
+		} catch (\Exception $e) {
+			Core\Console::getInstance()->error($e);
+		}
+		break;
 	default:
-		http_response_code(Status::BAD_REQUEST);
+		$resp->notify('Invalid request', "No handler for {$_REQUEST['form']}");
+		Core\Console::getInstance()->error($_REQUEST);
 }

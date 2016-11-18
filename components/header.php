@@ -1,9 +1,12 @@
 <?php
 namespace KVSun\Components\Header;
-return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
+return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 {
 	$header = $dom->body->append('header');
-	$header->append('img', null, [
+	$logo = $header->append('img', null, [
 		'src' => '/images/sun-icons/sun-rise.svg',
 	]);
+	if ($_SERVER['REQUEST_URI'] !== '/') {
+		$logo->hidden = '';
+	}
 };
