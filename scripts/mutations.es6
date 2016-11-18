@@ -17,6 +17,8 @@ import {
 	closeOnOutsideClick,
 	confirmDialogClose
 } from './eventHandlers.es6';
+import wysiwyg from './std-js/wysiwyg.es6';
+import kbd from './std-js/kbd_shortcuts.es6';
 
 function pictureShim(picture) {
 	if ('matchMedia' in window) {
@@ -160,7 +162,10 @@ export function bootstrap() {
 		query('input[data-equal-input]', node).forEach(input => {
 			input.addEventListener('input', matchInput);
 		});
-		// query('menu[type="context"]', node).forEach(WYSIWYG);
+		query('[contenteditable="true"]', node).forEach(el => {
+			el.addEventListener('keydown', kbd);
+		});
+		query('menu[type="context"]', node).forEach(wysiwyg);
 		// query('[data-request]', node).forEach(el => {
 		// 	el.addEventListener('click', click => {
 		// 		click.preventDefault();
