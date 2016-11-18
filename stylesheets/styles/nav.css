@@ -1,11 +1,10 @@
 nav {
 	order: 1;
-	position: sticky;
-	top: 0;
 	padding: 1em 0;
 	background: var(--primary-color);
-	display: flex;
+	top: 0;
 	justify-content: space-around;
+	height: 10vh;
 }
 nav > * {
 	display: inline-block;
