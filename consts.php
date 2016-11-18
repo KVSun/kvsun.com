@@ -12,6 +12,7 @@ const DEV_STYLE    = 'stylesheets/styles/import.css';
 const STYLE        = 'stylesheets/styles/styles.css';
 const SCRIPTS_DIR  = 'scripts/';
 const SCRIPTS      = array('custom.js');
+const SPRITES      = 'images/icons.svg';
 
 if (! array_key_exists('SERVER_NAME', $_SERVER)) {
 	$_SERVER['SERVER_NAME'] = 'localhost';
