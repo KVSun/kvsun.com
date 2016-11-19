@@ -35,9 +35,9 @@ final class Page
 		$this->_path = explode('/', trim($url->path, '/'));
 		if (!empty($this->_path)) {
 			$this->_set('category', $this->_getCat());
-			$x = $this($this->category->id, end($this->_path));
-			if (is_array($x) and count($x) !== 0) {
-				foreach (get_object_vars($x) as $key => $value) {
+			$post = $this($this->category->id, end($this->_path));
+			if (is_object($post)) {
+				foreach (get_object_vars($post) as $key => $value) {
 					$this->_set($key, $value);
 				}
 			}
