@@ -20,7 +20,7 @@ final class Page
 		'updated'     => null,
 		'content'     => null,
 		'category'    => null,
-		'keywords'    => array(),
+		'keywords'    => null,
 		'description' => null,
 		'url'         => null,
 		'id'          => null,
@@ -85,7 +85,7 @@ final class Page
 		return $stm->execute()->getResults();
 	}
 
-	public function __invoke($category, $title)
+	public function __invoke($category, $url)
 	{
 		$stm = $this->_pdo->prepare('SELECT `title`,
 				`author`,
@@ -100,7 +100,7 @@ final class Page
 			LIMIT 1;
 		');
 		$stm->category = $category;
-		$stm->url = $title;
+		$stm->url = $url;
 		return $stm->execute()->getResults(0);
 	}
 
