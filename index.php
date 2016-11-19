@@ -3,8 +3,10 @@ namespace KVSun;
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
 
 if (DEBUG) {
-	\shgysk8zer0\Core\Console::getInstance()->asErrorHandler()->asExceptionHandler();
+	\shgysk8zer0\Core\Console::getInstance()->asExceptionHandler();
+	set_error_handler(__NAMESPACE__ . '\exception_error_handler');
 }
+
 define('URL', \shgysk8zer0\Core\URL::getInstance());
 \shgysk8zer0\DOM\HTMLElement::$import_path = COMPONENTS;
 

@@ -5,6 +5,19 @@ use \shgysk8zer0\Core as Core;
 use \shgysk8zer0\Core_API as API;
 use \shgysk8zer0\DOM as DOM;
 
+function exception_error_handler($severity, $message, $file, $line)
+{
+	$console = \shgysk8zer0\Core\Console::getInstance();
+	$e = new \ErrorException($message, 0, $severity, $file, $line);
+	$console->error(['error' => [
+		'message' => $e->getMessage(),
+		'file'    => $e->getFile(),
+		'line'    => $e->getLine(),
+		'code'    => $e->getCode(),
+		'trace'   => $e->getTrace(),
+	]]);
+}
+
 function use_icon($icon, DOM\HTMLElement $parent, Array $attrs = array())
 {
 	$attrs = array_merge([
