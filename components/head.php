@@ -52,11 +52,11 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 		'href' => \KVSun\DEBUG ? \KVSun\DOMAIN . \KVSun\DEV_STYLE : \KVSun\DOMAIN . \KVSun\STYLE,
 	]);
 
-	// foreach(\KVSun\SCRIPTS as $script) {
-	// 	$head->append('script', null, [
-	// 		'src' => \KVSun\DOMAIN . \KVSun\SCRIPTS_DIR . $script,
-	// 		'async' => '',
-	// 		'type' => 'application/javascript',
-	// 	]);
-	// }
+	foreach(\KVSun\SCRIPTS as $script) {
+		$head->append('script', null, [
+			'src' => \KVSun\DOMAIN . \KVSun\SCRIPTS_DIR . $script,
+			'async' => '',
+			'type' => 'application/javascript',
+		]);
+	}
 };
