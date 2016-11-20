@@ -1,22 +1,15 @@
 <?php
 namespace KVSun\Components\Article;
-return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
+return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 {
 	$article = $dom->getElementsByTagName('main')->item(0)->append('article');
-	$post = $pdo('SELECT
-			`id`,
-			`title`,
-			`author`,
-			`content`,
-			`posted`,
-			`updated`,
-			`keywords`,
-			`description`
-		FROM `posts`;'
-	)[0];
-	$header = $article->append('header');
-	$header->append('h2', $post->title);
-	$header->append('span', "By {$post->author}");
-	$header->append('span', " on {$post->posted}");
-	$article->importHTML($post->content);
+	if (is_object($page) and isset($page->content, $page->posted, $page->title)) {
+		$header = $article->append('header');
+		$header->append('h2', $page->title);
+		$header->append('span', "By {$page->author}");
+		$header->append('span', " on {$page->posted}");
+		$article->importHTML($page->content);
+	} else {
+		trigger_error('Invalid page contents given.');
+	}
 };

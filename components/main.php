@@ -1,8 +1,9 @@
 <?php
 namespace KVSun\Components\Main;
-return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
+return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 {
 	$main = $dom->body->append('main');
+
 	$path = \KVSun\get_path();
 
 	if (count($path) === 0) {

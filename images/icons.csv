@@ -27,9 +27,11 @@ history,images/octicons/lib/svg/history.svg
 home,images/octicons/lib/svg/home.svg
 inbox,images/octicons/lib/svg/inbox.svg
 info,images/octicons/lib/svg/info.svg
+issue-opened,images/octicons/lib/svg/issue-opened.svg
 law,images/octicons/lib/svg/law.svg
 location,images/octicons/lib/svg/location.svg
 lock,images/octicons/lib/svg/lock.svg
+mark-github,images/octicons/lib/svg/mark-github.svg
 megaphone,images/octicons/lib/svg/megaphone.svg
 mention,images/octicons/lib/svg/mention.svg
 mortar-board,images/octicons/lib/svg/mortar-board.svg

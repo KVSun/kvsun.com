@@ -1,5 +1,9 @@
 aside {
 	order: 3;
 	flex-basis: calc(100% - var(--main-width));
-	background: purple;
+	background: #efefef;
+	border: 2px outset #222;
+	height: 90vh;
+	position: sticky;
+	top: 10vh;
 }

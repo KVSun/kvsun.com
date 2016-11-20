@@ -30,15 +30,13 @@ function submitForm(submit) {
 
 function getDatalist(list) {
 	if (!$('#' + list.getAttribute('list')).found) {
-		let url = new URL(document.baseURI);
+		let url = new URL('api.php', document.baseURI);
 		let headers = new Headers();
-		let body = new URLSearchParams();
 		headers.set('Accept', 'application/json');
-		body.set('datalist', list.getAttribute('list'));
+		url.searchParams.set('datalist', list.getAttribute('list'));
 		fetch(url, {
-			method: 'POST',
+			method: 'GET',
 			headers,
-			body,
 			credentials: 'include'
 		}).then(parseResponse).then(handleJSON).catch(reportError);
 	}
@@ -49,14 +47,12 @@ function getContextMenu(el) {
 	if (menu && menu !== '') {
 		if (!$(`menu#${menu}`).found) {
 			let headers = new Headers();
-			let url = new URL(document.baseURI);
-			let body = new URLSearchParams();
-			body.set('load_menu', menu.replace(/\_menu$/, ''));
+			let url = new URL('api.php', document.baseURI);
+			url.searchParams.set('load_menu', menu.replace(/\_menu$/, ''));
 			headers.set('Accept', 'application/json');
 			fetch(url, {
 				method: 'GET',
 				headers,
-				body,
 				credentials: 'include'
 			}).then(parseResponse).then(handleJSON).catch(reportError);
 		}
@@ -93,7 +89,7 @@ function getLink(click) {
 	} else {
 		this.classList.add('disabled');
 	}
-	let url = new URL('/api.php', location.origin);
+	let url = new URL('api.php', location.origin);
 	url.searchParams.set('url', this.href);
 	let headers = new Headers();
 	headers.set('Accept', 'application/json');
