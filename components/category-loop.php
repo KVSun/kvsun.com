@@ -17,9 +17,7 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 			'class' => 'category',
 			// 'data-scroll-snap' => 'vertical',
 		]);
-		$header = $section->append('header', null, [
-			'class' => 'sticky',
-		]);
+		$header = $section->append('header');
 		$header->append('h2', null, ['class' => 'center'])->append('a', $cat->name, [
 			'href' => \KVSun\DOMAIN . $cat->url,
 		]);
