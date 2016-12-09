@@ -9,6 +9,15 @@ if (DEBUG) {
 
 define('URL', \shgysk8zer0\Core\URL::getInstance());
 \shgysk8zer0\DOM\HTMLElement::$import_path = COMPONENTS;
+$csp = new \shgysk8zer0\Core\CSP([
+	'default-src'                       => "'self'",
+	'img-src'                           => '*',
+	'script-src'                        => ["'self'", "'unsafe-inline'"],
+	'style-src'                         => ["'self'", "'unsafe-inline'"],
+	'media-src'                         => '*',
+]);
+$csp();
+unset($csp);
 
 $path = get_path();
 if (@file_exists(CONFIG . DB_CREDS)) {
