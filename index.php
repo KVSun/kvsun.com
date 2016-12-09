@@ -12,7 +12,7 @@ define('URL', \shgysk8zer0\Core\URL::getInstance());
 $csp = new \shgysk8zer0\Core\CSP([
 	'default-src'                       => "'self'",
 	'img-src'                           => '*',
-	'script-src'                        => ["'self'", "'unsafe-inline'"],
+	'script-src'                        => "'self'",
 	'style-src'                         => ["'self'", "'unsafe-inline'"],
 	'media-src'                         => '*',
 ]);
