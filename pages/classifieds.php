@@ -23,7 +23,7 @@ function build_classifieds(Array $files, DOM\HTMLElement $container, CSV $csv)
 	foreach ($files as $file) {
 		$cat = basename($file, EXT);
 		if (!is_numeric($cat) or ! array_key_exists($cat, Codes::CATEGORIES)) continue;
-		$details = $container->append('details', null, ['open' => '']);
+		$details = $container->append('details');
 		$details->append('summary', htmlentities(Codes::CATEGORIES[$cat]));
 		$file = file_get_contents($file);
 		$file = strip_tags($file, ALLOWED_TAGS);
