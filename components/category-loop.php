@@ -31,7 +31,6 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 		$stm->cat = $cat->id;
 		$stm->scan = "$date";
 		$posts = $stm->execute()->getResults();
-		$console->table($posts);
 		foreach($posts as $post) {
 			$container = $section->append('div');
 			$container->append('a', $post->title, [
