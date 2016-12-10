@@ -29,7 +29,6 @@ if (@file_exists(CONFIG . DB_CREDS)) {
 	unset($path);
 	load('head', 'header', 'nav', 'main', 'sidebar', 'footer');
 	\shgysk8zer0\DOM\HTML::getInstance()->body->class = 'flex row wrap';
-	\shgysk8zer0\DOM\HTML::getInstance()->body->contextmenu = 'wysiwyg_menu';
 } else {
 	require_once COMPONENTS . 'install-form.php';
 }
