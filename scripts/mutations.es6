@@ -68,6 +68,16 @@ export const watcher = {
 				}
 			}
 			break;
+		case 'contenteditable':
+			if (
+				this.target.hasAttribute('contenteditable')
+				&& this.target.getAttribute('contenteditable') === 'true'
+			) {
+				this.target.addEventListener('keydown', kbd);
+			} else {
+				this.target.removeEventListener('keydown', kbd);
+			}
+			break;
 
 		default:
 			console.error(`Unhandled attribute in watch: "${this.attributeName}"`);
@@ -83,7 +93,8 @@ export const config = [
 export const attributeTree = [
 	'contextmenu',
 	'list',
-	'open'
+	'open',
+	'contenteditable'
 ];
 
 export function bootstrap() {
