@@ -1,6 +1,6 @@
 import $ from './std-js/zq.es6';
-import handleJSON from './std-js/json_response.es6';
-import {reportError, parseResponse, query, fullScreen} from './std-js/functions.es6';
+// import handleJSON from './std-js/json_response.es6';
+import {query, fullScreen} from './std-js/functions.es6';
 import supports from './std-js/support_test.es6';
 import {
 	sameoriginFrom,
@@ -53,20 +53,7 @@ export const watcher = {
 	attributes: function() {
 		switch (this.attributeName) {
 		case 'contextmenu':
-			var menu = this.target.getAttribute('contextmenu');
-			if (this.oldValue !== '') {
-				$(`menu#${this.oldValue}`).remove();
-			}
-			if (menu && menu !== '') {
-				if (!$('menu#' + menu).found) {
-					fetch(document.baseURI, {
-						method: 'POST',
-						headers: new Headers({Accept: 'application/json'}),
-						body: new URLSearchParams(`load_menu=${menu.replace(/\_menu$/, '')}`),
-						credentials: 'include'
-					}).then(parseResponse).then(handleJSON).catch(reportError);
-				}
-			}
+			getContextMenu(this.target);
 			break;
 
 		case 'open':
