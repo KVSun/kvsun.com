@@ -25,8 +25,9 @@ if ($header->accept === 'application/json') {
 	} elseif (array_key_exists('datalist', $_GET)) {
 		$resp->notify('Request for datalist', $_GET['datalist']);
 	} elseif (array_key_exists('load_menu', $_GET)) {
-		if (@file_exists(COMPONENTS . $_GET['load_menu'] . '.html')) {
-			$resp->append('body', file_get_contents(COMPONENTS . $_GET['load_menu'] . '.html'));
+		$menu = COMPONENTS . 'menus' . DIRECTORY_SEPARATOR . $_GET['load_menu'] . '.html';
+		if (@file_exists($menu)) {
+			$resp->append('body', file_get_contents($menu));
 		} else {
 			$resp->notify('Request for menu', $_GET['load_menu']);
 		}
