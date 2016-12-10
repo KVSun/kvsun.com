@@ -12,7 +12,7 @@ define('URL', \shgysk8zer0\Core\URL::getInstance());
 \shgysk8zer0\DOM\HTMLElement::$import_path = COMPONENTS;
 $csp = new \shgysk8zer0\Core\CSP([
 	'default-src'  => "'self'",
-	'img-src'      => '*',
+	'img-src'      => ['*', 'data:'],
 	'script-src'   => "'self'",
 	'style-src'    => ["'self'", "'unsafe-inline'"],
 	'media-src'    => '*',
