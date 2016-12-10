@@ -11,11 +11,11 @@ if (DEBUG) {
 define('URL', \shgysk8zer0\Core\URL::getInstance());
 \shgysk8zer0\DOM\HTMLElement::$import_path = COMPONENTS;
 $csp = new \shgysk8zer0\Core\CSP([
-	'default-src'                       => "'self'",
-	'img-src'                           => '*',
-	'script-src'                        => "'self'",
-	'style-src'                         => ["'self'", "'unsafe-inline'"],
-	'media-src'                         => '*',
+	'default-src'  => "'self'",
+	'img-src'      => '*',
+	'script-src'   => "'self'",
+	'style-src'    => ["'self'", "'unsafe-inline'"],
+	'media-src'    => '*',
 ]);
 $csp();
 unset($csp);
@@ -29,6 +29,7 @@ if (@file_exists(CONFIG . DB_CREDS)) {
 	unset($path);
 	load('head', 'header', 'nav', 'main', 'sidebar', 'footer');
 	\shgysk8zer0\DOM\HTML::getInstance()->body->class = 'flex row wrap';
+	\shgysk8zer0\DOM\HTML::getInstance()->body->contextmenu = 'wysiwyg_menu';
 } else {
 	require_once COMPONENTS . 'install-form.php';
 }
