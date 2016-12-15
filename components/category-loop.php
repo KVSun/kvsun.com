@@ -9,8 +9,6 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 	$date->format = 'Y-m-d H:j:s';
 	$console = \shgysk8zer0\Core\Console::getInstance();
 
-	$console->log("{$date}");
-
 	foreach ($categories as $cat) {
 		$section = $main->append('section', null, [
 			'id' => $cat->url,
