@@ -11,8 +11,7 @@ export default function DnD(el) {
 			let files = Array.from(drop.dataTransfer.files);
 			files.forEach(file => {
 				let reader = new FileReader();
-				reader.addEventListener('load', load => {
-					console.log(load, file);
+				reader.addEventListener('load', () => {
 					let headers = new Headers();
 					let url = new URL('api.php', document.baseURI);
 					let body = new FormData();
