@@ -33,6 +33,12 @@ if ($header->accept === 'application/json') {
 		}
 	} elseif(array_key_exists('filename', $_POST)) {
 		$resp->notify('Success', "{$_POST['filename']} uploaded.");
+		$uploads = __DIR__ . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . 'uploads';
+		$date = new \DateTime();
+		$format = 'Y' . DIRECTORY_SEPARATOR . 'm' . DIRECTORY_SEPARATOR . 'j' . DIRECTORY_SEPARATOR;
+		$uploads .= DIRECTORY_SEPARATOR . $date->format($format);
+		file_put_contents("{$uploads}{$_POST['filename']}", $_POST['data']);
+		$resp->append('body', "<img src=\"/images/uploads/{$date->format($format)}{$_POST['filename']}\"/>");
 		Core\Console::getInstance()->log($_REQUEST);
 	} else {
 		$resp->notify('Invalid request', 'See console for details.', DOMAIN . 'images/sun-icons/128.png');
