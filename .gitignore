@@ -6,6 +6,7 @@
 *.js.map
 /pages/current
 /pages/e-edition
+/images/uploads/*
 #################
 ## Eclipse
 #################
