@@ -31,8 +31,12 @@ if ($header->accept === 'application/json') {
 		} else {
 			$resp->notify('Request for menu', $_GET['load_menu']);
 		}
+	} elseif(array_key_exists('filename', $_POST)) {
+		$resp->notify('Success', "{$_POST['filename']} uploaded.");
+		Core\Console::getInstance()->log($_REQUEST);
 	} else {
-		$resp->notify('Invalid request', null, DOMAIN . 'images/sun-icons/128.png');
+		$resp->notify('Invalid request', 'See console for details.', DOMAIN . 'images/sun-icons/128.png');
+		Core\Console::getInstance()->info($_REQUEST);
 	}
 	$resp->send();
 	exit();
