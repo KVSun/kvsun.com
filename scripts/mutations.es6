@@ -19,6 +19,7 @@ import {
 } from './eventHandlers.es6';
 import wysiwyg from './std-js/wysiwyg.es6';
 import kbd from './std-js/kbd_shortcuts.es6';
+import DnD from './fileupload.es6';
 
 function pictureShim(picture) {
 	if ('matchMedia' in window) {
@@ -74,6 +75,8 @@ export const watcher = {
 				&& this.target.getAttribute('contenteditable') === 'true'
 			) {
 				this.target.addEventListener('keydown', kbd);
+				DnD(this.target);
+
 			} else {
 				this.target.removeEventListener('keydown', kbd);
 			}
