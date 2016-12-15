@@ -31,15 +31,18 @@ if ($header->accept === 'application/json') {
 		} else {
 			$resp->notify('Request for menu', $_GET['load_menu']);
 		}
-	} elseif(array_key_exists('filename', $_POST)) {
-		$resp->notify('Success', "{$_POST['filename']} uploaded.");
-		$uploads = __DIR__ . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . 'uploads';
-		$date = new \DateTime();
-		$format = 'Y' . DIRECTORY_SEPARATOR . 'm' . DIRECTORY_SEPARATOR . 'j' . DIRECTORY_SEPARATOR;
-		$uploads .= DIRECTORY_SEPARATOR . $date->format($format);
-		file_put_contents("{$uploads}{$_POST['filename']}", $_POST['data']);
-		$resp->append('body', "<img src=\"/images/uploads/{$date->format($format)}{$_POST['filename']}\"/>");
-		Core\Console::getInstance()->log($_REQUEST);
+	} elseif(array_key_exists('upload', $_FILES)) {
+		$file = new \shgysk8zer0\Core\UploadFile('upload');
+		if (in_array($file->type, ['image/jpeg', 'image/png', 'image/svg+xml', 'image/gif'])) {
+			$resp->notify('Success', "File uploaded.");
+			$file->saveTo(__DIR__ . '/images/uploads');
+		} else {
+			throw new \Exception("{$file->name} has a type of {$file->type}, which is not allowed.");
+		}
+		// $uploads = __DIR__ . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . 'uploads';
+		// $date = new \DateTime();
+		// $format = 'Y' . DIRECTORY_SEPARATOR . 'm' . DIRECTORY_SEPARATOR . 'j';
+		// $file->saveTo($uploads . DIRECTORY_SEPARATOR);
 	} else {
 		$resp->notify('Invalid request', 'See console for details.', DOMAIN . 'images/sun-icons/128.png');
 		Core\Console::getInstance()->info($_REQUEST);
