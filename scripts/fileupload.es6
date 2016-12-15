@@ -1,3 +1,5 @@
+import handleJSON from './std-js/json_response.es6';
+
 export default function DnD(el) {
 	el.ondragover = dragOverHandler;
 	el.ondragend = dragEndHandler;
@@ -10,15 +12,21 @@ export default function DnD(el) {
 			files.forEach(file => {
 				let reader = new FileReader();
 				reader.addEventListener('load', load => {
-					console.log(load);
+					console.log(load, file);
 					let headers = new Headers();
-					headers.set('Content-Type', file.type);
 					let url = new URL('api.php', document.baseURI);
+					let body = new FormData();
+					headers.set('Accept', 'application/json');
+					body.set('filename', file.name);
+					body.set('type', file.type);
+					body.set('data', reader.result);
+					body.set('size', file.size);
+					body.set('modified', file.lastModified);
 					fetch(url, {
 						headers,
 						method: 'POST',
-						body: file.result
-					}).then(resp => resp.json()).then(json => console.log(json)).catch(err => console.error(err));
+						body
+					}).then(handleJSON).catch(err => console.error(err));
 				});
 				reader.addEventListener('error', fileError);
 				if (/image\/*/.test(file.type)) {
