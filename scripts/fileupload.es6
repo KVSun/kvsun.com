@@ -17,11 +17,7 @@ export default function DnD(el) {
 					let url = new URL('api.php', document.baseURI);
 					let body = new FormData();
 					headers.set('Accept', 'application/json');
-					body.set('filename', file.name);
-					body.set('type', file.type);
-					body.set('data', reader.result);
-					body.set('size', file.size);
-					body.set('modified', file.lastModified);
+					body.set('upload', file, file.name);
 					fetch(url, {
 						headers,
 						method: 'POST',
