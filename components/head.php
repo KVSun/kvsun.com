@@ -8,6 +8,7 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 	if ($pdo->connected) {
 		$data = $pdo->nameValue('head');
 		$head->append('title', isset($page->title) ? "{$data->title} | {$page->title}" : $data->title);
+		$head->append('base', null, ['href' => \KVSun\DOMAIN]);
 		$head->append('meta', null, [
 			'name' => 'viewport',
 			'content' => $data->viewport
