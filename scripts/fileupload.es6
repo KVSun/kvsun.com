@@ -1,5 +1,3 @@
-import handleJSON from './std-js/json_response.es6';
-
 export default function DnD(el) {
 	el.ondragover = dragOverHandler;
 	el.ondragend = dragEndHandler;
@@ -21,7 +19,26 @@ export default function DnD(el) {
 						headers,
 						method: 'POST',
 						body
-					}).then(handleJSON).catch(err => console.error(err));
+					}).then(resp => {
+						if (resp.ok) {
+							if (resp.headers.get('Content-Type') === 'application/json') {
+								return resp.json();
+							} else {
+								throw new TypeError('Request did not get a JSON response.');
+							}
+						} else {
+							throw new Error(`"${resp.url}" -> ${resp.status}:${resp.statusText}`);
+						}
+					}).then(json => {
+						if ('path' in json) {
+							document.execCommand('insertImage', null, json.path);
+							// if (('srcset' in json) && (typeof json.srcset === 'object')) {
+							//
+							// }
+						} else {
+							console.error('No image path was returned');
+						}
+					}).catch(err => console.error(err));
 				});
 				reader.addEventListener('error', fileError);
 				if (/image\/*/.test(file.type)) {
