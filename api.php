@@ -34,15 +34,15 @@ if ($header->accept === 'application/json') {
 	} elseif(array_key_exists('upload', $_FILES)) {
 		$file = new \shgysk8zer0\Core\UploadFile('upload');
 		if (in_array($file->type, ['image/jpeg', 'image/png', 'image/svg+xml', 'image/gif'])) {
-			$resp->notify('Success', "File uploaded.");
-			$file->saveTo(__DIR__ . '/images/uploads');
+			if ($file->saveTo('images', 'uploads', date('Y'), date('m'))) {
+				header('Content-Type: application/json');
+				exit($file);
+			} else {
+				$resp->notify('Failed', 'Could not save uploaded file.');
+			}
 		} else {
 			throw new \Exception("{$file->name} has a type of {$file->type}, which is not allowed.");
 		}
-		// $uploads = __DIR__ . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR . 'uploads';
-		// $date = new \DateTime();
-		// $format = 'Y' . DIRECTORY_SEPARATOR . 'm' . DIRECTORY_SEPARATOR . 'j';
-		// $file->saveTo($uploads . DIRECTORY_SEPARATOR);
 	} else {
 		$resp->notify('Invalid request', 'See console for details.', DOMAIN . 'images/sun-icons/128.png');
 		Core\Console::getInstance()->info($_REQUEST);
