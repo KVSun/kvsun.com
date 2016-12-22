@@ -5,39 +5,77 @@ use \shgysk8zer0\Core as Core;
 use \shgysk8zer0\Core_API as API;
 use \shgysk8zer0\DOM as DOM;
 
-function exception_error_handler($severity, $message, $file, $line)
+/**
+ * [exception_error_handler description]
+ * @param  Int    $severity [description]
+ * @param  String $message  [description]
+ * @param  String $file     [description]
+ * @param  Int    $line     [description]
+ * @return Bool             [description]
+ */
+function exception_error_handler(
+	Int $severity,
+	String $message,
+	String $file,
+	Int $line
+): Bool
 {
-	$console = \shgysk8zer0\Core\Console::getInstance();
 	$e = new \ErrorException($message, 0, $severity, $file, $line);
-	$console->error(['error' => [
+	Core\Console::getInstance()->error(['error' => [
 		'message' => $e->getMessage(),
 		'file'    => $e->getFile(),
 		'line'    => $e->getLine(),
 		'code'    => $e->getCode(),
 		'trace'   => $e->getTrace(),
 	]]);
+	return true;
 }
 
-function use_icon($icon, DOM\HTMLElement $parent, Array $attrs = array())
+/**
+ * [use_icon description]
+ * @param  String         $icon   [description]
+ * @param  DOMHTMLElement $parent [description]
+ * @param  array          $attrs  [description]
+ * @return [type]                 [description]
+ */
+function use_icon(
+	String $icon,
+	DOM\HTMLElement $parent,
+	Array $attrs = array()
+): DOM\HTMLElement
 {
 	$attrs = array_merge([
-		'xmlns' => 'http://www.w3.org/2000/svg',
+		'xmlns'       => 'http://www.w3.org/2000/svg',
 		'xmlns:xlink' => 'http://www.w3.org/1999/xlink',
-		'version' => 1.1,
-		'height' => 64,
-		'width' => 64,
+		'version'     => 1.1,
+		'height'      => 64,
+		'width'       => 64,
 	], $attrs);
 	$svg = $parent->append('svg', null, $attrs);
-	$use = $svg->append('use', null, ['xlink:href' => DOMAIN . SPRITES . "#{$icon}"]);
+	$svg->append('use', null, [
+		'xlink:href' => DOMAIN . SPRITES . "#{$icon}"
+	]);
+
 	return $svg;
 }
 
-function load(...$files)
+/**
+ * [load description]
+ * @param  Array $files  file1, file2, ...
+ * @return Array         [description]
+ */
+function load(...$files) : Array
 {
 	return array_map(__NAMESPACE__ . '\load_file', $files);
 }
 
-function load_file($file, $ext = EXT)
+/**
+ * [load_file description]
+ * @param  String $file [description]
+ * @param  String $ext  [description]
+ * @return mixed        [description]
+ */
+function load_file(String $file, String $ext = EXT)
 {
 	static $args = null;
 
@@ -59,7 +97,13 @@ function load_file($file, $ext = EXT)
 	}
 }
 
-function append_to_dom($fname, DOM\HTMLElement $el)
+/**
+ * [append_to_dom description]
+ * @param  String          $fname   [description]
+ * @param  DOM\HTML\Element  $el    [description]
+ * @return DOM\HTML\Element         [description]
+ */
+function append_to_dom(String $fname, DOM\HTMLElement $el): DOM\HTMLElement
 {
 	$ext = pathinfo($fname, PATHINFO_EXTENSION);
 	if (empty($ext)) {
@@ -69,7 +113,11 @@ function append_to_dom($fname, DOM\HTMLElement $el)
 	return $el->importHTML($html);
 }
 
-function get_path()
+/**
+ * [get_path description]
+ * @return Array [description]
+ */
+function get_path(): Array
 {
 	static $path = null;
 	if (is_null($path)) {
