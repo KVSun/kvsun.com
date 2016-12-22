@@ -66,6 +66,8 @@ switch($_REQUEST['form']) {
 		];
 		if ($login->loginWith($creds)) {
 			$resp->notify('Login Successful', "Welcome back, {$creds['user']}");
+			$resp->close('#login-dialog');
+			$resp->clear('login');
 		} else {
 			$resp->notify('Login Rejected');
 		}
@@ -89,6 +91,8 @@ switch($_REQUEST['form']) {
 		}
 		break;
 	default:
-		$resp->notify('Invalid request', "No handler for {$_REQUEST['form']}");
-		Core\Console::getInstance()->error($_REQUEST);
+		trigger_error('Unhandled form submission.');
+		if (\KVSun\DEBUG) {
+			Core\Console::getInstance()->info($_REQUEST);
+		}
 }
