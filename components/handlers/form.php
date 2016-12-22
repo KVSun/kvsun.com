@@ -70,6 +70,7 @@ switch($_REQUEST['form']) {
 			$resp->clear('login');
 		} else {
 			$resp->notify('Login Rejected');
+			$resp->focus('#login-email');
 		}
 		break;
 	case 'registration-form':
