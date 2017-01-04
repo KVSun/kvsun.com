@@ -6,9 +6,9 @@ use \shgysk8zer0\DOM as DOM;
 
 error_reporting(0);
 
-if (version_compare(PHP_VERSION, '7.0.0', '<')) {
+if (version_compare(PHP_VERSION, '5.6', '<')) {
 	http_response_code(500);
-	exit('PHP 7 or greater is required.');
+	exit('PHP 5.6 or greater is required.');
 }
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';

@@ -14,11 +14,11 @@ use \shgysk8zer0\DOM as DOM;
  * @return Bool             [description]
  */
 function exception_error_handler(
-	Int $severity,
-	String $message,
-	String $file,
-	Int $line
-): Bool
+	$severity,
+	$message,
+	$file,
+	$line
+)
 {
 	$e = new \ErrorException($message, 0, $severity, $file, $line);
 	Core\Console::getInstance()->error(['error' => [
@@ -36,7 +36,7 @@ function exception_error_handler(
  * @param void
  * @return shgysk8zer0\Login\User [description]
  */
-function restore_login() : \shgysk8zer0\Login\User
+function restore_login()
 {
 	static $user = null;
 	if (is_null($user)) {
@@ -56,11 +56,11 @@ function check_role($role = 'admin')
 }
 
 function setcookie(
-	String $name,
-	String $value,
-	Bool $httpOnly = true,
-	String $path = '/'
-) : Bool
+	$name,
+	$value,
+	$httpOnly = true,
+	$path = '/'
+)
 {
 	return \setcookie(
 		$name,
@@ -81,10 +81,10 @@ function setcookie(
  * @return [type]                 [description]
  */
 function use_icon(
-	String $icon,
+	$icon,
 	DOM\HTMLElement $parent,
 	Array $attrs = array()
-): DOM\HTMLElement
+)
 {
 	$attrs = array_merge([
 		'xmlns'       => 'http://www.w3.org/2000/svg',
@@ -106,7 +106,7 @@ function use_icon(
  * @param  Array $files  file1, file2, ...
  * @return Array         [description]
  */
-function load(...$files) : Array
+function load(...$files)
 {
 	return array_map(__NAMESPACE__ . '\load_file', $files);
 }
@@ -117,7 +117,7 @@ function load(...$files) : Array
  * @param  String $ext  [description]
  * @return mixed        [description]
  */
-function load_file(String $file, String $ext = EXT)
+function load_file($file, $ext = EXT)
 {
 	static $args = null;
 
@@ -145,7 +145,7 @@ function load_file(String $file, String $ext = EXT)
  * @param  DOM\HTML\Element  $el    [description]
  * @return DOM\HTML\Element         [description]
  */
-function append_to_dom(String $fname, DOM\HTMLElement $el): DOM\HTMLElement
+function append_to_dom($fname, DOM\HTMLElement $el)
 {
 	$ext = pathinfo($fname, PATHINFO_EXTENSION);
 	if (empty($ext)) {
@@ -159,7 +159,7 @@ function append_to_dom(String $fname, DOM\HTMLElement $el): DOM\HTMLElement
  * [get_path description]
  * @return Array [description]
  */
-function get_path(): Array
+function get_path()
 {
 	static $path = null;
 	if (is_null($path)) {
