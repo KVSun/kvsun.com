@@ -26,6 +26,14 @@ const CSP          = array(
 	'media-src'    => '*',
 );
 
+const USER_ROLES   = array(
+	0 => 'god',
+	1 => 'admin',
+	2 => 'editor',
+	3 => 'subscriber',
+	4 => 'guest',
+);
+
 if (! array_key_exists('SERVER_NAME', $_SERVER)) {
 	$_SERVER['SERVER_NAME'] = 'localhost';
 }
