@@ -1,5 +1,9 @@
 <?php
 namespace KVSun;
+
+use \shgysk8zer0\Core as Core;
+use \shgysk8zer0\DOM as DOM;
+
 error_reporting(0);
 
 if (version_compare(PHP_VERSION, '7.0.0', '<')) {
@@ -8,18 +12,17 @@ if (version_compare(PHP_VERSION, '7.0.0', '<')) {
 }
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
+if (defined(__NAMESPACE__ . '\CSP')) {
+	(new Core\CSP(CSP))();
+}
 
-if (DEBUG) {
-	\shgysk8zer0\Core\Console::getInstance()->asExceptionHandler();
+if (restore_login()->status == 1 or DEBUG) {
+	$timer = new Core\Timer();
+	Core\Console::getInstance()->asExceptionHandler();
 	set_error_handler(__NAMESPACE__ . '\exception_error_handler');
 }
 
-if (defined(__NAMESPACE__ . '\CSP')) {
-	(new \shgysk8zer0\Core\CSP(CSP))();
-}
-
-define('URL', \shgysk8zer0\Core\URL::getInstance());
-\shgysk8zer0\DOM\HTMLElement::$import_path = COMPONENTS;
+DOM\HTMLElement::$import_path = COMPONENTS;
 
 if (@file_exists(CONFIG . DB_CREDS)) {
 	$path = get_path();
@@ -29,13 +32,14 @@ if (@file_exists(CONFIG . DB_CREDS)) {
 	}
 	unset($path);
 	load('head', 'header', 'nav', 'main', 'sidebar', 'footer');
-	\shgysk8zer0\DOM\HTML::getInstance()->body->class = 'flex row wrap';
+	DOM\HTML::getInstance()->body->class = 'flex row wrap';
 } else {
 	require_once COMPONENTS . 'install-form.php';
 }
 
-if (DEBUG) {
-	\shgysk8zer0\Core\Console::getInstance()->sendLogHeader();
+if (restore_login()->status == 1 or DEBUG) {
+	Core\Console::getInstance()->log("Loaded in $timer seconds.");
+	Core\Console::getInstance()->sendLogHeader();
 }
 
-exit(\shgysk8zer0\DOM\HTML::getInstance());
+exit(DOM\HTML::getInstance());
