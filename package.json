@@ -29,7 +29,7 @@
     "build:css": "myth stylesheets/styles/import.css -c stylesheets/styles/styles.css",
     "build:js": "webpack",
     "build:icons": "svg-sprite-generate -c images/icons.csv -o images/icons.svg",
-    "build:all": "npm run build:icons && npm run build:css && npm run build:js",
+    "build:all": "npm run build:icons && npm run build:js",
     "lint:js": "eslint --ignore-path .eslintignore --config .eslintrc js/",
     "lint:php": "php unit.php",
     "git:fetch": "git fetch --all --prune --tags",
