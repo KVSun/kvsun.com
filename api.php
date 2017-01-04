@@ -36,6 +36,11 @@ if ($header->accept === 'application/json') {
 			$resp->notify('Request for menu', $_GET['load_menu']);
 		}
 	} elseif(array_key_exists('upload', $_FILES)) {
+		if (! check_role('editor')) {
+			trigger_error('Unauthorized upload attempted');
+			http_response_code(Status::UNAUTHORIZED);
+			exit('{}');
+		}
 		$file = new \shgysk8zer0\Core\UploadFile('upload');
 		if (in_array($file->type, ['image/jpeg', 'image/png', 'image/svg+xml', 'image/gif'])) {
 			if ($file->saveTo('images', 'uploads', date('Y'), date('m'))) {
