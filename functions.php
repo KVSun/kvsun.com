@@ -32,6 +32,39 @@ function exception_error_handler(
 }
 
 /**
+ * Gets login user from cookie or session
+ * @param void
+ * @return shgysk8zer0\Login\User [description]
+ */
+function restore_login() : \shgysk8zer0\Login\User
+{
+	static $user = null;
+	if (is_null($user)) {
+		$user = \shgysk8zer0\Login\User::restore();
+	}
+
+	return $user;
+}
+
+function setcookie(
+	String $name,
+	String $value,
+	Bool $httpOnly = true,
+	String $path = '/'
+) : Bool
+{
+	return \setcookie(
+		$name,
+		$value,
+		strtotime('+1 month'),
+		$path,
+		$_SERVER['HTTP_HOST'],
+		array_key_exists('HTTPS', $_SERVER),
+		$httpOnly
+	);
+}
+
+/**
  * [use_icon description]
  * @param  String         $icon   [description]
  * @param  DOMHTMLElement $parent [description]
