@@ -4,14 +4,18 @@ namespace KVSun;
 use \shgysk8zer0\Core as Core;
 use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as Status;
 
+error_reporting(0);
 ob_start();
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
 
-if (DEBUG) {
-	Core\Console::getInstance()->asErrorHandler()->asExceptionHandler();
+if (restore_login()->status == 1 or DEBUG) {
+	Core\Console::getInstance()->asExceptionHandler();
+	set_error_handler(__NAMESPACE__ . '\exception_error_handler');
 }
 
-$header = Core\Headers::getInstance();
+$header  = Core\Headers::getInstance();
+
+
 if ($header->accept === 'application/json') {
 	$resp = Core\JSON_Response::getInstance();
 	if (array_key_exists('url', $_GET)) {
@@ -32,6 +36,11 @@ if ($header->accept === 'application/json') {
 			$resp->notify('Request for menu', $_GET['load_menu']);
 		}
 	} elseif(array_key_exists('upload', $_FILES)) {
+		if (! check_role('editor')) {
+			trigger_error('Unauthorized upload attempted');
+			http_response_code(Status::UNAUTHORIZED);
+			exit('{}');
+		}
 		$file = new \shgysk8zer0\Core\UploadFile('upload');
 		if (in_array($file->type, ['image/jpeg', 'image/png', 'image/svg+xml', 'image/gif'])) {
 			if ($file->saveTo('images', 'uploads', date('Y'), date('m'))) {

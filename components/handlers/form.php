@@ -59,15 +59,20 @@ switch($_REQUEST['form']) {
 		break;
 
 	case 'login':
-		$login = Core\Login::load(\KVSun\DB_CREDS);
-		$creds = [
-			'user'     => $_POST['login']['email'],
-			'password' => $_POST['login']['password']
-		];
-		if ($login->loginWith($creds)) {
-			$resp->notify('Login Successful', "Welcome back, {$creds['user']}");
+		$user = \shgysk8zer0\Login\User::load(\KVSun\DB_CREDS);
+		$user::$check_wp_pass = true;
+		if ($user($_POST['login']['email'], $_POST['login']['password'])) {
+			if (array_key_exists('remember', $_POST['login'])) {
+				$user->setCookie();
+			}
+			$user->setSession();
+			$resp->notify('Login Successful', "Welcome back, $user");
+			$resp->close('#login-dialog');
+			$resp->clear('login');
+			unset($ser);
 		} else {
 			$resp->notify('Login Rejected');
+			$resp->focus('#login-email');
 		}
 		break;
 	case 'registration-form':
@@ -89,6 +94,8 @@ switch($_REQUEST['form']) {
 		}
 		break;
 	default:
-		$resp->notify('Invalid request', "No handler for {$_REQUEST['form']}");
-		Core\Console::getInstance()->error($_REQUEST);
+		trigger_error('Unhandled form submission.');
+		if (\KVSun\DEBUG) {
+			Core\Console::getInstance()->info($_REQUEST);
+		}
 }

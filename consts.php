@@ -5,7 +5,7 @@ const INCLUDE_PATH = array(
 	'./classes',
 	'./config',
 	__DIR__,
-	);
+);
 const COMPONENTS   = __DIR__ . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR;
 // const CLASSES      = __DIR__ . DIRECTORY_SEPARATOR . 'classes';
 const CONFIG       = __DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR;
@@ -18,6 +18,21 @@ const STYLE        = 'stylesheets/styles/styles.css';
 const SCRIPTS_DIR  = 'scripts/';
 const SCRIPTS      = array('custom.js');
 const SPRITES      = 'images/icons.svg';
+const CSP          = array(
+	'default-src'  => "'self'",
+	'img-src'      => ['*', 'data:'],
+	'script-src'   => "'self'",
+	'style-src'    => ["'self'", "'unsafe-inline'"],
+	'media-src'    => '*',
+);
+
+const USER_ROLES   = array(
+	0 => 'god',
+	1 => 'admin',
+	2 => 'editor',
+	3 => 'subscriber',
+	4 => 'guest',
+);
 
 if (! array_key_exists('SERVER_NAME', $_SERVER)) {
 	$_SERVER['SERVER_NAME'] = 'localhost';

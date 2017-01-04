@@ -46,3 +46,6 @@
 [submodule "scripts/std-js"]
 	path = scripts/std-js
 	url = git://github.com/shgysk8zer0/std-js.git
+[submodule "classes/shgysk8zer0/login"]
+	path = classes/shgysk8zer0/login
+	url = git://github.com/shgysk8zer0/login.git

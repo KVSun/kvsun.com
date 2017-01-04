@@ -1,38 +1,46 @@
 <?php
 namespace KVSun;
-error_reporting(0);
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
 
-if (DEBUG) {
-	\shgysk8zer0\Core\Console::getInstance()->asExceptionHandler();
+use \shgysk8zer0\Core as Core;
+use \shgysk8zer0\DOM as DOM;
+
+error_reporting(0);
+
+if (version_compare(PHP_VERSION, '5.6', '<')) {
+	http_response_code(500);
+	exit('PHP 5.6 or greater is required.');
+}
+
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
+if (defined(__NAMESPACE__ . '\CSP')) {
+	(new Core\CSP(CSP))();
+}
+
+if (check_role('admin') or DEBUG) {
+	$timer = new Core\Timer();
+	Core\Console::getInstance()->asExceptionHandler();
 	set_error_handler(__NAMESPACE__ . '\exception_error_handler');
 }
 
-define('URL', \shgysk8zer0\Core\URL::getInstance());
-\shgysk8zer0\DOM\HTMLElement::$import_path = COMPONENTS;
-$csp = new \shgysk8zer0\Core\CSP([
-	'default-src'  => "'self'",
-	'img-src'      => ['*', 'data:'],
-	'script-src'   => "'self'",
-	'style-src'    => ["'self'", "'unsafe-inline'"],
-	'media-src'    => '*',
-]);
-$csp();
-unset($csp);
+DOM\HTMLElement::$import_path = COMPONENTS;
 
-$path = get_path();
 if (@file_exists(CONFIG . DB_CREDS)) {
+	$path = get_path();
 	if (!empty($path) and file_exists(\KVSun\PAGES_DIR . "{$path[0]}.php")) {
 		require \KVSun\PAGES_DIR . "{$path[0]}.php";
 		exit();
 	}
 	unset($path);
 	load('head', 'header', 'nav', 'main', 'sidebar', 'footer');
-	\shgysk8zer0\DOM\HTML::getInstance()->body->class = 'flex row wrap';
+	DOM\HTML::getInstance()->body->class = 'flex row wrap';
 } else {
 	require_once COMPONENTS . 'install-form.php';
 }
-if (DEBUG) {
-	\shgysk8zer0\Core\Console::getInstance()->sendLogHeader();
+
+if (check_role('admin') or DEBUG) {
+	Core\Console::getInstance()->info(restore_login());
+	Core\Console::getInstance()->log("Loaded in $timer seconds.");
+	Core\Console::getInstance()->sendLogHeader();
 }
-exit(\shgysk8zer0\DOM\HTML::getInstance());
+
+exit(DOM\HTML::getInstance());

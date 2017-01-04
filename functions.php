@@ -5,38 +5,118 @@ use \shgysk8zer0\Core as Core;
 use \shgysk8zer0\Core_API as API;
 use \shgysk8zer0\DOM as DOM;
 
-function exception_error_handler($severity, $message, $file, $line)
+/**
+ * [exception_error_handler description]
+ * @param  Int    $severity [description]
+ * @param  String $message  [description]
+ * @param  String $file     [description]
+ * @param  Int    $line     [description]
+ * @return Bool             [description]
+ */
+function exception_error_handler(
+	$severity,
+	$message,
+	$file,
+	$line
+)
 {
-	$console = \shgysk8zer0\Core\Console::getInstance();
 	$e = new \ErrorException($message, 0, $severity, $file, $line);
-	$console->error(['error' => [
+	Core\Console::getInstance()->error(['error' => [
 		'message' => $e->getMessage(),
 		'file'    => $e->getFile(),
 		'line'    => $e->getLine(),
 		'code'    => $e->getCode(),
 		'trace'   => $e->getTrace(),
 	]]);
+	return true;
 }
 
-function use_icon($icon, DOM\HTMLElement $parent, Array $attrs = array())
+/**
+ * Gets login user from cookie or session
+ * @param void
+ * @return shgysk8zer0\Login\User [description]
+ */
+function restore_login()
+{
+	static $user = null;
+	if (is_null($user)) {
+		$user = \shgysk8zer0\Login\User::restore();
+	}
+
+	return $user;
+}
+
+function check_role($role = 'admin')
+{
+	$user = restore_login();
+	if (! in_array($role, USER_ROLES)) {
+		throw new \InvalidArgumentException("$role is not a valid user role.");
+	}
+	return isset($user->status) and array_search($role, USER_ROLES) >= $user->status;
+}
+
+function setcookie(
+	$name,
+	$value,
+	$httpOnly = true,
+	$path = '/'
+)
+{
+	return \setcookie(
+		$name,
+		$value,
+		strtotime('+1 month'),
+		$path,
+		$_SERVER['HTTP_HOST'],
+		array_key_exists('HTTPS', $_SERVER),
+		$httpOnly
+	);
+}
+
+/**
+ * [use_icon description]
+ * @param  String         $icon   [description]
+ * @param  DOMHTMLElement $parent [description]
+ * @param  array          $attrs  [description]
+ * @return [type]                 [description]
+ */
+function use_icon(
+	$icon,
+	DOM\HTMLElement $parent,
+	Array $attrs = array()
+)
 {
 	$attrs = array_merge([
-		'xmlns' => 'http://www.w3.org/2000/svg',
+		'xmlns'       => 'http://www.w3.org/2000/svg',
 		'xmlns:xlink' => 'http://www.w3.org/1999/xlink',
-		'version' => 1.1,
-		'height' => 64,
-		'width' => 64,
+		'version'     => 1.1,
+		'height'      => 64,
+		'width'       => 64,
 	], $attrs);
 	$svg = $parent->append('svg', null, $attrs);
-	$use = $svg->append('use', null, ['xlink:href' => DOMAIN . SPRITES . "#{$icon}"]);
+	$svg->append('use', null, [
+		'xlink:href' => DOMAIN . SPRITES . "#{$icon}"
+	]);
+
 	return $svg;
 }
 
+/**
+ * [load description]
+ * @param  Array $files  file1, file2, ...
+ * @return Array         [description]
+ */
 function load(...$files)
 {
 	return array_map(__NAMESPACE__ . '\load_file', $files);
 }
 
+/**
+ * [load_file description]
+ * @param  String $file [description]
+ * @param  String $ext  [description]
+ * @return mixed        [description]
+ */
 function load_file($file, $ext = EXT)
 {
 	static $args = null;
@@ -59,6 +139,12 @@ function load_file($file, $ext = EXT)
 	}
 }
 
+/**
+ * [append_to_dom description]
+ * @param  String          $fname   [description]
+ * @param  DOM\HTML\Element  $el    [description]
+ * @return DOM\HTML\Element         [description]
+ */
 function append_to_dom($fname, DOM\HTMLElement $el)
 {
 	$ext = pathinfo($fname, PATHINFO_EXTENSION);
@@ -69,6 +155,10 @@ function append_to_dom($fname, DOM\HTMLElement $el)
 	return $el->importHTML($html);
 }
 
+/**
+ * [get_path description]
+ * @return Array [description]
+ */
 function get_path()
 {
 	static $path = null;
