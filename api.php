@@ -4,14 +4,18 @@ namespace KVSun;
 use \shgysk8zer0\Core as Core;
 use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as Status;
 
+error_reporting(0);
 ob_start();
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
 
-if (DEBUG) {
-	Core\Console::getInstance()->asErrorHandler()->asExceptionHandler();
+if (restore_login()->status == 1 or DEBUG) {
+	Core\Console::getInstance()->asExceptionHandler();
+	set_error_handler(__NAMESPACE__ . '\exception_error_handler');
 }
 
-$header = Core\Headers::getInstance();
+$header  = Core\Headers::getInstance();
+
+
 if ($header->accept === 'application/json') {
 	$resp = Core\JSON_Response::getInstance();
 	if (array_key_exists('url', $_GET)) {
