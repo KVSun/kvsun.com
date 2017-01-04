@@ -16,7 +16,7 @@ if (defined(__NAMESPACE__ . '\CSP')) {
 	(new Core\CSP(CSP))();
 }
 
-if (restore_login()->status == 1 or DEBUG) {
+if (check_role('admin') or DEBUG) {
 	$timer = new Core\Timer();
 	Core\Console::getInstance()->asExceptionHandler();
 	set_error_handler(__NAMESPACE__ . '\exception_error_handler');
@@ -37,7 +37,8 @@ if (@file_exists(CONFIG . DB_CREDS)) {
 	require_once COMPONENTS . 'install-form.php';
 }
 
-if (restore_login()->status == 1 or DEBUG) {
+if (check_role('admin') or DEBUG) {
+	Core\Console::getInstance()->info(restore_login());
 	Core\Console::getInstance()->log("Loaded in $timer seconds.");
 	Core\Console::getInstance()->sendLogHeader();
 }
