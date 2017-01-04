@@ -46,6 +46,15 @@ function restore_login() : \shgysk8zer0\Login\User
 	return $user;
 }
 
+function check_role($role = 'admin')
+{
+	$user = restore_login();
+	if (! in_array($role, USER_ROLES)) {
+		throw new \InvalidArgumentException("$role is not a valid user role.");
+	}
+	return isset($user->status) and array_search($role, USER_ROLES) >= $user->status;
+}
+
 function setcookie(
 	String $name,
 	String $value,
