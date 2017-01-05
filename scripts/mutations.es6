@@ -21,6 +21,19 @@ import wysiwyg from './std-js/wysiwyg.es6';
 import kbd from './std-js/kbd_shortcuts.es6';
 import DnD from './fileupload.es6';
 
+function wysiwygToggle(el) {
+	if (
+		el.hasAttribute('contenteditable')
+		&& el.getAttribute('contenteditable') === 'true'
+	) {
+		el.addEventListener('keydown', kbd);
+		DnD(el);
+
+	} else {
+		el.removeEventListener('keydown', kbd);
+	}
+}
+
 function pictureShim(picture) {
 	if ('matchMedia' in window) {
 		let sources = picture.querySelectorAll('source[media][srcset]');
@@ -70,16 +83,7 @@ export const watcher = {
 			}
 			break;
 		case 'contenteditable':
-			if (
-				this.target.hasAttribute('contenteditable')
-				&& this.target.getAttribute('contenteditable') === 'true'
-			) {
-				this.target.addEventListener('keydown', kbd);
-				DnD(this.target);
-
-			} else {
-				this.target.removeEventListener('keydown', kbd);
-			}
+			wysiwygToggle(this.target);
 			break;
 
 		default:
@@ -163,8 +167,8 @@ export function bootstrap() {
 		query('input[data-equal-input]', node).forEach(input => {
 			input.addEventListener('input', matchInput);
 		});
-		query('[contenteditable="true"]', node).forEach(el => {
-			el.addEventListener('keydown', kbd);
+		query('[contenteditable]', node).forEach(el => {
+			wysiwygToggle(el);
 		});
 		query('menu[type="context"]', node).forEach(wysiwyg);
 		// query('[data-request]', node).forEach(el => {
