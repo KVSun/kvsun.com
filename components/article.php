@@ -4,6 +4,10 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 {
 	$article = $dom->getElementsByTagName('main')->item(0)->append('article');
 	if (is_object($page) and isset($page->content, $page->posted, $page->title)) {
+		if (\KVSun\check_role('editor')) {
+			$article->contenteditable = 'true';
+			$article->contextmenu = 'wysiwyg_menu';
+		}
 		$header = $article->append('header');
 		$header->append('h2', $page->title);
 		$header->append('span', "By {$page->author}");
