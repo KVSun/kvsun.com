@@ -33,6 +33,7 @@ final class Page
 		$this->_set('url', "$url");
 		$this->_pdo = Core\PDO::load();
 		$this->_path = explode('/', trim($url->path, '/'));
+		$this->_path = array_filter($this->_path);
 		if (!empty($this->_path)) {
 			$this->_set('category', $this->_getCat());
 			$post = $this($this->category->id, end($this->_path));

@@ -12,8 +12,11 @@ if (version_compare(PHP_VERSION, '5.6', '<')) {
 }
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
+
 if (defined(__NAMESPACE__ . '\CSP')) {
-	(new Core\CSP(CSP))();
+	$csp = new Core\CSP(CSP);
+	$csp(false);
+	unset($csp);
 }
 
 if (check_role('admin') or DEBUG) {
