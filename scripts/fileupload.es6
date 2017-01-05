@@ -18,7 +18,8 @@ export default function DnD(el) {
 					fetch(url, {
 						headers,
 						method: 'POST',
-						body
+						body,
+						credentials: 'include'
 					}).then(resp => {
 						if (resp.ok) {
 							if (resp.headers.get('Content-Type') === 'application/json') {
