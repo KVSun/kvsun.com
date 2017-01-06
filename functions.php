@@ -20,7 +20,7 @@ function exception_error_handler(
 	$line
 )
 {
-	$e = new \ErrorException($message, 0, $severity, $file, $line);
+	$e = new \Throwable($message, 0, $severity, $file, $line);
 	Core\Console::getInstance()->error(['error' => [
 		'message' => $e->getMessage(),
 		'file'    => $e->getFile(),
@@ -66,6 +66,19 @@ function setcookie(
 		array_key_exists('HTTPS', $_SERVER),
 		$httpOnly
 	);
+}
+
+function make_datalist($name, Array $items, $return_string = true)
+{
+	$tmp = new \DOMDocument();
+	$datalist = $tmp->appendChild($tmp->createElement('datalist'));
+	$datalist->setAttribute('id', $name);
+	foreach ($items as $item) {
+		$option = $datalist->appendChild($tmp->createElement('option'));
+		$option->setAttribute('value', $item);
+	}
+
+	return $return_string ? $tmp->saveHTML($datalist) : $datalist;
 }
 
 /**
