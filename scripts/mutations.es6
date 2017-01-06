@@ -86,6 +86,11 @@ export const watcher = {
 			wysiwygToggle(this.target);
 			break;
 
+		case 'list':
+			getDatalist(this.target);
+			break;
+
+
 		default:
 			console.error(`Unhandled attribute in watch: "${this.attributeName}"`);
 		}
