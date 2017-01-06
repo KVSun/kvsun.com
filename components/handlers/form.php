@@ -75,6 +75,7 @@ switch($_REQUEST['form']) {
 			$resp->focus('#login-email');
 		}
 		break;
+
 	case 'registration-form':
 		$users = $pdo('SELECT count(*) FROM `users`;');
 
@@ -93,9 +94,80 @@ switch($_REQUEST['form']) {
 			Core\Console::getInstance()->error($e);
 		}
 		break;
+
+	case 'new-post':
+		if (! \KVSun\check_role('editor')) {
+			http_response_code(Status::UNAUTHORIZED);
+			$resp->notify('Error', 'You must be logged in for that.')->send();
+		}
+
+		$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+		$sql = 'INSERT INTO `posts` (
+			`cat-id`,
+			`title`,
+			`author`,
+			`content`,
+			`posted`,
+			`updated`,
+			`draft`,
+			`url`,
+			`img`,
+			`posted_by`,
+			`keywords`,
+			`description`
+		) VALUES (
+			:cat,
+			:title,
+			:author,
+			:content,
+			CURRENT_TIMESTAMP,
+			CURRENT_TIMESTAMP,
+			:draft,
+			:url,
+			:img,
+			:posted,
+			:keywords,
+			:description
+		);';
+		$stm = $pdo->prepare($sql);
+		$user = \KVSun\restore_login();
+		$data = [];
+		$data['title'] = strip_tags($_POST['new-post']['title']);
+		$data['cat'] = 1;
+		$data['author'] = strip_tags($_POST['new-post']['author']);
+		$data['content'] = $_POST['new-post']['content'];
+		$data['draft'] = array_key_exists('draft', $_POST['new-post']);
+		$data['url'] = strtolower(str_replace(' ', '-', strip_tags($_POST['new-post']['title'])));
+		$data['posted'] = $user->id;
+		$data['keywords'] = array_key_exists('keywords', $_POST['new-post'])
+			? $_POST['new-post']['keywords']
+			: null;
+		$data['description'] = array_key_exists('description', $_POST['new-post'])
+			? $_POST['new-post']['description']
+			: null;
+
+		$article_dom = new \DOMDocument();
+		$article_dom->loadHTML($data['content']);
+		$imgs = $article_dom->getElementsByTagName('img');
+
+		$data['img'] = isset($imgs) ? $imgs->item(0)->getAttribute('src') : null;
+
+		unset($article_dom, $imgs);
+		Core\Console::getInstance()->info($data);
+
+		if ($stm->execute($data)) {
+			$resp->notify('Received post', $_POST['new-post']['title'])->send();
+		} else {
+			trigger_error('Error posting article.');
+			$resp->notify('Error', 'There was an error creating the post');
+		}
+		break;
+
 	default:
 		trigger_error('Unhandled form submission.');
+		header('Content-Type: application/json');
 		if (\KVSun\DEBUG) {
 			Core\Console::getInstance()->info($_REQUEST);
 		}
+		exit('{}');
 }
