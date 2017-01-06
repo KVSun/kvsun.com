@@ -38,12 +38,7 @@ function exception_error_handler(
  */
 function restore_login()
 {
-	static $user = null;
-	if (is_null($user)) {
-		$user = \shgysk8zer0\Login\User::restore('user', DB_CREDS);
-	}
-
-	return $user;
+	return \shgysk8zer0\Login\User::restore('user', DB_CREDS);
 }
 
 function check_role($role = 'admin')
