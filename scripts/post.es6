@@ -1,4 +1,4 @@
-export default function() {
+export function makePost() {
 	let main = document.querySelector('main');
 	Array.from(main.querySelectorAll('*')).forEach(el => el.remove());
 	let article = main.appendChild(document.createElement('article'));
@@ -25,4 +25,6 @@ export default function() {
 	content.dataset.inputName = `${form.name}[content]`;
 	button.textContent = 'Submit';
 	button.type = 'submit';
+
+	return article;
 }
