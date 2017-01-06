@@ -8,13 +8,12 @@ error_reporting(0);
 ob_start();
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
 
-if (restore_login()->status == 1 or DEBUG) {
+if (check_role('admin') or DEBUG) {
 	Core\Console::getInstance()->asExceptionHandler();
 	set_error_handler(__NAMESPACE__ . '\exception_error_handler');
 }
 
 $header  = Core\Headers::getInstance();
-
 
 if ($header->accept === 'application/json') {
 	$resp = Core\JSON_Response::getInstance();
@@ -23,7 +22,7 @@ if ($header->accept === 'application/json') {
 		$page = new \KVSun\Page($url);
 		$header->content_type = 'application/json';
 		Core\Console::getInstance()->log($page);
-		exit($page);
+		exit(json_encode($page));
 	} elseif (array_key_exists('form', $_REQUEST) and is_array($_REQUEST[$_REQUEST['form']])) {
 		require_once COMPONENTS . 'handlers' . DIRECTORY_SEPARATOR . 'form.php';
 	} elseif (array_key_exists('datalist', $_GET)) {
