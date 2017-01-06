@@ -7,8 +7,20 @@ use \shgysk8zer0\Core_API as API;
 use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as Status;
 
 $resp = Core\JSON_Response::getInstance();
+if (
+	array_key_exists('form', $_REQUEST) and is_string($_REQUEST['form'])
+	and array_key_exists($_REQUEST['form'], $_REQUEST)
+	and is_array($_REQUEST[$_REQUEST['form']])
+) {
+	$req = new Core\FormData($_REQUEST);
+} else {
+	$resp->notify(
+		'Error submitting form',
+		'Form name does not match submitted data.'
+	)->send();
+}
 
-switch($_REQUEST['form']) {
+switch($req->form) {
 	case 'install-form':
 		if (!is_dir(\KVSun\CONFIG)) {
 			$resp->notify('Config dir does not exist', \KVSun\CONFIG);
@@ -61,46 +73,51 @@ switch($_REQUEST['form']) {
 	case 'login':
 		$user = \shgysk8zer0\Login\User::load(\KVSun\DB_CREDS);
 		$user::$check_wp_pass = true;
-		if ($user($_POST['login']['email'], $_POST['login']['password'])) {
-			if (array_key_exists('remember', $_POST['login'])) {
+		if ($user($req->login->email, $req->login->password)) {
+			if (isset($req->login->remember)) {
 				$user->setCookie('user');
 			}
 			$user->setSession('user');
 			$resp->notify('Login Successful', "Welcome back, $user");
 			$resp->close('#login-dialog');
 			$resp->clear('login');
-			unset($ser);
 		} else {
 			$resp->notify('Login Rejected');
 			$resp->focus('#login-email');
 		}
 		break;
 
-	case 'registration-form':
-		$post = new \ArrayObject($_POST['register'], \ArrayObject::ARRAY_AS_PROPS);
+	case 'register':
 		if (
-			isset($post->username, $post->email, $post->name, $post->password)
-			and filter_var($post->email, \FILTER_VALIDATE_EMAIL)
+			isset(
+				$req->register,
+				$req->register->username,
+				$req->register->email,
+				$req->register->name,
+				$req->register->password
+			)
+			and filter_var($req->register->email, \FILTER_VALIDATE_EMAIL)
 		) {
-			$reg = [
-				'name'     => $post->name,
-				'username' => $post->username,
-				'email'    => $post->email,
-				'password' => password_hash($post->password, \PASSWORD_DEFAULT),
-			];
-			Core\Console::getInstance()->info($reg);
+			Core\Console::getInstance()->info($req);
+			Core\Console::getInstance()->info("$req");
+			Core\Console::getInstance()->sendLogHeader();
 			$resp->notify('Creating user','Check console')->send();
+		} else {
+			$resp->notify('Invalid registration entered', 'Please check your inputs');
+			Core\Console::getInstance()->info([
+				'username' => isset($req->register['username']),
+			]);
 		}
 
 		break;
 
 	case 'search':
 		$resp->notify('Search results', 'Check console for more info');
-		$pdo = Core\PDO::load();
+		$pdo = Core\PDO::load(\KVSun\DB_CREDS);
 		try {
 			$stm = $pdo->prepare('SELECT * FROM `posts` WHERE `title` LIKE :query');
 			// $stm->query = "%{$_REQUEST['search']['query']}%";
-			$stm->query = str_replace(' ', '%', "%{$_REQUEST['search']['query']}%");
+			$stm->query = str_replace(' ', '%', "%{$req->query}%");
 			$results = $stm->execute()->getResults();
 			Core\Console::getInstance()->table($results);
 		} catch (\Exception $e) {
@@ -180,7 +197,7 @@ switch($_REQUEST['form']) {
 		trigger_error('Unhandled form submission.');
 		header('Content-Type: application/json');
 		if (\KVSun\DEBUG) {
-			Core\Console::getInstance()->info($_REQUEST);
+			Core\Console::getInstance()->info($req);
 		}
 		exit('{}');
 }
