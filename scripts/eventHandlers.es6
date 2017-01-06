@@ -16,6 +16,9 @@ function submitForm(submit) {
 		let url = new URL(submit.target.action, location.origin);
 		// body.append('nonce', sessionStorage.getItem('nonce'));
 		body.append('form', submit.target.name);
+		$(`form[name="${submit.target.name}"] [data-input-name]`).each(input => {
+			body.append(input.dataset.inputName, input.innerHTML);
+		});
 		els.forEach(el => el.disabled = true);
 		headers.set('Accept', 'application/json');
 		fetch(url, {

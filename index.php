@@ -41,7 +41,6 @@ if (@file_exists(CONFIG . DB_CREDS)) {
 }
 
 if (check_role('admin') or DEBUG) {
-	Core\Console::getInstance()->info(restore_login());
 	Core\Console::getInstance()->log("Loaded in $timer seconds.");
 	Core\Console::getInstance()->sendLogHeader();
 }

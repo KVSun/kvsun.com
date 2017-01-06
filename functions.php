@@ -20,7 +20,7 @@ function exception_error_handler(
 	$line
 )
 {
-	$e = new \ErrorException($message, 0, $severity, $file, $line);
+	$e = new \Throwable($message, 0, $severity, $file, $line);
 	Core\Console::getInstance()->error(['error' => [
 		'message' => $e->getMessage(),
 		'file'    => $e->getFile(),
@@ -38,12 +38,7 @@ function exception_error_handler(
  */
 function restore_login()
 {
-	static $user = null;
-	if (is_null($user)) {
-		$user = \shgysk8zer0\Login\User::restore('user', DB_CREDS);
-	}
-
-	return $user;
+	return \shgysk8zer0\Login\User::restore('user', DB_CREDS);
 }
 
 function check_role($role = 'admin')
@@ -71,6 +66,19 @@ function setcookie(
 		array_key_exists('HTTPS', $_SERVER),
 		$httpOnly
 	);
+}
+
+function make_datalist($name, Array $items, $return_string = true)
+{
+	$tmp = new \DOMDocument();
+	$datalist = $tmp->appendChild($tmp->createElement('datalist'));
+	$datalist->setAttribute('id', $name);
+	foreach ($items as $item) {
+		$option = $datalist->appendChild($tmp->createElement('option'));
+		$option->setAttribute('value', $item);
+	}
+
+	return $return_string ? $tmp->saveHTML($datalist) : $datalist;
 }
 
 /**

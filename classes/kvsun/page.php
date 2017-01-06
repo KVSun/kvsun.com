@@ -5,10 +5,8 @@ use \shgysk8zer0\Core_API as API;
 use \shgysk8zer0\Core as Core;
 use \shgysk8zer0\DOM as DOM;
 
-final class Page
+final class Page implements \jsonSerializable, API\Interfaces\toString
 {
-	// use API\Traits\GetInstance;
-
 	const MAGIC_PROPERTY = '_data';
 
 	private $_path = array();
@@ -28,18 +26,21 @@ final class Page
 
 	private $_pdo;
 
-	public function __construct(Core\URL $url)
+	public function __construct(Core\URL $url, $db_creds = null)
 	{
 		$this->_set('url', "$url");
-		$this->_pdo = Core\PDO::load();
+		$this->_pdo = Core\PDO::load($db_creds);
 		$this->_path = explode('/', trim($url->path, '/'));
 		$this->_path = array_filter($this->_path);
+
 		if (!empty($this->_path)) {
 			$this->_set('category', $this->_getCat());
-			$post = $this($this->category->id, end($this->_path));
-			if (is_object($post)) {
-				foreach (get_object_vars($post) as $key => $value) {
-					$this->_set($key, $value);
+			if (count($this->_path) > 1 and isset($this->category->id)) {
+				$post = $this($this->category->id, end($this->_path));
+				if (is_object($post)) {
+					foreach (get_object_vars($post) as $key => $value) {
+						$this->_set($key, $value);
+					}
 				}
 			}
 		}
@@ -59,7 +60,12 @@ final class Page
 
 	public function __toString()
 	{
-		return json_encode($this->{self::MAGIC_PROPERTY});
+		return $this->content;
+	}
+
+	public function jsonSerialize()
+	{
+		return $this->{self::MAGIC_PROPERTY};
 	}
 
 	public function getCategories($like = null)
@@ -83,26 +89,31 @@ final class Page
 				 ORDER BY `sort`;'
 			);
 		}
-		return $stm->execute()->getResults();
+		return $stm->execute() ? $stm->getResults() : [];
 	}
 
 	public function __invoke($category, $url)
 	{
-		$stm = $this->_pdo->prepare('SELECT `title`,
-				`author`,
-				`content`,
-				`posted`,
-				`updated`,
-				`posted_by`,
-				`description`,
-				`keywords`
-			FROM `posts`
-			WHERE `cat-id` = :category and `url` = :url
-			LIMIT 1;
-		');
+		static $stm = null;
+		if (is_null($stm)) {
+			$stm = $this->_pdo->prepare('SELECT `title`,
+					`author`,
+					`content`,
+					`img`,
+					`posted`,
+					`updated`,
+					`posted_by`,
+					`description`,
+					`keywords`
+				FROM `posts`
+				WHERE `cat-id` = :category and `url` = :url
+				LIMIT 1;
+				');
+		}
+
 		$stm->category = $category;
 		$stm->url = $url;
-		return $stm->execute()->getResults(0);
+		return $stm->execute() ? $stm->fetchObject() : new \stdClass();
 	}
 
 	public function __debugInfo()
@@ -127,14 +138,15 @@ final class Page
 	private function _getCat($uri = '')
 	{
 		$stm = $this->_pdo->prepare('SELECT `id`,
-				`name`,
-				`url-name`,
-				`parent`
+			`name`,
+			`url-name`,
+			`parent`
 			FROM `categories`
 			WHERE `url-name` = :category
 			LIMIT 1;'
 		);
+
 		$stm->category = $this->_path[0];
-		return $stm->execute()->getResults(0);
+		return $stm->execute() ? $stm->fetchObject() : new \stdClass();
 	}
 }
