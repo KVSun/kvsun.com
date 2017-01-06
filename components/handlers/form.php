@@ -77,7 +77,20 @@ switch($_REQUEST['form']) {
 		break;
 
 	case 'registration-form':
-		$users = $pdo('SELECT count(*) FROM `users`;');
+		$post = new \ArrayObject($_POST['register'], \ArrayObject::ARRAY_AS_PROPS);
+		if (
+			isset($post->username, $post->email, $post->name, $post->password)
+			and filter_var($post->email, \FILTER_VALIDATE_EMAIL)
+		) {
+			$reg = [
+				'name'     => $post->name,
+				'username' => $post->username,
+				'email'    => $post->email,
+				'password' => password_hash($post->password, \PASSWORD_DEFAULT),
+			];
+			Core\Console::getInstance()->info($reg);
+			$resp->notify('Creating user','Check console')->send();
+		}
 
 		break;
 
