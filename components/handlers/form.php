@@ -63,9 +63,9 @@ switch($_REQUEST['form']) {
 		$user::$check_wp_pass = true;
 		if ($user($_POST['login']['email'], $_POST['login']['password'])) {
 			if (array_key_exists('remember', $_POST['login'])) {
-				$user->setCookie();
+				$user->setCookie('user');
 			}
-			$user->setSession();
+			$user->setSession('user');
 			$resp->notify('Login Successful', "Welcome back, $user");
 			$resp->close('#login-dialog');
 			$resp->clear('login');
