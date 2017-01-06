@@ -98,15 +98,61 @@ switch($req->form) {
 			)
 			and filter_var($req->register->email, \FILTER_VALIDATE_EMAIL)
 		) {
-			Core\Console::getInstance()->info($req);
-			Core\Console::getInstance()->info("$req");
-			Core\Console::getInstance()->sendLogHeader();
-			$resp->notify('Creating user','Check console')->send();
+			try {
+				$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+				$pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+				$pdo->beginTransaction();
+				$users = $pdo->prepare('INSERT INTO `users` (
+					`email`,
+					`username`,
+					`password`
+				) VALUES (
+					:email,
+					:username,
+					:password
+				);');
+				$user_data = $pdo->prepare('INSERT INTO `user_data` (
+					`id`,
+					`name`
+				) VALUES (
+					LAST_INSERT_ID(),
+					:name
+				);');
+				$subscribers = $pdo->prepare('INSERT INTO `subscribers` (
+					`id`,
+					`status`,
+					`sub_expires`
+				) VALUES (
+					LAST_INSERT_ID(),
+					:status,
+					NULL
+				);');
+				$users->execute([
+					'email' => $req->register->email,
+					'username' => $req->register->username,
+					'password' => password_hash($req->register->password, \PASSWORD_DEFAULT)
+				]);
+				$user_data->execute(['name' => $req->register->name]);
+				$subscribers->execute(['status' => array_search('guest', \KVSun\USER_ROLES)]);
+				$pdo->commit();
+				$user = \shgysk8zer0\Login\User::load(\KVSun\DB_CREDS);
+				if ($user($req->register->email, $req->register->password)) {
+					$user->setSession('user');
+					$user->setCookie('user');
+					$resp->close('#registration-dialog');
+					$resp->clear('register');
+					$resp->notify('Success', "Welcome {$req->register->name}");
+				} else {
+					$resp->notify('Error registering', 'There was an error saving your user info');
+				}
+				$resp->send();
+			} catch(\Exception $e) {
+				Core\Console::getInstance()->error($e);
+			}
 		} else {
 			$resp->notify('Invalid registration entered', 'Please check your inputs');
-			Core\Console::getInstance()->info([
-				'username' => isset($req->register['username']),
-			]);
+			$resp->focus('register[username]');
+			$resp->send();
 		}
 
 		break;
