@@ -179,6 +179,15 @@ switch($req->form) {
 			$resp->notify('Error', 'You must be logged in for that.')->send();
 		}
 
+		$post = new Core\FormData($_POST['new-post']);
+
+		if (! isset($post->author, $post->title, $post->content)) {
+			$resp->notify(
+				'Missing info for post',
+				'Please make sure it has a title, author, and content.'
+			)->send();
+		}
+
 		$pdo = Core\PDO::load(\KVSun\DB_CREDS);
 		$sql = 'INSERT INTO `posts` (
 			`cat-id`,
@@ -209,32 +218,27 @@ switch($req->form) {
 		);';
 		$stm = $pdo->prepare($sql);
 		$user = \KVSun\restore_login();
-		$data = [];
-		$data['title'] = strip_tags($_POST['new-post']['title']);
-		$data['cat'] = 1;
-		$data['author'] = strip_tags($_POST['new-post']['author']);
-		$data['content'] = $_POST['new-post']['content'];
-		$data['draft'] = array_key_exists('draft', $_POST['new-post']);
-		$data['url'] = strtolower(str_replace(' ', '-', strip_tags($_POST['new-post']['title'])));
-		$data['posted'] = $user->id;
-		$data['keywords'] = array_key_exists('keywords', $_POST['new-post'])
-			? $_POST['new-post']['keywords']
-			: null;
-		$data['description'] = array_key_exists('description', $_POST['new-post'])
-			? $_POST['new-post']['description']
-			: null;
+		$stm->title = strip_tags($post->title);
+		$stm->cat = 1;
+		$stm->author = strip_tags($post->author);
+		$stm->content = $post->content;
+		$stm->draft = isset($post->draft);
+		$stm->url = strtolower(str_replace(' ', '-', strip_tags($post->title)));
+		$stm->posted = $user->id;
+		$stm->keywords = isset($post->keywords) ? $post->keywords : null;
+		$stm->description = isset($post->description) ? $post->description: null;
 
 		$article_dom = new \DOMDocument();
-		$article_dom->loadHTML($data['content']);
+		$article_dom->loadHTML($post->content);
 		$imgs = $article_dom->getElementsByTagName('img');
 
-		$data['img'] = isset($imgs) ? $imgs->item(0)->getAttribute('src') : null;
+		$stm->img = isset($imgs) ? $imgs->item(0)->getAttribute('src') : null;
 
 		unset($article_dom, $imgs);
-		Core\Console::getInstance()->info($data);
+		Core\Console::getInstance()->info($post);
 
-		if ($stm->execute($data)) {
-			$resp->notify('Received post', $_POST['new-post']['title'])->send();
+		if ($stm->execute()) {
+			$resp->notify('Received post', $post->title)->send();
 		} else {
 			trigger_error('Error posting article.');
 			$resp->notify('Error', 'There was an error creating the post');
