@@ -11,7 +11,6 @@ if (version_compare(PHP_VERSION, '5.6', '<')) {
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
 
-
 DOM\HTMLElement::$import_path = COMPONENTS;
 
 if (defined(__NAMESPACE__ . '\CSP')) {
