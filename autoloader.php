@@ -1,5 +1,9 @@
 <?php
 namespace KVSun;
+
+error_reporting(0);
+ob_start();
+
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'consts.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'functions.php';
 
@@ -9,6 +13,8 @@ spl_autoload_register('spl_autoload');
 session_name($_SERVER['SERVER_NAME']);
 session_set_cookie_params(0, '/', $_SERVER['HTTP_HOST'], array_key_exists('HTTPS', $_SERVER), true);
 session_start();
+
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'events.php';
 
 function set_path(Array $path, $use_existing = true)
 {
