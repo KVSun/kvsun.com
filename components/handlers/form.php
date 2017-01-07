@@ -77,10 +77,12 @@ switch($req->form) {
 			if (isset($req->login->remember)) {
 				$user->setCookie('user');
 			}
+			$grav = new Core\Gravatar($req->login->email, 64);
 			$user->setSession('user');
-			$resp->notify('Login Successful', "Welcome back, $user");
+			$resp->notify('Login Successful', "Welcome back, {$user->name}", "{$grav}");
 			$resp->close('#login-dialog');
 			$resp->clear('login');
+			$resp->attributes('#user-avatar', 'src', "$grav");
 		} else {
 			$resp->notify('Login Rejected');
 			$resp->focus('#login-email');
