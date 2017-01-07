@@ -88,6 +88,9 @@ switch($req->form) {
 			$resp->close('#login-dialog');
 			$resp->clear('login');
 			$resp->attributes('#user-avatar', 'src', "$grav");
+			//$avatar->data_load_form = 'update-user';
+			$resp->attributes('#user-avatar', 'data-load-form', 'update-user');
+			$resp->attributes('#user-avatar', 'data-show-modal', false);
 		} else {
 			$resp->notify('Login Rejected');
 			$resp->focus('#login-email');
@@ -151,6 +154,8 @@ switch($req->form) {
 					$resp->clear('register');
 					$resp->notify('Success', "Welcome {$req->register->name}");
 					$resp->attributes('#user-avatar', 'src', "$grav");
+					$resp->attributes('#user-avatar', 'data-load-form', 'update-user');
+					$resp->attributes('#user-avatar', 'data-show-modal', false);
 				} else {
 					$resp->notify('Error registering', 'There was an error saving your user info');
 				}
