@@ -6,6 +6,108 @@ use \shgysk8zer0\Core_API as API;
 use \shgysk8zer0\DOM as DOM;
 
 /**
+ * Create `<dialog>` & `<form>` for updating user data
+ * @param  shgysk8zer0\Login\User          $user User data to update from
+ * @return shgysk8zer0\DOM\HTMLElement     `<dialog><form>...</dialog>`
+ */
+function user_update_form(\shgysk8zer0\Login\User $user)
+{
+	$dom = new DOM\HTML();
+	$dialog = $dom->body->append('dialog', null, [
+		'id' => 'update-user-dialog',
+	]);
+	$dialog->append('button', null, [
+		'data-delete' => "#{$dialog->id}",
+	]);
+	$dialog->append('br');
+	$form = $dialog->append('form', null, [
+		'name' => 'user-update',
+		'action' => '/api.php',
+		'method' => 'POST',
+	]);
+
+	$form->append('h4', 'Change avatar');
+	$form->append('a', null, [
+		'href' => 'https://gravatar.com/',
+		'target' => '_blank',
+	])->append('img', null, [
+		'src' => new Core\Gravatar($user->email, 128),
+		'height' => 128,
+		'width' => 128,
+		'alt' => 'Update user image on Gravatar',
+		'title' => 'Update user image on Gravatar',
+	]);
+
+	$fieldset = $form->append('fieldset');
+	$fieldset->append('legend', 'User info');
+
+	$label = $fieldset->append('label', 'Email');
+	$input = $fieldset->append('input', null, [
+		'name' => "{$form->name}[email]",
+		'id' => "{$form->name}-email",
+		'type' => 'email',
+		'value' => $user->email,
+		'placeholder' => 'user@example.com',
+		'required' => '',
+	]);
+	$label->for = $input->id;
+	$fieldset->append('br');
+
+	$label = $fieldset->append('label', 'Name');
+	$input = $fieldset->append('input', null, [
+		'name' => "{$form->name}[name]",
+		'id' => "{$form->name}-name",
+		'type' => 'text',
+		'value' => isset($user->name) ? $user->name : null,
+		'placeholder' => 'Firstname Lastname',
+		'pattern' => '^[A-z]+ [A-z]+$',
+	]);
+	$label->for = $input->id;
+	$fieldset->append('br');
+
+	$label = $fieldset->append('label', 'Phone number');
+	$input = $fieldset->append('input', null, [
+		'name' => "{$form->name}[tel]",
+		'id' => "{$form->name}-tel",
+		'type' => 'tel',
+		'value' => isset($user->tel) ? $user->tel : null,
+		'placeholder' => '1-760-379-1234',
+	]);
+	$label->for = $input->id;
+	$fieldset->append('br');
+
+	$label = $fieldset->append('label', 'Twitter URL');
+	$input = $fieldset->append('input', null, [
+		'name' => "{$form->name}[twitter]",
+		'id' => "{$form->name}-twitter",
+		'type' => 'url',
+		'value' => isset($user->twitter) ? $user->twitter : null,
+		'placeholder' => 'https://twitter.com/{USER}',
+		'pattern' => '^https://twitter\.com/[\w]{1,32}$',
+	]);
+	$label->for = $input->id;
+	$fieldset->append('br');
+
+	$label = $fieldset->append('label', 'G+ URL');
+	$input = $fieldset->append('input', null, [
+		'name' => "{$form->name}[g+]",
+		'id' => "{$form->name}-gplus",
+		'type' => 'url',
+		'value' => isset($user->{'g+'}) ? $user->{'g+'} : null,
+		'placeholder' => 'https://plus.google.com/u/0/+{USER}',
+		'pattern' => '^https://plus.google.com/u/0/\+[\w]{1,35}$'
+	]);
+	$label->for = $input->id;
+	$fieldset->append('br');
+
+	$form->append('hr');
+
+	$form->append('button', 'Submit', ['type' => 'submit']);
+	$form->append('button', 'reset', ['type' => 'reset']);
+	return $dialog;
+}
+
+/**
  * [exception_error_handler description]
  * @param  Int    $severity [description]
  * @param  String $message  [description]
