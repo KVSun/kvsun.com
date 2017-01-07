@@ -139,11 +139,13 @@ switch($req->form) {
 				$pdo->commit();
 				$user = \shgysk8zer0\Login\User::load(\KVSun\DB_CREDS);
 				if ($user($req->register->email, $req->register->password)) {
+					$grav = new Core\Gravatar($req->register->email, 64);
 					$user->setSession('user');
 					$user->setCookie('user');
 					$resp->close('#registration-dialog');
 					$resp->clear('register');
 					$resp->notify('Success', "Welcome {$req->register->name}");
+					$resp->attributes('#user-avatar', 'src', "$grav");
 				} else {
 					$resp->notify('Error registering', 'There was an error saving your user info');
 				}
