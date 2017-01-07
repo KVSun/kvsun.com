@@ -4,14 +4,7 @@ namespace KVSun;
 use \shgysk8zer0\Core as Core;
 use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as Status;
 
-error_reporting(0);
-ob_start();
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
-
-if (check_role('admin') or DEBUG) {
-	Core\Console::getInstance()->asExceptionHandler();
-	set_error_handler(__NAMESPACE__ . '\exception_error_handler');
-}
 
 $header  = Core\Headers::getInstance();
 
