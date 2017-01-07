@@ -5,6 +5,7 @@ import supports from './std-js/support_test.es6';
 import {
 	sameoriginFrom,
 	submitForm,
+	clickShowModal,
 	getForm,
 	getDatalist,
 	getContextMenu,
@@ -91,6 +92,21 @@ export const watcher = {
 			getDatalist(this.target);
 			break;
 
+		case 'data-show-modal':
+			if ('showModal' in this.target.dataset) {
+				this.target.addEventListener('click', clickShowModal);
+			} else {
+				this.target.removeEventListener('click', clickShowModal);
+			}
+			break;
+
+		case 'data-load-form':
+			if ('loadForm' in this.target.dataset) {
+				this.target.addEventListener('click', getForm);
+			} else {
+				this.target.removeEventListener('click', getForm);
+			}
+			break;
 
 		default:
 			console.error(`Unhandled attribute in watch: "${this.attributeName}"`);
@@ -107,7 +123,9 @@ export const attributeTree = [
 	'contextmenu',
 	'list',
 	'open',
-	'contenteditable'
+	'contenteditable',
+	'data-show-modal',
+	'data-load-form'
 ];
 
 export function bootstrap() {
@@ -149,9 +167,7 @@ export function bootstrap() {
 			});
 		});
 		query('[data-show-modal]', node).forEach(el => {
-			el.addEventListener('click', () => {
-				document.querySelector(el.dataset.showModal).showModal();
-			});
+			el.addEventListener('click', clickShowModal);
 		});
 		query('[data-scroll-to]', node).forEach(el => {
 			el.addEventListener('click', () => {
