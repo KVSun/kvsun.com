@@ -13,7 +13,7 @@ new Core\Listener('error', function($severity, $message, $file, $line)
 	);
 });
 
-new Core\Listener('exception', function(\Exception $e)
+new Core\Listener('exception', function($e)
 {
 	file_put_contents('exceptions.log', $e . PHP_EOL, FILE_APPEND | LOCK_EX);
 });
