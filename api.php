@@ -50,6 +50,28 @@ if ($header->accept === 'application/json') {
 		} else {
 			$resp->notify('Request for menu', $_GET['load_menu']);
 		}
+	} elseif(array_key_exists('load_form', $_REQUEST)) {
+		switch($_REQUEST['load_form']) {
+			case 'update-user':
+				if (!\KVSUn\check_role('guest')) {
+					$resp->notify('You must login for that', 'Cannot update data before logging in.');
+					$resp->showModal('#login-dialog');
+					$resp->send();
+				}
+				$dialog = user_update_form(restore_login());
+				$resp->append('body', "$dialog");
+				$resp->showModal("#{$dialog->id}");
+				$resp->send();
+				break;
+
+			default:
+				trigger_error("Request for unhandled form, {$_REQUEST['load_form']}");
+				$resp->notify(
+					'Request for unknown form',
+					'Please contact us to report this problem.'
+				);
+				$resp->send();
+		}
 	} elseif(array_key_exists('upload', $_FILES)) {
 		if (! check_role('editor')) {
 			trigger_error('Unauthorized upload attempted');
