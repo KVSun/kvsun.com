@@ -24,10 +24,11 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 				`posted`,
 				`url`
 			FROM `posts`
-			WHERE `cat-id` = :cat; AND `posted` > :scan;
+			WHERE `cat-id` = :cat
+			ORDER BY `posted` DESC
+			LIMIT 15;
 		');
 		$stm->cat = $cat->id;
-		$stm->scan = "$date";
 		$posts = $stm->execute()->getResults();
 		foreach($posts as $post) {
 			$container = $section->append('div');
