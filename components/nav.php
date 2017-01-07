@@ -29,8 +29,7 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 	if (isset($user->email)) {
 		$grav = new \shgysk8zer0\Core\Gravatar($user->email);
 		$avatar->src = $grav;
-		// Update this to show user data form
-		$avatar->data_show_modal = '#login-dialog';
+		$avatar->data_load_form = 'update-user';
 	} else {
 		$avatar->data_show_modal = '#login-dialog';
 	}
