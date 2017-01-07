@@ -31,6 +31,18 @@ function submitForm(submit) {
 	}
 }
 
+function getForm(click) {
+	let url = new URL('api.php', location.origin);
+	let headers = new Headers();
+	url.searchParams.set('load_form', click.target.dataset.loadForm);
+	headers.set('Accept', 'application/json');
+	fetch(url, {
+		method: 'GET',
+		headers,
+		credentials: 'include'
+	}).then(parseResponse).then(handleJSON).catch(reportError);
+}
+
 function getDatalist(list) {
 	if (!$('#' + list.getAttribute('list')).found) {
 		let url = new URL('api.php', document.baseURI);
@@ -169,6 +181,7 @@ function closeOnEscapeKey(keypress) {
 export {
 	sameoriginFrom,
 	submitForm,
+	getForm,
 	getDatalist,
 	getContextMenu,
 	updateFetchHistory,

@@ -5,6 +5,7 @@ import supports from './std-js/support_test.es6';
 import {
 	sameoriginFrom,
 	submitForm,
+	getForm,
 	getDatalist,
 	getContextMenu,
 	// updateFetchHistory,
@@ -138,6 +139,9 @@ export function bootstrap() {
 		});
 		query('form[name]', node).filter(sameoriginFrom).forEach(form => {
 			form.addEventListener('submit', submitForm);
+		});
+		query('[data-load-form]', node).forEach(el => {
+			el.addEventListener('click', getForm);
 		});
 		query('[data-show]', node).forEach(el => {
 			el.addEventListener('click', () => {
