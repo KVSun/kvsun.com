@@ -6,6 +6,11 @@ use \shgysk8zer0\DOM as DOM;
 use \shgysk8zer0\Core_API as API;
 use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as Status;
 
+function is_tel($input)
+{
+	return preg_match('/^\d\\-\d{3}-\d{3}\-\d{4}$/', $input) ? $input : null;
+}
+
 $resp = Core\JSON_Response::getInstance();
 if (
 	array_key_exists('form', $_REQUEST) and is_string($_REQUEST['form'])
@@ -159,6 +164,34 @@ switch($req->form) {
 			$resp->send();
 		}
 
+		break;
+
+	case 'user-update':
+		$resp->notify('Form received', 'Check console.');
+		// $data = new Core\FormData($_POST['user-update']);
+		$data = filter_var_array(
+			$_POST['user-update'],
+			[
+				'email' => [
+					'filter' => FILTER_VALIDATE_EMAIL,
+					'flags' => FILTER_NULL_ON_FAILURE
+				],
+				'tel' => [
+					'filter' => FILTER_CALLBACK,
+					'flags' => FILTER_NULL_ON_FAILURE,
+					'options' => __NAMESPACE__ . '\is_tel'
+				],
+				'g+' => [
+					'filter' => FILTER_VALIDATE_URL,
+					'flags' => FILTER_NULL_ON_FAILURE
+				],
+				'twitter' => [
+					'filter' => FILTER_VALIDATE_URL,
+					'flags' => FILTER_NULL_ON_FAILURE
+				],
+			], true
+		);
+		Core\Console::getInstance()->info($data);
 		break;
 
 	case 'search':
