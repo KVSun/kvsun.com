@@ -24,6 +24,7 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 		'width' => 64,
 		'height' => 64,
 		'class' => 'round',
+		'role' => 'button',
 	]);
 	$user = \KVSun\restore_login();
 	if (isset($user->email)) {
