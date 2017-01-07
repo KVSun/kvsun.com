@@ -16,6 +16,9 @@ session_start();
 
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'events.php';
 
+set_exception_handler('\shgysk8zer0\Core\Listener::exception');
+set_error_handler('\shgysk8zer0\Core\Listener::error');
+
 function set_path(Array $path, $use_existing = true)
 {
 	$path = array_map('realpath', $path);

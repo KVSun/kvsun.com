@@ -4,9 +4,6 @@ namespace KVSun;
 use \shgysk8zer0\Core as Core;
 use \shgysk8zer0\DOM as DOM;
 
-set_exception_handler('\shgysk8zer0\Core\Listener::exception');
-set_error_handler('\shgysk8zer0\Core\Listener::error');
-
 new Core\Listener('error', function($severity, $message, $file, $line)
 {
 	file_put_contents(
