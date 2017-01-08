@@ -16,10 +16,18 @@ function user_update_form(\shgysk8zer0\Login\User $user)
 	$dialog = $dom->body->append('dialog', null, [
 		'id' => 'update-user-dialog',
 	]);
+	$dialog->append('br');
+	$logout = $dialog->append('button', null, [
+		'type' => 'buton',
+		'title' => 'Logout',
+		'data-request' => 'action=logout',
+		'data-confirm' => 'Are you sure you want to logout?',
+	]);
+	use_icon('sign-out', $logout, ['height' => 32, 'width' => 32]);
 	$dialog->append('button', null, [
 		'data-delete' => "#{$dialog->id}",
 	]);
-	$dialog->append('br');
+
 	$form = $dialog->append('form', null, [
 		'name' => 'user-update',
 		'action' => '/api.php',
