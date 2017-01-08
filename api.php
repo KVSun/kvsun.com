@@ -92,8 +92,7 @@ if ($header->accept === 'application/json') {
 	} elseif (array_key_exists('action', $_REQUEST)) {
 		switch($_REQUEST['action']) {
 			case 'logout':
-				unset($_COOKIE['user'], $_SESSION['user']);
-				\setcookie('user', null, 1);
+				restore_login()->logout();
 				$resp->notify('Success', 'You have been logged out.');
 				$resp->close('dialog[open]');
 				$resp->remove('#update-user-dialog');
