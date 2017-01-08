@@ -3,6 +3,23 @@ import handleJSON from './std-js/json_response.es6';
 import {reportError, parseResponse} from './std-js/functions.es6';
 // import supports from './std-js/support_test.es6';
 
+export function handleRequest(click) {
+	click.preventDefault();
+	if (!(this.dataset.hasOwnProperty('confirm')) || confirm(this.dataset.confirm)) {
+		let url = new URL('api.php', location.origin);
+		let headers = new Headers();
+		url.search = `?${this.dataset.request}`;
+		headers.set('Accept', 'application/json');
+		if ('prompt' in this.dataset) {
+			url.searchParams.set('prompt_value', prompt(this.dataset.prompt));
+		}
+		fetch(url, {
+			method: 'GET',
+			headers,
+			credentials: 'include'
+		}).then(parseResponse).then(handleJSON).catch(reportError);
+	}
+}
 export function sameoriginFrom(form) {
 	return new URL(form.action).origin === location.origin;
 }

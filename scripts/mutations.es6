@@ -3,6 +3,7 @@ import $ from './std-js/zq.es6';
 import {query, fullScreen} from './std-js/functions.es6';
 import supports from './std-js/support_test.es6';
 import {
+	handleRequest,
 	sameoriginFrom,
 	submitForm,
 	clickShowModal,
@@ -92,6 +93,14 @@ export const watcher = {
 			getDatalist(this.target);
 			break;
 
+		case 'data-request':
+			if ('dataRequest' in this.target.dataset) {
+				this.target.addEventListener('click', handleRequest);
+			} else {
+				this.target.removeEventListener('click', handleRequest);
+			}
+			break;
+
 		case 'data-show-modal':
 			if ('showModal' in this.target.dataset) {
 				this.target.addEventListener('click', clickShowModal);
@@ -124,6 +133,7 @@ export const attributeTree = [
 	'list',
 	'open',
 	'contenteditable',
+	'data-request',
 	'data-show-modal',
 	'data-load-form'
 ];
@@ -157,6 +167,9 @@ export function bootstrap() {
 		});
 		query('form[name]', node).filter(sameoriginFrom).forEach(form => {
 			form.addEventListener('submit', submitForm);
+		});
+		query('[data-request]', node).forEach(el => {
+			el.addEventListener('click', handleRequest);
 		});
 		query('[data-load-form]', node).forEach(el => {
 			el.addEventListener('click', getForm);
