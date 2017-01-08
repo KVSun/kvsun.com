@@ -89,6 +89,20 @@ if ($header->accept === 'application/json') {
 		} else {
 			throw new \Exception("{$file->name} has a type of {$file->type}, which is not allowed.");
 		}
+	} elseif (array_key_exists('action', $_REQUEST)) {
+		switch($_REQUEST['action']) {
+			case 'logout':
+				unset($_COOKIE['user'], $_SESSION['user']);
+				\setcookie('user', null, 1);
+				$resp->notify('Success', 'You have been logged out.');
+				$resp->close('dialog[open]');
+				$resp->remove('#update-user-dialog');
+				$resp->attributes('#user-avatar', 'src', '/images/octicons/lib/svg/sign-in.svg');
+				$resp->attributes('#user-avatar', 'data-load-form', false);
+				$resp->attributes('#user-avatar', 'data-show-modal', '#login-dialog');
+				$resp->send();
+				break;
+		}
 	} else {
 		$resp->notify('Invalid request', 'See console for details.', DOMAIN . 'images/sun-icons/128.png');
 		Core\Console::getInstance()->info($_REQUEST);
@@ -103,7 +117,7 @@ if ($header->accept === 'application/json') {
 	} else {
 		http_response_code(Status\BAD_REQUEST);
 	}
-}  else {
+} else {
 	http_response_code(Status\BAD_REQUEST);
 	$header->content_type = 'application/json';
 	exit('{}');
