@@ -3,3 +3,11 @@ body > * {
 	flex-grow: 1;
 	flex-shrink: 0;
 }
+.icon > svg {
+	height: inherit;
+	width: inherit;
+}
+.icon {
+	min-height: 1em;
+	height: auto;
+}
