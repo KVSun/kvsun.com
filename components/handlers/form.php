@@ -196,7 +196,43 @@ switch($req->form) {
 				],
 			], true
 		);
+		$data = new Core\FormData($data);
+
+		$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+
+		$pdo->beginTransaction();
+		$user = \KVSun\restore_login();
+		$user_stm = $pdo->prepare('UPDATE `users`
+			SET `email` = :email
+			WHERE `id` = :id
+			LIMIT 1;'
+		);
+		$user_data_stm = $pdo->prepare('UPDATE `user_data`
+			SET tel = :tel,
+			`g+` = :gplus,
+			`twitter` = :twitter
+			WHERE `id` = :id
+			LIMIT 1;'
+		);
+
+		$user_stm->id = $user->id;
+		$user_stm->email = isset($data->email) ? $data->email : $user->email;
+
+		$user_data_stm->tel = isset($data->tel) ? $data->tel : $user->tel;
+		$user_data_stm->gplus = isset($data->{'g+'}) ? $data->{'g+'} : $user->{'g+'};
+		$user_data_stm->twitter = isset($data->twitter) ? $data->twitter : $user->twitter;
+		$user_data_stm->id = $user->id;
+
+		if ($user_stm->execute() and $user_data_stm->execute()) {
+			$pdo->commit();
+			$resp->notify('Success', 'Data has been updated.');
+			$resp->remove('#update-user-dialog');
+		} else {
+			$resp->notify('Failed', 'Failed to update user data');
+		}
+
 		Core\Console::getInstance()->info($data);
+		$resp->send();
 		break;
 
 	case 'search':
