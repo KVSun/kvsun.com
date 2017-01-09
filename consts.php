@@ -1,5 +1,8 @@
 <?php
 namespace KVSun;
+const REQUIRED = [
+	'vendor/autoload.php',
+];
 const EXT          = '.php';
 const INCLUDE_PATH = array(
 	'./classes',

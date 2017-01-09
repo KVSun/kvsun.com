@@ -14,6 +14,12 @@ session_name($_SERVER['SERVER_NAME']);
 session_set_cookie_params(0, '/', $_SERVER['HTTP_HOST'], array_key_exists('HTTPS', $_SERVER), true);
 session_start();
 
+if (defined(__NAMESPACE__ . '\REQUIRED')) {
+	foreach(REQUIRED as $req) {
+		require_once __DIR__ . DIRECTORY_SEPARATOR . $req;
+	}
+	unset($req);
+}
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'events.php';
 
 set_exception_handler('\shgysk8zer0\Core\Listener::exception');

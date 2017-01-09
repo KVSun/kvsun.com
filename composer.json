@@ -1,0 +1,15 @@
+{
+    "name": "kvsun/kvsun.com",
+    "description": "Website for kernvalleysun.com",
+    "type": "project",
+    "require": {
+        "authorizenet/authorizenet": "^1.9"
+    },
+    "license": "GPL-v3",
+    "authors": [
+        {
+            "name": "Chris Zuber",
+            "email": "shgysk8zer0@gmail.com"
+        }
+    ]
+}
