@@ -5,6 +5,8 @@ use \shgysk8zer0\Core as Core;
 use \shgysk8zer0\DOM as DOM;
 use \shgysk8zer0\Core_API as API;
 use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as Status;
+use net\authorize\api\contract\v1 as AnetAPI;
+use net\authorize\api\controller as AnetController;
 
 function is_tel($input)
 {
@@ -319,6 +321,50 @@ switch($req->form) {
 			trigger_error('Error posting article.');
 			$resp->notify('Error', 'There was an error creating the post');
 		}
+		break;
+
+	case 'paymenttest':
+		try {
+			$req->paymenttest->expires = new \DateTime("{$req->paymenttest->expires->year}-{$req->paymenttest->expires->month}");
+		} catch(\Exception $e) {
+			Core\Console::getInstance()->error($e);
+		}
+
+		// Common setup for API credentials
+		define("AUTHORIZENET_LOG_FILE", 'auth.log');
+		$merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+		$merchantAuthentication->setName($req->paymenttest->auth->name);
+		$merchantAuthentication->setTransactionKey($req->paymenttest->auth->key);
+
+		// Create the payment data for a credit card
+		$creditCard = new AnetAPI\CreditCardType();
+		$creditCard->setCardNumber($req->paymenttest->ccnum);
+		$creditCard->setExpirationDate("{$req->paymenttest->expires->format('Y-m')}");
+		// $creditCard->setExpirationDate("2038-12");
+		$paymentOne = new AnetAPI\PaymentType();
+		$paymentOne->setCreditCard($creditCard);
+
+		// Create a transaction
+		$transactionRequestType = new AnetAPI\TransactionRequestType();
+		$transactionRequestType->setTransactionType( "authCaptureTransaction");
+		$transactionRequestType->setAmount(floatval($req->paymenttest->cost));
+		$transactionRequestType->setPayment($paymentOne);
+
+		$request = new AnetAPI\CreateTransactionRequest();
+		$request->setMerchantAuthentication($merchantAuthentication);
+		$request->setTransactionRequest( $transactionRequestType);
+		$controller = new AnetController\CreateTransactionController($request);
+		$response = $controller->executeWithApiResponse(
+			isset($req->paymenttest->auth->sandbox)
+			? \net\authorize\api\constants\ANetEnvironment::SANDBOX
+			: \net\authorize\api\constants\ANetEnvironment::PRODUCTION
+		);
+		Core\Console::getInstance()->info([
+			'$_REQUEST' => $req->paymenttest,
+			'response' => $response->getTransactionResponse()->getAuthCode(),
+			'creditCard' => $creditCard,
+		]);
+		$resp->notify('Form submitted', 'Check console');
 		break;
 
 	default:
