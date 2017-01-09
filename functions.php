@@ -115,6 +115,148 @@ function user_update_form(\shgysk8zer0\Login\User $user)
 	return $dialog;
 }
 
+function make_cc_form(DOM\HTMLElement $parent, $name)
+{
+	$user = restore_login();
+	$form = $parent->append('form', null, [
+		'method' => 'POST',
+		'action' => '/api.php',
+		'name' => $name,
+	]);
+
+	$fieldset = $form->append('fieldset');
+	$fieldset->append('legend', 'Authorize.net Credentials');
+	$label = $fieldset->append('label', 'Name');
+	$input = $fieldset->append('input', null, [
+		'type' => 'text',
+		'name' => "{$form->name}[auth][name]",
+		'id' => "{$form->name}-auth-name",
+		'required' => '',
+	]);
+
+	$label->for = $input->id;
+	$fieldset->append('br');
+
+	$label = $fieldset->append('label', 'Transaction Key');
+	$input = $fieldset->append('input', null, [
+		'name' => "{$form->name}[auth][key]",
+		'id' => "{$form->name}-auth-key",
+		'require' => ''
+	]);
+	$label->for = $input->id;
+
+	$fieldset->append('br');
+	$fieldset->append('input', null, [
+		'type' => 'checkbox',
+		'name' => "{$form->name}[auth][sandbox]",
+		'checked' => ''
+	]);
+
+	$fieldset = $form->append('fieldset');
+
+	use_icon('credit-card', $fieldset->append('legend'), ['title' => 'Credit Card info']);
+
+	$label = $fieldset->append('label', 'Name on Card');
+	$input = $fieldset->append('input' ,null, [
+		'type' => 'text',
+		'name' => "{$form->name}[name]",
+		'id' => "{$form->name}-name",
+		'value' => isset($user->name) ? $user->name : null,
+		'placeholder' => 'Name on credit card',
+		'pattern' => '^[A-z]+ ([A-z]+ )?[A-z]+$',
+		'autocomplete' => 'cc-name',
+		'required' => '',
+	]);
+
+	$label->for = $input->id;
+	$fieldset->append('br');
+
+	$label = $fieldset->append('label', 'Credit Card #');
+
+	$input = $fieldset->append('input',null, [
+		'name' => "{$form->name}[ccnum]",
+		'id' => "{$form->name}-ccnum",
+		'type' => 'number',
+		'min' => pow(10,13),
+		'max' => pow(10, 17) - 1,
+		'autocomplete' => 'cc-number',
+		'size' => 16,
+		'required' => '',
+	]);
+	$label->for = $input->id;
+
+	$fieldset->append('br');
+
+	$label = $fieldset->append('label', 'Credit Card expiration');
+	$fieldset->append('br');
+	$input = $fieldset->append('input', null, [
+		'name' => "{$form->name}[expires][month]",
+		'id' => "{$form->name}-expires-month",
+		'type' => 'number',
+		'min' => 1,
+		'max' => 12,
+		'placeholder' => 'mm',
+		'size' => 2,
+		'maxlength' => 2,
+		'minlength' => 2,
+		'autocomplete' => 'cc-exp-month',
+		'required' => '',
+	]);
+	$fieldset->append('span', '/');
+	$fieldset->append('input', null, [
+		'name' => "{$form->name}[expires][year]",
+		'id' => "{$form->name}-expires-year",
+		'type' => 'number',
+		'min' => date('Y'),
+		'max' => date('Y') + 20,
+		'autocomplete' => 'cc-exp-year',
+		'placeholder' => 'YYYY',
+		'maxlength' => 4,
+		'minlength' => 4,
+		'size' => 4,
+		'required' => ''
+	]);
+
+	$label->for = $input->id;
+	$fieldset->append('br');
+
+	$label = $fieldset->append('Label', 'CSC');
+	$input = $fieldset->append('input', null, [
+		'name' => "{$form->name}[csc]",
+		'id' => "{$form->name}-csc",
+		'type' => 'number',
+		'min' => 100,
+		'max' => 9999,
+		'placeholder' => '####',
+		'autpcomplete' => 'cc-csc',
+		'size' => 4,
+		'required' => ''
+	]);
+	$label->for = $input->id;
+	$fieldset->append('br');
+
+	$fieldset = $form->append('fieldset');
+	$fieldset->append('legend', 'Payment Info');
+	$label = $fieldset->append('label', 'Cost');
+	$input = $fieldset->append('input', null, [
+		'name' => "{$form->name}[cost]",
+		'id' => "{$form->name}-cost",
+		'type' => 'number',
+		'min' => '0',
+		'step' => 0.01,
+		'placeholder' => '1.00',
+		'value' => 1,
+		'size' => 4,
+		'width' => 4,
+		'required' => '',
+	]);
+	$label->for = $input->id;
+
+	$form->append('button', 'Submit', ['type' => 'submit']);
+
+	return $form;
+}
+
 /**
  * [exception_error_handler description]
  * @param  Int    $severity [description]
