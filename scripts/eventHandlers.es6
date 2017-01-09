@@ -3,11 +3,35 @@ import handleJSON from './std-js/json_response.es6';
 import {reportError, parseResponse} from './std-js/functions.es6';
 // import supports from './std-js/support_test.es6';
 
-function sameoriginFrom(form) {
+export function handleRequest(click) {
+	click.preventDefault();
+	if (!(this.dataset.hasOwnProperty('confirm')) || confirm(this.dataset.confirm)) {
+		let url = new URL('api.php', location.origin);
+		let headers = new Headers();
+		url.search = `?${this.dataset.request}`;
+		headers.set('Accept', 'application/json');
+		if ('prompt' in this.dataset) {
+			url.searchParams.set('prompt_value', prompt(this.dataset.prompt));
+		}
+		fetch(url, {
+			method: 'GET',
+			headers,
+			credentials: 'include'
+		}).then(parseResponse).then(handleJSON).catch(reportError);
+	}
+}
+export function sameoriginFrom(form) {
 	return new URL(form.action).origin === location.origin;
 }
 
-function submitForm(submit) {
+export function clickShowModal(click)
+{
+	if ('showModal' in click.target.dataset) {
+		document.querySelector(click.target.dataset.showModal).showModal();
+	}
+}
+
+export function submitForm(submit) {
 	submit.preventDefault();
 	let els = Array.from(submit.target.querySelectorAll('fieldset, button'));
 	if (!('confirm' in submit.target.dataset) || confirm(submit.target.dataset.confirm)) {
@@ -31,7 +55,19 @@ function submitForm(submit) {
 	}
 }
 
-function getDatalist(list) {
+export function getForm(click) {
+	let url = new URL('api.php', location.origin);
+	let headers = new Headers();
+	url.searchParams.set('load_form', click.target.dataset.loadForm);
+	headers.set('Accept', 'application/json');
+	fetch(url, {
+		method: 'GET',
+		headers,
+		credentials: 'include'
+	}).then(parseResponse).then(handleJSON).catch(reportError);
+}
+
+export function getDatalist(list) {
 	if (!$('#' + list.getAttribute('list')).found) {
 		let url = new URL('api.php', document.baseURI);
 		let headers = new Headers();
@@ -45,7 +81,7 @@ function getDatalist(list) {
 	}
 }
 
-function getContextMenu(el) {
+export function getContextMenu(el) {
 	let menu = el.getAttribute('contextmenu');
 	if (menu && menu !== '') {
 		if (!$(`menu#${menu}`).found) {
@@ -62,7 +98,7 @@ function getContextMenu(el) {
 	}
 }
 
-function updateFetchHistory(resp) {
+export function updateFetchHistory(resp) {
 	if (resp.ok) {
 		let url = new URL(resp.url);
 		history.pushState({}, document.title, url.searchParams.get('url'));
@@ -70,14 +106,14 @@ function updateFetchHistory(resp) {
 	return resp;
 }
 
-function matchPattern(match) {
+export function matchPattern(match) {
 	match.pattern = new RegExp(document.querySelector(`[name="${match.dataset.mustMatch}"]`).value).escape();
 	document.querySelector(`[name="${match.dataset.mustMatch}"]`).addEventListener('change', change => {
 		document.querySelector(`[data-must-match="${change.target.name}"]`).pattern = new RegExp(change.target.value).escape();
 	});
 }
 
-function matchInput(input) {
+export function matchInput(input) {
 	$(`input[data-equal-input="${input.target.dataset.equalInput}"]`).each(other => {
 		if (other !== input) {
 			other.value = input.value;
@@ -85,7 +121,7 @@ function matchInput(input) {
 	});
 }
 
-function getLink(click) {
+export function getLink(click) {
 	click.preventDefault();
 	if (this.classList.contains('disabled')) {
 		return;
@@ -111,7 +147,7 @@ function getLink(click) {
 	});
 }
 
-function toggleDetails() {
+export function toggleDetails() {
 	if (this.parentElement.hasAttribute('open')) {
 		this.parentElement.close();
 	} else {
@@ -119,7 +155,7 @@ function toggleDetails() {
 	}
 }
 
-function toggleCheckboxes() {
+export function toggleCheckboxes() {
 	let fieldset = this.closest('fieldset');
 	let checkboxes = Array.from(fieldset.querySelectorAll('input[type="checkbox"]'));
 	checkboxes.forEach(checkbox => {
@@ -127,7 +163,7 @@ function toggleCheckboxes() {
 	});
 }
 
-function closeOnOutsideClick(click) {
+export  function closeOnOutsideClick(click) {
 	if (! click.target.matches('dialog, dialog *')) {
 		$('dialog[open]:first-of-type').each(autoCloseDialog);
 	}
@@ -160,23 +196,8 @@ export function autoCloseDialog(dialog) {
 	}
 }
 
-function closeOnEscapeKey(keypress) {
+export function closeOnEscapeKey(keypress) {
 	if (keypress.key === 'Escape') {
 		$('dialog[open]:first-of-type').each(autoCloseDialog);
 	}
 }
-
-export {
-	sameoriginFrom,
-	submitForm,
-	getDatalist,
-	getContextMenu,
-	updateFetchHistory,
-	matchPattern,
-	matchInput,
-	getLink,
-	toggleDetails,
-	toggleCheckboxes,
-	closeOnEscapeKey,
-	closeOnOutsideClick
-};

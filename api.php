@@ -4,14 +4,7 @@ namespace KVSun;
 use \shgysk8zer0\Core as Core;
 use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as Status;
 
-error_reporting(0);
-ob_start();
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
-
-if (check_role('admin') or DEBUG) {
-	Core\Console::getInstance()->asExceptionHandler();
-	set_error_handler(__NAMESPACE__ . '\exception_error_handler');
-}
 
 $header  = Core\Headers::getInstance();
 
@@ -57,6 +50,28 @@ if ($header->accept === 'application/json') {
 		} else {
 			$resp->notify('Request for menu', $_GET['load_menu']);
 		}
+	} elseif(array_key_exists('load_form', $_REQUEST)) {
+		switch($_REQUEST['load_form']) {
+			case 'update-user':
+				if (!\KVSUn\check_role('guest')) {
+					$resp->notify('You must login for that', 'Cannot update data before logging in.');
+					$resp->showModal('#login-dialog');
+					$resp->send();
+				}
+				$dialog = user_update_form(restore_login());
+				$resp->append('body', "$dialog");
+				$resp->showModal("#{$dialog->id}");
+				$resp->send();
+				break;
+
+			default:
+				trigger_error("Request for unhandled form, {$_REQUEST['load_form']}");
+				$resp->notify(
+					'Request for unknown form',
+					'Please contact us to report this problem.'
+				);
+				$resp->send();
+		}
 	} elseif(array_key_exists('upload', $_FILES)) {
 		if (! check_role('editor')) {
 			trigger_error('Unauthorized upload attempted');
@@ -74,6 +89,19 @@ if ($header->accept === 'application/json') {
 		} else {
 			throw new \Exception("{$file->name} has a type of {$file->type}, which is not allowed.");
 		}
+	} elseif (array_key_exists('action', $_REQUEST)) {
+		switch($_REQUEST['action']) {
+			case 'logout':
+				restore_login()->logout();
+				$resp->notify('Success', 'You have been logged out.');
+				$resp->close('dialog[open]');
+				$resp->remove('#update-user-dialog');
+				$resp->attributes('#user-avatar', 'src', '/images/octicons/lib/svg/sign-in.svg');
+				$resp->attributes('#user-avatar', 'data-load-form', false);
+				$resp->attributes('#user-avatar', 'data-show-modal', '#login-dialog');
+				$resp->send();
+				break;
+		}
 	} else {
 		$resp->notify('Invalid request', 'See console for details.', DOMAIN . 'images/sun-icons/128.png');
 		Core\Console::getInstance()->info($_REQUEST);
@@ -88,7 +116,7 @@ if ($header->accept === 'application/json') {
 	} else {
 		http_response_code(Status\BAD_REQUEST);
 	}
-}  else {
+} else {
 	http_response_code(Status\BAD_REQUEST);
 	$header->content_type = 'application/json';
 	exit('{}');

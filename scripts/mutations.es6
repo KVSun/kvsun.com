@@ -3,8 +3,11 @@ import $ from './std-js/zq.es6';
 import {query, fullScreen} from './std-js/functions.es6';
 import supports from './std-js/support_test.es6';
 import {
+	handleRequest,
 	sameoriginFrom,
 	submitForm,
+	clickShowModal,
+	getForm,
 	getDatalist,
 	getContextMenu,
 	// updateFetchHistory,
@@ -90,6 +93,29 @@ export const watcher = {
 			getDatalist(this.target);
 			break;
 
+		case 'data-request':
+			if ('dataRequest' in this.target.dataset) {
+				this.target.addEventListener('click', handleRequest);
+			} else {
+				this.target.removeEventListener('click', handleRequest);
+			}
+			break;
+
+		case 'data-show-modal':
+			if ('showModal' in this.target.dataset) {
+				this.target.addEventListener('click', clickShowModal);
+			} else {
+				this.target.removeEventListener('click', clickShowModal);
+			}
+			break;
+
+		case 'data-load-form':
+			if ('loadForm' in this.target.dataset) {
+				this.target.addEventListener('click', getForm);
+			} else {
+				this.target.removeEventListener('click', getForm);
+			}
+			break;
 
 		default:
 			console.error(`Unhandled attribute in watch: "${this.attributeName}"`);
@@ -106,7 +132,10 @@ export const attributeTree = [
 	'contextmenu',
 	'list',
 	'open',
-	'contenteditable'
+	'contenteditable',
+	'data-request',
+	'data-show-modal',
+	'data-load-form'
 ];
 
 export function bootstrap() {
@@ -139,15 +168,19 @@ export function bootstrap() {
 		query('form[name]', node).filter(sameoriginFrom).forEach(form => {
 			form.addEventListener('submit', submitForm);
 		});
+		query('[data-request]', node).forEach(el => {
+			el.addEventListener('click', handleRequest);
+		});
+		query('[data-load-form]', node).forEach(el => {
+			el.addEventListener('click', getForm);
+		});
 		query('[data-show]', node).forEach(el => {
 			el.addEventListener('click', () => {
 				document.querySelector(el.dataset.show).show();
 			});
 		});
 		query('[data-show-modal]', node).forEach(el => {
-			el.addEventListener('click', () => {
-				document.querySelector(el.dataset.showModal).showModal();
-			});
+			el.addEventListener('click', clickShowModal);
 		});
 		query('[data-scroll-to]', node).forEach(el => {
 			el.addEventListener('click', () => {

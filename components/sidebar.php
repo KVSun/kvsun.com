@@ -17,7 +17,8 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 		'required' => '',
 	]);
 
-	$search->append('button', null, ['type' => 'submit', 'data-icon' => ' L']);
+	$submit = $search->append('button', null, ['type' => 'submit', 'class' => 'icon']);
+	\KVSun\use_icon('search', $submit, ['class' => 'icon']);
 	$list = $sidebar->append('ul');
 	foreach($page->getCategories() as $category) {
 		$list->append('li')->append('a', $category->name, ['href' => $category->url]);

@@ -6,6 +6,11 @@ use \shgysk8zer0\DOM as DOM;
 use \shgysk8zer0\Core_API as API;
 use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as Status;
 
+function is_tel($input)
+{
+	return preg_match('/^\d\\-\d{3}-\d{3}\-\d{4}$/', $input) ? $input : null;
+}
+
 $resp = Core\JSON_Response::getInstance();
 if (
 	array_key_exists('form', $_REQUEST) and is_string($_REQUEST['form'])
@@ -77,10 +82,15 @@ switch($req->form) {
 			if (isset($req->login->remember)) {
 				$user->setCookie('user');
 			}
+			$grav = new Core\Gravatar($req->login->email, 64);
 			$user->setSession('user');
-			$resp->notify('Login Successful', "Welcome back, $user");
+			$resp->notify('Login Successful', "Welcome back, {$user->name}", "{$grav}");
 			$resp->close('#login-dialog');
 			$resp->clear('login');
+			$resp->attributes('#user-avatar', 'src', "$grav");
+			//$avatar->data_load_form = 'update-user';
+			$resp->attributes('#user-avatar', 'data-load-form', 'update-user');
+			$resp->attributes('#user-avatar', 'data-show-modal', false);
 		} else {
 			$resp->notify('Login Rejected');
 			$resp->focus('#login-email');
@@ -137,11 +147,15 @@ switch($req->form) {
 				$pdo->commit();
 				$user = \shgysk8zer0\Login\User::load(\KVSun\DB_CREDS);
 				if ($user($req->register->email, $req->register->password)) {
+					$grav = new Core\Gravatar($req->register->email, 64);
 					$user->setSession('user');
 					$user->setCookie('user');
 					$resp->close('#registration-dialog');
 					$resp->clear('register');
 					$resp->notify('Success', "Welcome {$req->register->name}");
+					$resp->attributes('#user-avatar', 'src', "$grav");
+					$resp->attributes('#user-avatar', 'data-load-form', 'update-user');
+					$resp->attributes('#user-avatar', 'data-show-modal', false);
 				} else {
 					$resp->notify('Error registering', 'There was an error saving your user info');
 				}
@@ -155,6 +169,70 @@ switch($req->form) {
 			$resp->send();
 		}
 
+		break;
+
+	case 'user-update':
+		$resp->notify('Form received', 'Check console.');
+		// $data = new Core\FormData($_POST['user-update']);
+		$data = filter_var_array(
+			$_POST['user-update'],
+			[
+				'email' => [
+					'filter' => FILTER_VALIDATE_EMAIL,
+					'flags' => FILTER_NULL_ON_FAILURE
+				],
+				'tel' => [
+					'filter' => FILTER_CALLBACK,
+					'flags' => FILTER_NULL_ON_FAILURE,
+					'options' => __NAMESPACE__ . '\is_tel'
+				],
+				'g+' => [
+					'filter' => FILTER_VALIDATE_URL,
+					'flags' => FILTER_NULL_ON_FAILURE
+				],
+				'twitter' => [
+					'filter' => FILTER_VALIDATE_URL,
+					'flags' => FILTER_NULL_ON_FAILURE
+				],
+			], true
+		);
+		$data = new Core\FormData($data);
+
+		$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+
+		$pdo->beginTransaction();
+		$user = \KVSun\restore_login();
+		$user_stm = $pdo->prepare('UPDATE `users`
+			SET `email` = :email
+			WHERE `id` = :id
+			LIMIT 1;'
+		);
+		$user_data_stm = $pdo->prepare('UPDATE `user_data`
+			SET tel = :tel,
+			`g+` = :gplus,
+			`twitter` = :twitter
+			WHERE `id` = :id
+			LIMIT 1;'
+		);
+
+		$user_stm->id = $user->id;
+		$user_stm->email = isset($data->email) ? $data->email : $user->email;
+
+		$user_data_stm->tel = isset($data->tel) ? $data->tel : $user->tel;
+		$user_data_stm->gplus = isset($data->{'g+'}) ? $data->{'g+'} : $user->{'g+'};
+		$user_data_stm->twitter = isset($data->twitter) ? $data->twitter : $user->twitter;
+		$user_data_stm->id = $user->id;
+
+		if ($user_stm->execute() and $user_data_stm->execute()) {
+			$pdo->commit();
+			$resp->notify('Success', 'Data has been updated.');
+			$resp->remove('#update-user-dialog');
+		} else {
+			$resp->notify('Failed', 'Failed to update user data');
+		}
+
+		Core\Console::getInstance()->info($data);
+		$resp->send();
 		break;
 
 	case 'search':
@@ -175,6 +253,15 @@ switch($req->form) {
 		if (! \KVSun\check_role('editor')) {
 			http_response_code(Status::UNAUTHORIZED);
 			$resp->notify('Error', 'You must be logged in for that.')->send();
+		}
+
+		$post = new Core\FormData($_POST['new-post']);
+
+		if (! isset($post->author, $post->title, $post->content)) {
+			$resp->notify(
+				'Missing info for post',
+				'Please make sure it has a title, author, and content.'
+			)->send();
 		}
 
 		$pdo = Core\PDO::load(\KVSun\DB_CREDS);
@@ -207,32 +294,27 @@ switch($req->form) {
 		);';
 		$stm = $pdo->prepare($sql);
 		$user = \KVSun\restore_login();
-		$data = [];
-		$data['title'] = strip_tags($_POST['new-post']['title']);
-		$data['cat'] = 1;
-		$data['author'] = strip_tags($_POST['new-post']['author']);
-		$data['content'] = $_POST['new-post']['content'];
-		$data['draft'] = array_key_exists('draft', $_POST['new-post']);
-		$data['url'] = strtolower(str_replace(' ', '-', strip_tags($_POST['new-post']['title'])));
-		$data['posted'] = $user->id;
-		$data['keywords'] = array_key_exists('keywords', $_POST['new-post'])
-			? $_POST['new-post']['keywords']
-			: null;
-		$data['description'] = array_key_exists('description', $_POST['new-post'])
-			? $_POST['new-post']['description']
-			: null;
+		$stm->title = strip_tags($post->title);
+		$stm->cat = 1;
+		$stm->author = strip_tags($post->author);
+		$stm->content = $post->content;
+		$stm->draft = isset($post->draft);
+		$stm->url = strtolower(str_replace(' ', '-', strip_tags($post->title)));
+		$stm->posted = $user->id;
+		$stm->keywords = isset($post->keywords) ? $post->keywords : null;
+		$stm->description = isset($post->description) ? $post->description: null;
 
 		$article_dom = new \DOMDocument();
-		$article_dom->loadHTML($data['content']);
+		$article_dom->loadHTML($post->content);
 		$imgs = $article_dom->getElementsByTagName('img');
 
-		$data['img'] = isset($imgs) ? $imgs->item(0)->getAttribute('src') : null;
+		$stm->img = isset($imgs) ? $imgs->item(0)->getAttribute('src') : null;
 
 		unset($article_dom, $imgs);
-		Core\Console::getInstance()->info($data);
+		Core\Console::getInstance()->info($post);
 
-		if ($stm->execute($data)) {
-			$resp->notify('Received post', $_POST['new-post']['title'])->send();
+		if ($stm->execute()) {
+			$resp->notify('Received post', $post->title)->send();
 		} else {
 			trigger_error('Error posting article.');
 			$resp->notify('Error', 'There was an error creating the post');
