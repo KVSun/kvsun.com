@@ -115,8 +115,12 @@ function user_update_form(\shgysk8zer0\Login\User $user)
 	return $dialog;
 }
 
-function make_cc_form(DOM\HTMLElement $parent, $name)
+function make_cc_form(DOM\HTMLElement $parent = null, $name = 'ccform')
 {
+	if (is_null($parent)) {
+		$dom = new DOM\HTML();
+		$parent = $dom->body;
+	}
 	$user = restore_login();
 	$form = $parent->append('form', null, [
 		'method' => 'POST',
