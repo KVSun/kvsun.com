@@ -64,6 +64,17 @@ if ($header->accept === 'application/json') {
 				$resp->send();
 				break;
 
+			case 'ccform':
+				$dom = new \shgysk8zer0\DOM\HTML();
+				$dialog = $dom->body->append('dialog', null, [
+					'id' => 'ccform-dialog'
+				]);
+				\KVSun\make_cc_form($dialog);
+				$resp->append('body', $dialog);
+				$resp->showModal("#{$dialog->id}");
+				$resp->send();
+				break;
+
 			default:
 				trigger_error("Request for unhandled form, {$_REQUEST['load_form']}");
 				$resp->notify(
