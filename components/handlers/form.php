@@ -323,23 +323,23 @@ switch($req->form) {
 		}
 		break;
 
-	case 'paymenttest':
+	case 'ccform':
 		try {
-			$req->paymenttest->expires = new \DateTime("{$req->paymenttest->expires->year}-{$req->paymenttest->expires->month}");
+			$req->ccform->expires = new \DateTime("{$req->ccform->expires->year}-{$req->ccform->expires->month}");
 		} catch(\Exception $e) {
 			Core\Console::getInstance()->error($e);
 		}
 
 		// Common setup for API credentials
-		define("AUTHORIZENET_LOG_FILE", 'auth.log');
+		define("AUTHORIZENET_LOG_FILE", "{$_SERVER['DOCUMENT_ROOT']}auth.log");
 		$merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
-		$merchantAuthentication->setName($req->paymenttest->auth->name);
-		$merchantAuthentication->setTransactionKey($req->paymenttest->auth->key);
+		$merchantAuthentication->setName($req->ccform->auth->name);
+		$merchantAuthentication->setTransactionKey($req->ccform->auth->key);
 
 		// Create the payment data for a credit card
 		$creditCard = new AnetAPI\CreditCardType();
-		$creditCard->setCardNumber($req->paymenttest->ccnum);
-		$creditCard->setExpirationDate("{$req->paymenttest->expires->format('Y-m')}");
+		$creditCard->setCardNumber($req->ccform->ccnum);
+		$creditCard->setExpirationDate("{$req->ccform->expires->format('Y-m')}");
 		// $creditCard->setExpirationDate("2038-12");
 		$paymentOne = new AnetAPI\PaymentType();
 		$paymentOne->setCreditCard($creditCard);
@@ -347,7 +347,7 @@ switch($req->form) {
 		// Create a transaction
 		$transactionRequestType = new AnetAPI\TransactionRequestType();
 		$transactionRequestType->setTransactionType( "authCaptureTransaction");
-		$transactionRequestType->setAmount(floatval($req->paymenttest->cost));
+		$transactionRequestType->setAmount(floatval($req->ccform->cost));
 		$transactionRequestType->setPayment($paymentOne);
 
 		$request = new AnetAPI\CreateTransactionRequest();
@@ -355,14 +355,13 @@ switch($req->form) {
 		$request->setTransactionRequest( $transactionRequestType);
 		$controller = new AnetController\CreateTransactionController($request);
 		$response = $controller->executeWithApiResponse(
-			isset($req->paymenttest->auth->sandbox)
+			isset($req->ccform->auth->sandbox)
 			? \net\authorize\api\constants\ANetEnvironment::SANDBOX
 			: \net\authorize\api\constants\ANetEnvironment::PRODUCTION
 		);
 		Core\Console::getInstance()->info([
-			'$_REQUEST' => $req->paymenttest,
-			'response' => $response->getTransactionResponse()->getAuthCode(),
-			'creditCard' => $creditCard,
+			'$_REQUEST' => $req->ccform,
+			'response' => $response->getTransactionResponse()->getResponseCode()
 		]);
 		$resp->notify('Form submitted', 'Check console');
 		break;
