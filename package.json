@@ -35,7 +35,7 @@
     "git:fetch": "git fetch --all --prune --tags",
     "git:submodules": "git submodule update --init --recursive",
     "update-remote": "git submodule update --remote --init --recursive && npm update --save-dev",
-    "update-packages": "npm run git:submodules && npm run git:fetch && npm run build:all",
+    "update-packages": "npm run git:submodules && composer install && npm run git:fetch && npm run build:all",
     "test": "npm run lint:js && npm run lint:php",
     "postinstall": "npm run update-packages"
   },
