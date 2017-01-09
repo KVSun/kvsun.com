@@ -359,11 +359,16 @@ switch($req->form) {
 			? \net\authorize\api\constants\ANetEnvironment::SANDBOX
 			: \net\authorize\api\constants\ANetEnvironment::PRODUCTION
 		);
-		Core\Console::getInstance()->info([
-			'$_REQUEST' => $req->ccform,
-			'response' => $response->getTransactionResponse()->getResponseCode()
-		]);
-		$resp->notify('Form submitted', 'Check console');
+
+		if ($response->getTransactionResponse()->getResponseCode() == '1') {
+			Core\Console::getInstance()->info([
+				'$_REQUEST' => $req->ccform,
+				'response' => $response->getTransactionResponse()->getResponseCode()
+			]);
+			$resp->notify('Form submitted', 'Check console', '/images/octicons/lib/svg/credit-card.svg');
+		} else {
+			$resp->notify('Payment rejected');
+		}
 		break;
 
 	default:
