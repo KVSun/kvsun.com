@@ -150,13 +150,27 @@ function make_cc_form(DOM\HTMLElement $parent = null, $name = 'ccform')
 	$label->for = $input->id;
 
 	$fieldset->append('br');
-	$label = $form->append('label', 'Sandbox?');
+	$label = $fieldset->append('label', 'Sandbox?');
 	$input = $fieldset->append('input', null, [
 		'type' => 'checkbox',
 		'name' => "{$form->name}[auth][sandbox]",
 		'checked' => ''
 	]);
 
+	$label->for = $input->id;
+
+	$fieldset->append('br');
+
+	$label = $fieldset->append('label', '$');
+	$input = $fieldset->append('input', null, [
+		'type' => 'number',
+		'name' => "{$form->name}[cost]",
+		'id' => "{$form->name}-cost",
+		'min' => 0.01,
+		'step' => 0.01,
+		'placeholder' => '2.78',
+		'required' => '',
+	]);
 	$label->for = $input->id;
 
 	$form->importHTML(file_get_contents('components/forms/ccform.html'));
