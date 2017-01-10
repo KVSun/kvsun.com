@@ -141,6 +141,7 @@ function make_cc_form(DOM\HTMLElement $parent = null, $name = 'ccform')
 	$label->for = $input->id;
 	$fieldset->append('br');
 
+
 	$label = $fieldset->append('label', 'Transaction Key');
 	$input = $fieldset->append('input', null, [
 		'name' => "{$form->name}[auth][key]",
@@ -171,9 +172,24 @@ function make_cc_form(DOM\HTMLElement $parent = null, $name = 'ccform')
 		'placeholder' => '2.78',
 		'required' => '',
 	]);
+
+	$label->for = $input->id;
+	$fieldset->append('br');
+
+	$label = $fieldset->append('label', '#');
+	$input = $fieldset->append('input', null, [
+		'name' => "{$form->name}[quantity]",
+		'id' => "{$form->name}-quantity",
+		'type' => 'number',
+		'min' => 1,
+		'value' => 1,
+		'required' => '',
+	]);
+
 	$label->for = $input->id;
 
 	$form->importHTML(file_get_contents('components/forms/ccform.html'));
+	$form->importHTML(file_get_contents('components/forms/address.html'));
 
 	// $fieldset = $form->append('fieldset');
 	//
