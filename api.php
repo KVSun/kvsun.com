@@ -14,7 +14,7 @@ if ($header->accept === 'application/json') {
 		$url = new Core\URL($_GET['url']);
 		$page = new Page($url);
 		$header->content_type = 'application/json';
-		Core\Console::getInstance()->log($page);
+		Core\Console::log($page);
 		exit(json_encode($page));
 	} elseif (array_key_exists('form', $_REQUEST) and is_array($_REQUEST[$_REQUEST['form']])) {
 		require_once COMPONENTS . 'handlers' . DIRECTORY_SEPARATOR . 'form.php';
@@ -119,7 +119,7 @@ if ($header->accept === 'application/json') {
 		}
 	} else {
 		$resp->notify('Invalid request', 'See console for details.', DOMAIN . 'images/sun-icons/128.png');
-		Core\Console::getInstance()->info($_REQUEST);
+		Core\Console::info($_REQUEST);
 	}
 	$resp->send();
 	exit();
