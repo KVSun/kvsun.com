@@ -69,6 +69,10 @@ if ($header->accept === 'application/json') {
 				$dialog = $dom->body->append('dialog', null, [
 					'id' => 'ccform-dialog'
 				]);
+				$dialog->append('button', null, [
+					'type' => 'button',
+					'data-delete' => "#{$dialog->id}",
+				]);
 				\KVSun\make_cc_form($dialog);
 				$resp->append('body', $dialog);
 				$resp->showModal("#{$dialog->id}");
