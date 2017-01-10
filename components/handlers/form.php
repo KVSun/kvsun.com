@@ -4,10 +4,11 @@ namespace KVSun\Components\Handlers\Form;
 use \shgysk8zer0\Core as Core;
 use \shgysk8zer0\DOM as DOM;
 use \shgysk8zer0\Core_API as API;
+use \shgysk8zer0\Authorize as Authorize;
 use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as Status;
-use net\authorize\api\contract\v1 as AnetAPI;
-use net\authorize\api\controller as AnetController;
-
+use \net\authorize\api\contract\v1 as AnetAPI;
+use \net\authorize\api\controller as AnetController;
+use \net\authorize\api\constants\ANetEnvironment as AuthEnv;
 function is_tel($input)
 {
 	return preg_match('/^\d\\-\d{3}-\d{3}\-\d{4}$/', $input) ? $input : null;
@@ -39,7 +40,7 @@ switch($req->form) {
 			$resp->notify('SQL file not found', 'Please restore "default.sql" using Git.');
 		} else {
 			$installer = $_POST['install-form'];
-			Core\Console::getInstance()->log($installer['db']);
+			Core\Console::log($installer['db']);
 			if (array_key_exists('db', $installer) and is_array($installer['db'])) {
 				try {
 					file_put_contents(
@@ -163,7 +164,7 @@ switch($req->form) {
 				}
 				$resp->send();
 			} catch(\Exception $e) {
-				Core\Console::getInstance()->error($e);
+				Core\Console::error($e);
 			}
 		} else {
 			$resp->notify('Invalid registration entered', 'Please check your inputs');
@@ -233,7 +234,7 @@ switch($req->form) {
 			$resp->notify('Failed', 'Failed to update user data');
 		}
 
-		Core\Console::getInstance()->info($data);
+		Core\Console::info($data);
 		$resp->send();
 		break;
 
@@ -245,9 +246,9 @@ switch($req->form) {
 			// $stm->query = "%{$_REQUEST['search']['query']}%";
 			$stm->query = str_replace(' ', '%', "%{$req->query}%");
 			$results = $stm->execute()->getResults();
-			Core\Console::getInstance()->table($results);
+			Core\Console::table($results);
 		} catch (\Exception $e) {
-			Core\Console::getInstance()->error($e);
+			Core\Console::error($e);
 		}
 		break;
 
@@ -313,7 +314,7 @@ switch($req->form) {
 		$stm->img = isset($imgs) ? $imgs->item(0)->getAttribute('src') : null;
 
 		unset($article_dom, $imgs);
-		Core\Console::getInstance()->info($post);
+		Core\Console::info($post);
 
 		if ($stm->execute()) {
 			$resp->notify('Received post', $post->title)->send();
@@ -324,84 +325,125 @@ switch($req->form) {
 		break;
 
 	case 'ccform':
-		try {
-			$req->ccform->expires = new \DateTime(
-				"{$req->ccform->expires->year}-{$req->ccform->expires->month}"
-			);
-		} catch(\Exception $e) {
-			Core\Console::getInstance()->error($e);
-		}
-
-		// Common setup for API credentials
-		define("AUTHORIZENET_LOG_FILE", "{$_SERVER['DOCUMENT_ROOT']}auth.log");
-		$merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
-		$merchantAuthentication->setName($req->ccform->auth->name);
-		$merchantAuthentication->setTransactionKey($req->ccform->auth->key);
-
-		// Create the payment data for a credit card
-		$creditCard = new AnetAPI\CreditCardType();
-		$creditCard->setCardNumber($req->ccform->ccnum);
-		$creditCard->setExpirationDate("{$req->ccform->expires->format('Y-m')}");
-		// $creditCard->setExpirationDate("2038-12");
-		$paymentOne = new AnetAPI\PaymentType();
-		$paymentOne->setCreditCard($creditCard);
-
-		// Create a transaction
-		$transactionRequestType = new AnetAPI\TransactionRequestType();
-		$transactionRequestType->setTransactionType( "authCaptureTransaction");
-		$transactionRequestType->setAmount(floatval($req->ccform->cost));
-		$transactionRequestType->setPayment($paymentOne);
-
-		$request = new AnetAPI\CreateTransactionRequest();
-		$request->setMerchantAuthentication($merchantAuthentication);
-		$request->setTransactionRequest( $transactionRequestType);
-		$controller = new AnetController\CreateTransactionController($request);
-		$response = $controller->executeWithApiResponse(
+		$creds = new Authorize\Credentials(
+			$req->ccform->auth->name,
+			$req->ccform->auth->key,
 			isset($req->ccform->auth->sandbox)
-			? \net\authorize\api\constants\ANetEnvironment::SANDBOX
-			: \net\authorize\api\constants\ANetEnvironment::PRODUCTION
 		);
+		$expires = new \DateTime(
+			"{$req->ccform->expires->year}-{$req->ccform->expires->month}"
+		);
+		$card = new Authorize\CreditCard(
+			$req->ccform->name,
+			$req->ccform->ccnum,
+			$expires,
+			$req->ccform->csc
+		);
+		$request = new Authorize\ChargeCard($creds, $card);
+		$billing = new Authorize\BillingAddress($req->ccform->billing->getArrayCopy());
 
-		if (isset($response)) {
-			$trans = $response->getTransactionResponse();
-		} else {
-			$resp->notify(
-				'Error contacting server',
-				'Credit card processing server did not respond.',
-				'/images/octicons/lib/svg/server.svg'
-			)->send();
-		}
+		$shipping = new Authorize\ShippingAddress();
+		$shipping->fromAddress($billing);
+		$request->setShippingAddress($shipping);
+		$request->setBillingAddress($billing);
 
-		if ($trans->getResponseCode() == '1') {
-			$resp->notify(
-				'Payment accepted',
-				$trans->getMessages()[0]->getDescription(),
-				'/images/octicons/lib/svg/credit-card.svg'
-			);
-		} else {
-			$errors = $trans->getErrors();
-			if (!empty($trans->getErrors())) {
-				$resp->notify(
-					'Payment rejected',
-					$errors[0]->getErrorText(),
-					'/images/octicons/lib/svg/server.svg'
-				);
-			} else {
-				$resp->notify(
-					'Payment rejected',
-					'But no errors were reported.',
-					'/images/octicons/lib/svg/bug.svg'
-				);
-			}
-		}
-		$resp->send();
+		$item = new Authorize\Item();
+		$item->name('name')->description('description')->price($req->ccform->cost);
+		$item->quantity = $req->ccform->quantity;
+		$items = new Authorize\Items();
+		$items->addItem($item);
+
+		$request->addItems($items);
+		$response = $request();
+		Core\Console::info([
+			'Submitted' => $req->ccform,
+			'Request' => $request,
+			'Response' => $response
+		]);
+		Core\Console::getInstance()->sendLogHeader();
+		$resp->notify('Form Submitted', $response);
+		// $response = $trans($req->ccform->cost);
+		// $resp->notify('Response', "$response");
+		// try {
+		// 	$req->ccform->expires = new \DateTime(
+		// 		"{$req->ccform->expires->year}-{$req->ccform->expires->month}"
+		// 	);
+		// } catch(\Exception $e) {
+		// 	Core\Console::error($e);
+		// }
+		//
+		// // Common setup for API credentials
+		// define("AUTHORIZENET_LOG_FILE", "{$_SERVER['DOCUMENT_ROOT']}auth.log");
+		// $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+		// $merchantAuthentication->setName($req->ccform->auth->name);
+		// $merchantAuthentication->setTransactionKey($req->ccform->auth->key);
+		//
+		// // Create the payment data for a credit card
+		// $creditCard = new AnetAPI\CreditCardType();
+		// $creditCard->setCardNumber($req->ccform->ccnum);
+		// $creditCard->setExpirationDate("{$req->ccform->expires->format('Y-m')}");
+		// $paymentOne = new AnetAPI\PaymentType();
+		// $paymentOne->setCreditCard($creditCard);
+		//
+		// // Create a transaction
+		// $transactionRequestType = new AnetAPI\TransactionRequestType();
+		// $transactionRequestType->setTransactionType( "authCaptureTransaction");
+		// $transactionRequestType->setAmount(floatval($req->ccform->cost));
+		// $transactionRequestType->setPayment($paymentOne);
+		//
+		// $request = new AnetAPI\CreateTransactionRequest();
+		// $request->setMerchantAuthentication($merchantAuthentication);
+		// $request->setTransactionRequest( $transactionRequestType);
+		// $controller = new AnetController\CreateTransactionController($request);
+		// $response = $controller->executeWithApiResponse(
+		// 	isset($req->ccform->auth->sandbox)
+		// 	? AuthEnv::SANDBOX
+		// 	: AuthEnv::PRODUCTION
+		// );
+		//
+		// if (isset($response)) {
+		// 	$trans = $response->getTransactionResponse();
+		// } else {
+		// 	$resp->notify(
+		// 		'Error contacting server',
+		// 		'Credit card processing server did not respond.',
+		// 		'/images/octicons/lib/svg/server.svg'
+		// 	)->send();
+		// }
+		//
+		// if ($trans->getResponseCode() == '1') {
+		// 	$resp->notify(
+		// 		'Payment accepted',
+		// 		$trans->getMessages()[0]->getDescription(),
+		// 		'/images/octicons/lib/svg/credit-card.svg'
+		// 	);
+		// 	Core\Console::info($trans->getTransId());
+		// } else {
+		// 	$errors = $trans->getErrors();
+		// 	if (!empty($errors)) {
+		// 		$resp->notify(
+		// 			'Payment rejected',
+		// 			$errors[0]->getErrorText(),
+		// 			'/images/octicons/lib/svg/server.svg'
+		// 		);
+		// 		foreach ($errors as $error) {
+		// 			trigger_error($error->getErrorText());
+		// 		}
+		// 	} else {
+		// 		$resp->notify(
+		// 			'Payment rejected',
+		// 			'But no errors were reported.',
+		// 			'/images/octicons/lib/svg/bug.svg'
+		// 		);
+		// 	}
+		// }
 		break;
 
 	default:
 		trigger_error('Unhandled form submission.');
 		header('Content-Type: application/json');
 		if (\KVSun\DEBUG) {
-			Core\Console::getInstance()->info($req);
+			Core\Console::info($req);
 		}
 		exit('{}');
 }
