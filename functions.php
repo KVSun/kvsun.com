@@ -232,7 +232,7 @@ function make_cc_form(DOM\HTMLElement $parent = null, $name = 'ccform')
 		'min' => 100,
 		'max' => 9999,
 		'placeholder' => '####',
-		'autpcomplete' => 'cc-csc',
+		'autocomplete' => 'cc-csc',
 		'size' => 4,
 		'required' => ''
 	]);
