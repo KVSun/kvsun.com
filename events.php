@@ -22,10 +22,10 @@ if (check_role('admin') or DEBUG) {
 	$timer = new Core\Timer();
 	new Core\Listener('load', function() use ($timer)
 	{
-		Core\Console::getInstance()->info("Loaded in $timer seconds.");
+		Core\Console::info("Loaded in $timer seconds.");
 		Core\Console::getInstance()->sendLogHeader();
 	});
-	new Core\Listener('error', [Core\Console::getInstance(), 'error']);
-	new Core\Listener('exception', [Core\Console::getInstance(), 'error']);
+	new Core\Listener('error', '\shgysk8zer0\Core\Console::error');
+	new Core\Listener('exception', '\shgysk8zer0\Core\Console::error');
 	unset($timer);
 }
