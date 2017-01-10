@@ -325,7 +325,9 @@ switch($req->form) {
 
 	case 'ccform':
 		try {
-			$req->ccform->expires = new \DateTime("{$req->ccform->expires->year}-{$req->ccform->expires->month}");
+			$req->ccform->expires = new \DateTime(
+				"{$req->ccform->expires->year}-{$req->ccform->expires->month}"
+			);
 		} catch(\Exception $e) {
 			Core\Console::getInstance()->error($e);
 		}
@@ -360,15 +362,39 @@ switch($req->form) {
 			: \net\authorize\api\constants\ANetEnvironment::PRODUCTION
 		);
 
-		if ($response->getTransactionResponse()->getResponseCode() == '1') {
-			Core\Console::getInstance()->info([
-				'$_REQUEST' => $req->ccform,
-				'response' => $response->getTransactionResponse()->getResponseCode()
-			]);
-			$resp->notify('Form submitted', 'Check console', '/images/octicons/lib/svg/credit-card.svg');
+		if (isset($response)) {
+			$trans = $response->getTransactionResponse();
 		} else {
-			$resp->notify('Payment rejected');
+			$resp->notify(
+				'Error contacting server',
+				'Credit card processing server did not respond.',
+				'/images/octicons/lib/svg/server.svg'
+			)->send();
 		}
+
+		if ($trans->getResponseCode() == '1') {
+			$resp->notify(
+				'Payment accepted',
+				$trans->getMessages()[0]->getDescription(),
+				'/images/octicons/lib/svg/credit-card.svg'
+			);
+		} else {
+			$errors = $trans->getErrors();
+			if (!empty($trans->getErrors())) {
+				$resp->notify(
+					'Payment rejected',
+					$errors[0]->getErrorText(),
+					'/images/octicons/lib/svg/server.svg'
+				);
+			} else {
+				$resp->notify(
+					'Payment rejected',
+					'But no errors were reported.',
+					'/images/octicons/lib/svg/bug.svg'
+				);
+			}
+		}
+		$resp->send();
 		break;
 
 	default:
