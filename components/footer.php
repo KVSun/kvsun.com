@@ -26,16 +26,21 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
 	$login->append('br');
 	$login->getElementById('login-form')->action = \KVSun\DOMAIN . 'api.php';
 
-	$footer->append('button', 'Register', [
-		'data-show-modal' => "#{$register->id}",
-		'type' => 'button'
+	\KVSun\use_icon('sign-in', $footer, [
+		'data-show-modal' => "#{$login->id}",
+		'class' => 'logo',
+		'title' => 'Sign in',
 	]);
 
-	\KVSun\use_icon('sign-in', $footer, ['data-show-modal' => "#{$login->id}"]);
-	\KVSun\use_icon('credit-card', $footer->append('button', null, [
-		'type' => 'button',
-		'data-load-form' => 'ccform'
-	]));
+	\KVSun\use_icon('server', $footer, [
+		'data-show-modal' => "#{$register->id}",
+		'class' => 'logo',
+	]);
+
+	\KVSun\use_icon('credit-card', $footer, [
+		'data-load-form' => 'ccform',
+		'class' => 'logo',
+	]);
 
 	\KVSun\use_icon('mark-github', $footer->append('a', null, [
 		'href' => $package->repository->url,
