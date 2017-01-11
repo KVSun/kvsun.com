@@ -189,7 +189,8 @@ function make_cc_form(DOM\HTMLElement $parent = null, $name = 'ccform')
 	$label->for = $input->id;
 
 	$form->importHTML(file_get_contents('components/forms/ccform.html'));
-	$form->importHTML(file_get_contents('components/forms/address.html'));
+	$form->importHTML(file_get_contents('components/forms/billing.html'));
+
 
 	// $fieldset = $form->append('fieldset');
 	//
