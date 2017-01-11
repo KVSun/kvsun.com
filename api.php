@@ -76,7 +76,6 @@ if ($header->accept === 'application/json') {
 				\KVSun\make_cc_form($dialog);
 				$resp->append('body', $dialog);
 				$resp->showModal("#{$dialog->id}");
-				$resp->send();
 				break;
 
 			default:
