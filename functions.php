@@ -129,38 +129,7 @@ function make_cc_form(DOM\HTMLElement $parent = null, $name = 'ccform')
 	]);
 
 	$fieldset = $form->append('fieldset');
-	$fieldset->append('legend', 'Authorize.net Credentials');
-	$label = $fieldset->append('label', 'Name');
-	$input = $fieldset->append('input', null, [
-		'type' => 'text',
-		'name' => "{$form->name}[auth][name]",
-		'id' => "{$form->name}-auth-name",
-		'required' => '',
-	]);
-
-	$label->for = $input->id;
-	$fieldset->append('br');
-
-
-	$label = $fieldset->append('label', 'Transaction Key');
-	$input = $fieldset->append('input', null, [
-		'name' => "{$form->name}[auth][key]",
-		'id' => "{$form->name}-auth-key",
-		'require' => ''
-	]);
-	$label->for = $input->id;
-
-	$fieldset->append('br');
-	$label = $fieldset->append('label', 'Sandbox?');
-	$input = $fieldset->append('input', null, [
-		'type' => 'checkbox',
-		'name' => "{$form->name}[auth][sandbox]",
-		'checked' => ''
-	]);
-
-	$label->for = $input->id;
-
-	$fieldset->append('br');
+	$fieldset->append('legend', 'Item info');
 
 	$label = $fieldset->append('label', '$');
 	$input = $fieldset->append('input', null, [
