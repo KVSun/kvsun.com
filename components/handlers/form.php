@@ -6,9 +6,7 @@ use \shgysk8zer0\DOM as DOM;
 use \shgysk8zer0\Core_API as API;
 use \shgysk8zer0\Authorize as Authorize;
 use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as Status;
-use \net\authorize\api\contract\v1 as AnetAPI;
-use \net\authorize\api\controller as AnetController;
-use \net\authorize\api\constants\ANetEnvironment as AuthEnv;
+
 function is_tel($input)
 {
 	return preg_match('/^\d\\-\d{3}-\d{3}\-\d{4}$/', $input) ? $input : null;
@@ -325,11 +323,9 @@ switch($req->form) {
 		break;
 
 	case 'ccform':
-		$creds = new Authorize\Credentials(
-			$req->ccform->auth->name,
-			$req->ccform->auth->key,
-			isset($req->ccform->auth->sandbox)
-		);
+		$sandbox = $_SERVER['SERVER_ADDR'] === $_SERVER['REMOTE_ADDR'];
+
+		$creds = Authorize\Credentials::loadFromIniFile(\KVSun\Authorize, $sandbox);
 		$expires = new \DateTime(
 			"{$req->ccform->card->expires->year}-{$req->ccform->card->expires->month}"
 		);
@@ -349,7 +345,10 @@ switch($req->form) {
 		$request->setBillingAddress($billing);
 
 		$item = new Authorize\Item();
-		$item->name('name')->description('description')->price($req->ccform->cost);
+		$item->id(1);
+		$item->name('Online subscription');
+		$item->description("Online subscription to {$_SERVER['SERVER_NAME']}");
+		$item->price($req->ccform->cost);
 		$item->quantity = $req->ccform->quantity;
 		$items = new Authorize\Items();
 		$items->addItem($item);
@@ -359,7 +358,7 @@ switch($req->form) {
 		$resp->notify(
 			'Form Submitted',
 			$response,
-			'/images/octicons/lib/svg/server.svg'
+			'/images/octicons/lib/svg/credit-card.svg'
 		);
 		if (!empty($response->errors)) {
 			Core\Console::error($response->errors);
