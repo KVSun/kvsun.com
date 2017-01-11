@@ -331,15 +331,16 @@ switch($req->form) {
 			isset($req->ccform->auth->sandbox)
 		);
 		$expires = new \DateTime(
-			"{$req->ccform->expires->year}-{$req->ccform->expires->month}"
+			"{$req->ccform->card->expires->year}-{$req->ccform->card->expires->month}"
 		);
 		$card = new Authorize\CreditCard(
-			$req->ccform->name,
-			$req->ccform->ccnum,
+			$req->ccform->card->name,
+			$req->ccform->card->num,
 			$expires,
-			$req->ccform->csc
+			$req->ccform->card->csc
 		);
 		$request = new Authorize\ChargeCard($creds, $card);
+		$request->setInvoice(rand(1000000, 99999999));
 		$billing = new Authorize\BillingAddress($req->ccform->billing->getArrayCopy());
 
 		$shipping = new Authorize\ShippingAddress();
@@ -355,13 +356,22 @@ switch($req->form) {
 
 		$request->addItems($items);
 		$response = $request();
-		Core\Console::info([
-			'Submitted' => $req->ccform,
-			'Request' => $request,
-			'Response' => $response
-		]);
-		Core\Console::getInstance()->sendLogHeader();
-		$resp->notify('Form Submitted', $response);
+		$resp->notify(
+			'Form Submitted',
+			$response,
+			'/images/octicons/lib/svg/server.svg'
+		);
+		if (!empty($response->errors)) {
+			Core\Console::error($response->errors);
+		}
+		if (!empty($response->messages)) {
+			Core\Console::info($response->messages);
+		}
+		Core\Console::log([
+			'respCode'      => $response->code,
+			'authCode'      => $response->authCode,
+			'transactionID' => $response->transactionID,
+		])->info($req->ccform);
 		// $response = $trans($req->ccform->cost);
 		// $resp->notify('Response', "$response");
 		// try {
