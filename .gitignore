@@ -1,4 +1,5 @@
 /config/*.json
+/config/*.ini
 /node_modules/
 /stylesheets/styles/styles.css
 /images/icons.svg
