@@ -3,11 +3,19 @@ namespace KVSun\Components\Article;
 return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 {
 	// $article->append('meta', null, ['itemprop' => 'publisher', 'content' => 'Kern Valley Sun']);
-	if (is_object($page) and isset($page->content, $page->posted, $page->title)) {
+	$main = $dom->getElementsByTagName('main');
+	if (
+		is_object($page)
+		and isset($page->content, $page->posted, $page->title)
+		and ($main->length !== 0)
+	) {
+		$main = $main->item(0);
+		$main->itemtype = 'mainContentOfPage';
 
-		$article = $dom->getElementsByTagName('main')->item(0)->append('article');
+		$article = $main->append('article');
 		$article->itemscope = '';
 		$article->itemtype = 'https://schema.org/Article';
+		$article->itemprop = 'mainEntityOfPage';
 
 		$updated = isset($page->updated)
 			? new \DateTime($page->updated)

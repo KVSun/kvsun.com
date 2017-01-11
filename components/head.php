@@ -3,12 +3,27 @@ namespace KVSun\Components\Head;
 
 return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 {
+	$dom->documentElement->itemscope = '';
+	$dom->documentElement->itemtype = 'https://schema.org/WebPage';
 	$head = $dom->head;
 
 	if ($pdo->connected) {
 		$data = $pdo->nameValue('head');
-		$head->append('title', isset($page->title) ? "{$data->title} | {$page->title}" : $data->title);
+		$head->append(
+			'title',
+			isset($page->title) ? "{$data->title} | {$page->title}" : $data->title, [
+				'itemprop' => 'name',
+		]);
 		$head->append('base', null, ['href' => \KVSun\DOMAIN]);
+		$head->append('link', null, [
+			'rel' => 'canonical',
+			'href' => \KVSun\DOMAIN . ltrim($_SERVER['REQUEST_URI'], '/'),
+			'itemprop' => 'url',
+		]);
+		$head->append('meta', null, [
+			'content' => \KVSun\DOMAIN . ltrim($_SERVER['REQUEST_URI'], '/'),
+			'itemprop' => 'url',
+		]);
 		$head->append('meta', null, [
 			'name' => 'viewport',
 			'content' => $data->viewport
@@ -21,6 +36,10 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 		if (isset($page->description)) {
 			$head->append('meta', null, [
 				'name' => 'description',
+				'content' => $page->description,
+			]);
+			$head->append('meta', null, [
+				'itemprop' => 'description',
 				'content' => $page->description,
 			]);
 		}
