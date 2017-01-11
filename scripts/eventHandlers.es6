@@ -26,27 +26,28 @@ export function sameoriginFrom(form) {
 
 export function clickShowModal(click)
 {
-	if ('showModal' in click.target.dataset) {
-		document.querySelector(click.target.dataset.showModal).showModal();
+	click.preventDefault();
+	if ('showModal' in this.dataset) {
+		document.querySelector(this.dataset.showModal).showModal();
 	}
 }
 
 export function submitForm(submit) {
 	submit.preventDefault();
-	let els = Array.from(submit.target.querySelectorAll('fieldset, button'));
-	if (!('confirm' in submit.target.dataset) || confirm(submit.target.dataset.confirm)) {
-		let body = new FormData(submit.target);
+	let els = Array.from(this.querySelectorAll('fieldset, button'));
+	if (!('confirm' in this.dataset) || confirm(this.dataset.confirm)) {
+		let body = new FormData(this);
 		let headers = new Headers();
-		let url = new URL(submit.target.action, location.origin);
+		let url = new URL(this.action, location.origin);
 		// body.append('nonce', sessionStorage.getItem('nonce'));
-		body.append('form', submit.target.name);
-		$(`form[name="${submit.target.name}"] [data-input-name]`).each(input => {
+		body.append('form', this.name);
+		$(`form[name="${this.name}"] [data-input-name]`).each(input => {
 			body.append(input.dataset.inputName, input.innerHTML);
 		});
 		els.forEach(el => el.disabled = true);
 		headers.set('Accept', 'application/json');
 		fetch(url, {
-			method: submit.target.method || 'POST',
+			method: this.method || 'POST',
 			headers,
 			body,
 			credentials: 'include'
@@ -56,9 +57,10 @@ export function submitForm(submit) {
 }
 
 export function getForm(click) {
+	click.preventDefault();
 	let url = new URL('api.php', location.origin);
 	let headers = new Headers();
-	url.searchParams.set('load_form', click.target.dataset.loadForm);
+	url.searchParams.set('load_form', this.dataset.loadForm);
 	headers.set('Accept', 'application/json');
 	fetch(url, {
 		method: 'GET',
@@ -163,8 +165,8 @@ export function toggleCheckboxes() {
 	});
 }
 
-export  function closeOnOutsideClick(click) {
-	if (! click.target.matches('dialog, dialog *')) {
+export  function closeOnOutsideClick() {
+	if (! this.matches('dialog, dialog *')) {
 		$('dialog[open]:first-of-type').each(autoCloseDialog);
 	}
 }
