@@ -165,8 +165,8 @@ export function toggleCheckboxes() {
 	});
 }
 
-export  function closeOnOutsideClick() {
-	if (! this.matches('dialog, dialog *')) {
+export  function closeOnOutsideClick(click) {
+	if (! click.target.matches('dialog, dialog *')) {
 		$('dialog[open]:first-of-type').each(autoCloseDialog);
 	}
 }
