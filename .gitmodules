@@ -49,3 +49,6 @@
 [submodule "classes/shgysk8zer0/login"]
 	path = classes/shgysk8zer0/login
 	url = git://github.com/shgysk8zer0/login.git
+[submodule "classes/shgysk8zer0/authorize"]
+	path = classes/shgysk8zer0/authorize
+	url = git://github.com/shgysk8zer0/authorize

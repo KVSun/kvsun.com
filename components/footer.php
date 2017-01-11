@@ -32,6 +32,10 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
 	]);
 
 	\KVSun\use_icon('sign-in', $footer, ['data-show-modal' => "#{$login->id}"]);
+	\KVSun\use_icon('credit-card', $footer->append('button', null, [
+		'type' => 'button',
+		'data-load-form' => 'ccform'
+	]));
 
 	\KVSun\use_icon('mark-github', $footer->append('a', null, [
 		'href' => $package->repository->url,

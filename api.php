@@ -14,7 +14,7 @@ if ($header->accept === 'application/json') {
 		$url = new Core\URL($_GET['url']);
 		$page = new Page($url);
 		$header->content_type = 'application/json';
-		Core\Console::getInstance()->log($page);
+		Core\Console::log($page);
 		exit(json_encode($page));
 	} elseif (array_key_exists('form', $_REQUEST) and is_array($_REQUEST[$_REQUEST['form']])) {
 		require_once COMPONENTS . 'handlers' . DIRECTORY_SEPARATOR . 'form.php';
@@ -64,6 +64,21 @@ if ($header->accept === 'application/json') {
 				$resp->send();
 				break;
 
+			case 'ccform':
+				$dom = new \shgysk8zer0\DOM\HTML();
+				$dialog = $dom->body->append('dialog', null, [
+					'id' => 'ccform-dialog'
+				]);
+				$dialog->append('button', null, [
+					'type' => 'button',
+					'data-delete' => "#{$dialog->id}",
+				]);
+				\KVSun\make_cc_form($dialog);
+				$resp->append('body', $dialog);
+				$resp->showModal("#{$dialog->id}");
+				$resp->send();
+				break;
+
 			default:
 				trigger_error("Request for unhandled form, {$_REQUEST['load_form']}");
 				$resp->notify(
@@ -104,7 +119,7 @@ if ($header->accept === 'application/json') {
 		}
 	} else {
 		$resp->notify('Invalid request', 'See console for details.', DOMAIN . 'images/sun-icons/128.png');
-		Core\Console::getInstance()->info($_REQUEST);
+		Core\Console::info($_REQUEST);
 	}
 	$resp->send();
 	exit();
