@@ -13,7 +13,7 @@ const COMPONENTS   = __DIR__ . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SE
 const CONFIG       = __DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR;
 const PAGES_DIR    = __DIR__ . DIRECTORY_SEPARATOR . 'pages' . DIRECTORY_SEPARATOR;
 const DB_CREDS     = 'connect.json';
-const AUTHORIZE    = 'authorize.json';
+const AUTHORIZE    = 'authorize.ini';
 const DB_INSTALLER = __DIR__ . DIRECTORY_SEPARATOR . 'default.sql';
 
 const DEV_STYLE    = 'stylesheets/styles/import.css';
