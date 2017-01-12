@@ -135,15 +135,37 @@ function make_cc_form(DOM\HTMLElement $parent = null, $name = 'ccform')
 		'id' => "{$form->name}-subscription",
 	]);
 
+	$online = $input->append('optgroup', null, ['label' => 'Online subscriptions']);
+	$print = $input->append('optgroup', null, ['label' => 'Print subscriptions']);
+	$e_edition = $input->append('optgroup', null, ['label' => 'E-Edition subscriptions']);
+
 	$pdo = Core\PDO::load(\KVSun\DB_CREDS);
-	$subs = $pdo('SELECT `id`, `name`, `price` FROM `subscription_rates`;');
-	array_map(function(\stdClass $sub) use ($input)
+	$subs = $pdo('SELECT
+		`id`,
+		`name`,
+		`media`,
+		`price`
+	FROM `subscription_rates`
+	ORDER BY `price` DESC;'
+	);
+	Core\Console::table($subs)->sendLogHeader();
+	array_map(function(\stdClass $sub) use ($print, $e_edition, $online)
 	{
-		$option = $input->append(
-			'option',
-			"{$sub->name} [\${$sub->price}]",
-			['value' => $sub->id]
-		);
+		$option = new \DOMElement('option', "{$sub->name} [\${$sub->price}]");
+		switch($sub->media) {
+			case 'online':
+				$online->appendChild($option);
+				break;
+
+			case 'e-edition':
+				$e_edition->appendChild($option);
+				break;
+
+			case 'print':
+				$print->appendChild($option);
+				break;
+		}
+		$option->setAttribute('value', $sub->id);
 	}, $subs);
 	$label->for = $input->id;
 
