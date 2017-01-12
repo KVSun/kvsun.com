@@ -10,7 +10,7 @@ export function handleRequest(click) {
 		let headers = new Headers();
 		url.search = `?${this.dataset.request}`;
 		headers.set('Accept', 'application/json');
-		if ('prompt' in this.dataset) {
+		if (this.dataset.hasOwnProperty('prompt')) {
 			url.searchParams.set('prompt_value', prompt(this.dataset.prompt));
 		}
 		fetch(url, {
@@ -27,7 +27,7 @@ export function sameoriginFrom(form) {
 export function clickShowModal(click)
 {
 	click.preventDefault();
-	if ('showModal' in this.dataset) {
+	if (this.dataset.hasOwnProperty('showModal')) {
 		document.querySelector(this.dataset.showModal).showModal();
 	}
 }
@@ -35,7 +35,7 @@ export function clickShowModal(click)
 export function submitForm(submit) {
 	submit.preventDefault();
 	let els = Array.from(this.querySelectorAll('fieldset, button'));
-	if (!('confirm' in this.dataset) || confirm(this.dataset.confirm)) {
+	if (!(this.dataset.hasOwnProperty('confirm')) || confirm(this.dataset.confirm)) {
 		let body = new FormData(this);
 		let headers = new Headers();
 		let url = new URL(this.action, location.origin);
