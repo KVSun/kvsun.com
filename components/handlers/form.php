@@ -325,7 +325,7 @@ switch($req->form) {
 	case 'ccform':
 		$sandbox = $_SERVER['SERVER_ADDR'] === $_SERVER['REMOTE_ADDR'];
 
-		$creds = Authorize\Credentials::loadFromIniFile(\KVSun\Authorize, $sandbox);
+		$creds = Authorize\Credentials::loadFromIniFile(\KVSun\AUTHORIZE, $sandbox);
 		$expires = new \DateTime(
 			"{$req->ccform->card->expires->year}-{$req->ccform->card->expires->month}"
 		);
@@ -344,12 +344,18 @@ switch($req->form) {
 		$request->setShippingAddress($shipping);
 		$request->setBillingAddress($billing);
 
-		$item = new Authorize\Item();
-		$item->id(1);
-		$item->name('Online subscription');
-		$item->description("Online subscription to {$_SERVER['SERVER_NAME']}");
-		$item->price($req->ccform->cost);
-		$item->quantity = $req->ccform->quantity;
+		$stm = Core\PDO::load(\KVSun\DB_CREDS)->prepare('SELECT
+				`id`,
+				`name`,
+				`description`,
+				`price`
+			FROM `subscription_rates`
+			WHERE `id` = :id;'
+		);
+		$stm->id = $req->ccform->subscription;
+		$stm->execute();
+
+		$item = new Authorize\Item(get_object_vars($stm->fetchObject()));
 		$items = new Authorize\Items();
 		$items->addItem($item);
 
