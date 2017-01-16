@@ -38,6 +38,15 @@ const USER_ROLES   = array(
 	5 => 'guest',
 );
 
+const LOCAL_ZIPS = [
+	93205,
+	93238,
+	93240,
+	93255,
+	93283,
+	93285
+];
+
 if (! array_key_exists('SERVER_NAME', $_SERVER)) {
 	$_SERVER['SERVER_NAME'] = 'localhost';
 }
