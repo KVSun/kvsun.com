@@ -373,9 +373,7 @@ switch($req->form) {
 			)->focus('#ccform-subscription')->send();
 		}
 
-		$sandbox = $_SERVER['SERVER_ADDR'] === $_SERVER['REMOTE_ADDR'];
-
-		$creds = Authorize\Credentials::loadFromIniFile(\KVSun\AUTHORIZE, $sandbox);
+		$creds = Authorize\Credentials::loadFromIniFile(\KVSun\AUTHORIZE, \KVSun\DEBUG);
 		$expires = new \DateTime(
 			"{$req->ccform->card->expires->year}-{$req->ccform->card->expires->month}"
 		);
@@ -441,7 +439,7 @@ switch($req->form) {
 		$response = $request();
 		if ($response->code == '1') {
 			$resp->notify(
-				'Payment successful',
+				'Subscription successful',
 				$response,
 				'/images/octicons/lib/svg/credit-card.svg'
 			);
@@ -449,7 +447,7 @@ switch($req->form) {
 			$resp->send();
 		} else {
 			$resp->notify(
-				'Form Submitted',
+				'There was an error processing your subscription',
 				$response,
 				'/images/octicons/lib/svg/credit-card.svg'
 			);
