@@ -323,6 +323,7 @@ switch($req->form) {
 		break;
 
 	case 'ccform':
+		$user = \KVSun\restore_login();
 		$billing = new Authorize\BillingAddress($req->ccform->billing->getArrayCopy());
 
 		if (!$billing->validate()) {
@@ -332,8 +333,9 @@ switch($req->form) {
 				'/images/octicons/lib/svg/credit-card.svg'
 			)->focus('#ccform-billing-first-name')->send();
 		}
+		$pdo = Core\PDO::load(\KVSun\DB_CREDS);
 
-		$stm = Core\PDO::load(\KVSun\DB_CREDS)->prepare('SELECT
+		$stm = $pdo->prepare('SELECT
 				`id`,
 				`name`,
 				`description`,
@@ -410,9 +412,8 @@ switch($req->form) {
 		try {
 			if (!empty($sub->includes)) {
 				$includes = explode(',', $sub->includes);
-				$sub->includes = [];
-				foreach ($includes as $include) {
-					$include = trim($include);
+				$includes = array_map('intval', $includes);
+				foreach (array_filter($includes) as $include) {
 					if ($include == $sub->id) {
 						throw new \Exception("Recursive subscription for {$sub->name}.");
 					} else {
@@ -438,13 +439,44 @@ switch($req->form) {
 		$request->addItems($items);
 		$response = $request();
 		if ($response->code == '1') {
+			$record = $pdo->prepare('INSERT INTO `transactions` (
+					`transactionID`,
+					`authCode`,
+					`userID`,
+					`subscriptionID`
+				) VALUES (
+					:transactionID,
+					:authCode,
+					:userID,
+					:subscription
+				);'
+			);
+
+			$record->execute([
+				'transactionID' => $response->transactionID,
+				'authCode' => $response->authCode,
+				'userID' => $user->id,
+				'subscription' => $sub->id,
+			]);
+
+			Core\Console::table($pdo('SELECT * FROM `transactions`;'));
+
 			$resp->notify(
 				'Subscription successful',
 				$response,
 				'/images/octicons/lib/svg/credit-card.svg'
 			);
+			if (\KVSun\DEBUG) {
+				Core\Console::log([
+					'respCode'      => $response->code,
+					'authCode'      => $response->authCode,
+					'transactionID' => $response->transactionID,
+					'messages'      => $response->messages,
+					'errors'        => $response->errors,
+				]);
+			}
+
 			$resp->remove('#ccform-dialog');
-			$resp->send();
 		} else {
 			$resp->notify(
 				'There was an error processing your subscription',
