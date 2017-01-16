@@ -120,6 +120,9 @@ if ($header->accept === 'application/json') {
 		$resp->notify('Invalid request', 'See console for details.', DOMAIN . 'images/sun-icons/128.png');
 		Core\Console::info($_REQUEST);
 	}
+	if (check_role('admin') or DEBUG) {
+		Core\Console::getInstance()->sendLogHeader();
+	}
 	$resp->send();
 	exit();
 }  elseif(array_key_exists('url', $_GET)) {
