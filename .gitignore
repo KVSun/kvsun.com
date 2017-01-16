@@ -228,3 +228,5 @@ pip-log.txt
 .mr.developer.cfg
 
 /vendor/
+/my-httpd.pp
+/my-httpd.te
