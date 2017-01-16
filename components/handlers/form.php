@@ -381,25 +381,32 @@ switch($req->form) {
 
 		$request->addItems($items);
 		$response = $request();
-		$resp->notify(
-			'Form Submitted',
-			$response,
-			'/images/octicons/lib/svg/credit-card.svg'
-		);
+		if ($respone->code == '1') {
+			$resp->notify(
+				'Payment successful',
+				$response,
+				'/images/octicons/lib/svg/credit-card.svg'
+			);
+			$resp->remove('#ccform-dialog');
+			$resp->send();
+		} else {
 
-		if (!empty($response->errors)) {
-			Core\Console::error($response->errors);
+			$resp->notify(
+				'Form Submitted',
+				$response,
+				'/images/octicons/lib/svg/credit-card.svg'
+			);
+
+			if (\KVSun\DEBUG) {
+				Core\Console::log([
+					'respCode'      => $response->code,
+					'authCode'      => $response->authCode,
+					'transactionID' => $response->transactionID,
+					'messages'      => $response->messages,
+					'errors'        => $response->errors,
+				]);
+			}
 		}
-
-		if (!empty($response->messages)) {
-			Core\Console::info($response->messages);
-		}
-
-		Core\Console::log([
-			'respCode'      => $response->code,
-			'authCode'      => $response->authCode,
-			'transactionID' => $response->transactionID,
-		])->info($req->ccform);
 		break;
 
 	default:
