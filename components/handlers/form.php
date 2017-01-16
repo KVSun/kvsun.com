@@ -323,6 +323,54 @@ switch($req->form) {
 		break;
 
 	case 'ccform':
+		$billing = new Authorize\BillingAddress($req->ccform->billing->getArrayCopy());
+
+		if (!$billing->validate()) {
+			$resp->notify(
+				'Double check your address',
+				'Looks like you missed some info when entering your address',
+				'/images/octicons/lib/svg/credit-card.svg'
+			)->focus('#ccform-billing-first-name')->send();
+		}
+
+		$stm = Core\PDO::load(\KVSun\DB_CREDS)->prepare('SELECT
+				`id`,
+				`name`,
+				`description`,
+				`length`,
+				`price`,
+				`media`,
+				`isLocal`
+			FROM `subscription_rates`
+			WHERE `id` = :id;'
+		);
+		$stm->id = $req->ccform->subscription;
+		$stm->execute();
+
+		$sub = $stm->fetchObject();
+
+		if (
+			$sub->media === 'print'
+			and $sub->isLocal
+			and ! in_array(intval($req->ccform->billing->zip), \KVSun\LOCAL_ZIPS)
+		) {
+			$resp->notify(
+				'You do not qualify for this subscription',
+				'Please select from our out of Valley print subscriptions',
+				'/images/octicons/lib/svg/credit-card.svg'
+			)->focus('#ccform-subscription')->send();
+		} elseif (
+			$sub->media === 'print'
+			and !$sub->isLocal
+			and in_array(intval($req->ccform->billing->zip), \KVSun\LOCAL_ZIPS)
+		) {
+			$resp->notify(
+				'You do not qualify for this subscription',
+				'Please select from our local print subscriptions',
+				'/images/octicons/lib/svg/credit-card.svg'
+			)->focus('#ccform-subscription')->send();
+		}
+
 		$sandbox = $_SERVER['SERVER_ADDR'] === $_SERVER['REMOTE_ADDR'];
 
 		$creds = Authorize\Credentials::loadFromIniFile(\KVSun\AUTHORIZE, $sandbox);
@@ -339,34 +387,14 @@ switch($req->form) {
 
 		$request = new Authorize\ChargeCard($creds, $card);
 		$request->setInvoice(rand(1000000, 99999999));
-
-		$billing = new Authorize\BillingAddress($req->ccform->billing->getArrayCopy());
-
-		if (!$billing->validate()) {
-			$resp->notify(
-				'Double check your address',
-				'Looks like you missed some info when entering your address',
-				'/images/octicons/lib/svg/credit-card.svg'
-			)->focus('#ccform-billing-first-name')->send();
-		}
-
 		$shipping = new Authorize\ShippingAddress();
 		$shipping->fromAddress($billing);
 		$request->setShippingAddress($shipping);
 		$request->setBillingAddress($billing);
 
-		$stm = Core\PDO::load(\KVSun\DB_CREDS)->prepare('SELECT
-				`id`,
-				`name`,
-				`description`,
-				`price`
-			FROM `subscription_rates`
-			WHERE `id` = :id;'
-		);
-		$stm->id = $req->ccform->subscription;
-		$stm->execute();
-
-		$item = new Authorize\Item(get_object_vars($stm->fetchObject()));
+		$item = new Authorize\Item();
+		$item->id($sub->id)->name($sub->name)->description($sub->description);
+		$item->price($sub->price);
 
 		if (! $item->validate()) {
 			$resp->notify(
@@ -381,7 +409,7 @@ switch($req->form) {
 
 		$request->addItems($items);
 		$response = $request();
-		if ($respone->code == '1') {
+		if ($response->code == '1') {
 			$resp->notify(
 				'Payment successful',
 				$response,
@@ -390,7 +418,6 @@ switch($req->form) {
 			$resp->remove('#ccform-dialog');
 			$resp->send();
 		} else {
-
 			$resp->notify(
 				'Form Submitted',
 				$response,
