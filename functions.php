@@ -150,7 +150,7 @@ function make_cc_form(DOM\HTMLElement $parent = null, $name = 'ccform')
 	FROM `subscription_rates`
 	ORDER BY `price` DESC;'
 	);
-	Core\Console::table($subs)->sendLogHeader();
+
 	array_map(function(\stdClass $sub) use (
 		$print_local,
 		$print_oov,
