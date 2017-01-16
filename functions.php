@@ -136,20 +136,27 @@ function make_cc_form(DOM\HTMLElement $parent = null, $name = 'ccform')
 	]);
 
 	$online = $input->append('optgroup', null, ['label' => 'Online subscriptions']);
-	$print = $input->append('optgroup', null, ['label' => 'Print subscriptions']);
+	$print_local = $input->append('optgroup', null, ['label' => 'Print subscriptions']);
 	$e_edition = $input->append('optgroup', null, ['label' => 'E-Edition subscriptions']);
+	$print_oov = $input->append('optgroup', null, ['label' => 'Out of Valley print subscriptions']);
 
 	$pdo = Core\PDO::load(\KVSun\DB_CREDS);
 	$subs = $pdo('SELECT
 		`id`,
 		`name`,
 		`media`,
-		`price`
+		`price`,
+		`isLocal`
 	FROM `subscription_rates`
 	ORDER BY `price` DESC;'
 	);
 	Core\Console::table($subs)->sendLogHeader();
-	array_map(function(\stdClass $sub) use ($print, $e_edition, $online)
+	array_map(function(\stdClass $sub) use (
+		$print_local,
+		$print_oov,
+		$e_edition,
+		$online
+	)
 	{
 		$option = new \DOMElement('option', "{$sub->name} [\${$sub->price}]");
 		switch($sub->media) {
@@ -162,7 +169,11 @@ function make_cc_form(DOM\HTMLElement $parent = null, $name = 'ccform')
 				break;
 
 			case 'print':
-				$print->appendChild($option);
+				if ($sub->isLocal) {
+					$print_local->appendChild($option);
+				} else {
+					$print_oov->appendChild($option);
+				}
 				break;
 		}
 		$option->setAttribute('value', $sub->id);
