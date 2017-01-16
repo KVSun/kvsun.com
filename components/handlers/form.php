@@ -329,15 +329,26 @@ switch($req->form) {
 		$expires = new \DateTime(
 			"{$req->ccform->card->expires->year}-{$req->ccform->card->expires->month}"
 		);
+
 		$card = new Authorize\CreditCard(
 			$req->ccform->card->name,
 			$req->ccform->card->num,
 			$expires,
 			$req->ccform->card->csc
 		);
+
 		$request = new Authorize\ChargeCard($creds, $card);
 		$request->setInvoice(rand(1000000, 99999999));
+
 		$billing = new Authorize\BillingAddress($req->ccform->billing->getArrayCopy());
+
+		if (!$billing->validate()) {
+			$resp->notify(
+				'Double check your address',
+				'Looks like you missed some info when entering your address',
+				'/images/octicons/lib/svg/credit-card.svg'
+			)->focus('#ccform-billing-first-name')->send();
+		}
 
 		$shipping = new Authorize\ShippingAddress();
 		$shipping->fromAddress($billing);
@@ -356,6 +367,15 @@ switch($req->form) {
 		$stm->execute();
 
 		$item = new Authorize\Item(get_object_vars($stm->fetchObject()));
+
+		if (! $item->validate()) {
+			$resp->notify(
+				'Something went wrong',
+				'We seem to be missing information about that subscription.' .
+				PHP_EOL . 'Please contact us about this issue.',
+				'/images/octicons/lib/svg/credit-card.svg'
+			)->send();
+		}
 		$items = new Authorize\Items();
 		$items->addItem($item);
 
@@ -366,92 +386,20 @@ switch($req->form) {
 			$response,
 			'/images/octicons/lib/svg/credit-card.svg'
 		);
+
 		if (!empty($response->errors)) {
 			Core\Console::error($response->errors);
 		}
+
 		if (!empty($response->messages)) {
 			Core\Console::info($response->messages);
 		}
+
 		Core\Console::log([
 			'respCode'      => $response->code,
 			'authCode'      => $response->authCode,
 			'transactionID' => $response->transactionID,
 		])->info($req->ccform);
-		// $response = $trans($req->ccform->cost);
-		// $resp->notify('Response', "$response");
-		// try {
-		// 	$req->ccform->expires = new \DateTime(
-		// 		"{$req->ccform->expires->year}-{$req->ccform->expires->month}"
-		// 	);
-		// } catch(\Exception $e) {
-		// 	Core\Console::error($e);
-		// }
-		//
-		// // Common setup for API credentials
-		// define("AUTHORIZENET_LOG_FILE", "{$_SERVER['DOCUMENT_ROOT']}auth.log");
-		// $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
-		// $merchantAuthentication->setName($req->ccform->auth->name);
-		// $merchantAuthentication->setTransactionKey($req->ccform->auth->key);
-		//
-		// // Create the payment data for a credit card
-		// $creditCard = new AnetAPI\CreditCardType();
-		// $creditCard->setCardNumber($req->ccform->ccnum);
-		// $creditCard->setExpirationDate("{$req->ccform->expires->format('Y-m')}");
-		// $paymentOne = new AnetAPI\PaymentType();
-		// $paymentOne->setCreditCard($creditCard);
-		//
-		// // Create a transaction
-		// $transactionRequestType = new AnetAPI\TransactionRequestType();
-		// $transactionRequestType->setTransactionType( "authCaptureTransaction");
-		// $transactionRequestType->setAmount(floatval($req->ccform->cost));
-		// $transactionRequestType->setPayment($paymentOne);
-		//
-		// $request = new AnetAPI\CreateTransactionRequest();
-		// $request->setMerchantAuthentication($merchantAuthentication);
-		// $request->setTransactionRequest( $transactionRequestType);
-		// $controller = new AnetController\CreateTransactionController($request);
-		// $response = $controller->executeWithApiResponse(
-		// 	isset($req->ccform->auth->sandbox)
-		// 	? AuthEnv::SANDBOX
-		// 	: AuthEnv::PRODUCTION
-		// );
-		//
-		// if (isset($response)) {
-		// 	$trans = $response->getTransactionResponse();
-		// } else {
-		// 	$resp->notify(
-		// 		'Error contacting server',
-		// 		'Credit card processing server did not respond.',
-		// 		'/images/octicons/lib/svg/server.svg'
-		// 	)->send();
-		// }
-		//
-		// if ($trans->getResponseCode() == '1') {
-		// 	$resp->notify(
-		// 		'Payment accepted',
-		// 		$trans->getMessages()[0]->getDescription(),
-		// 		'/images/octicons/lib/svg/credit-card.svg'
-		// 	);
-		// 	Core\Console::info($trans->getTransId());
-		// } else {
-		// 	$errors = $trans->getErrors();
-		// 	if (!empty($errors)) {
-		// 		$resp->notify(
-		// 			'Payment rejected',
-		// 			$errors[0]->getErrorText(),
-		// 			'/images/octicons/lib/svg/server.svg'
-		// 		);
-		// 		foreach ($errors as $error) {
-		// 			trigger_error($error->getErrorText());
-		// 		}
-		// 	} else {
-		// 		$resp->notify(
-		// 			'Payment rejected',
-		// 			'But no errors were reported.',
-		// 			'/images/octicons/lib/svg/bug.svg'
-		// 		);
-		// 	}
-		// }
 		break;
 
 	default:
