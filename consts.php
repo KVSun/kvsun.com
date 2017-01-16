@@ -47,5 +47,5 @@ if (! array_key_exists('HTTP_HOST', $_SERVER)) {
 if (! array_key_exists('REQUEST_SCHEME', $_SERVER)) {
 	$_SERVER['REQUEST_SCHEME'] = 'http';
 }
-define(__NAMESPACE__ . '\DEBUG', $_SERVER['SERVER_NAME'] === 'localhost');
+define(__NAMESPACE__ . '\DEBUG', $_SERVER['SERVER_ADDR'] === $_SERVER['REMOTE_ADDR']);
 define(__NAMESPACE__ . '\DOMAIN', "{$_SERVER['REQUEST_SCHEME']}://{$_SERVER['HTTP_HOST']}/");
