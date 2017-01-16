@@ -340,9 +340,11 @@ switch($req->form) {
 				`length`,
 				`price`,
 				`media`,
-				`isLocal`
+				`isLocal`,
+				`includes`
 			FROM `subscription_rates`
-			WHERE `id` = :id;'
+			WHERE `id` = :id
+			LIMIT 1;'
 		);
 		$stm->id = $req->ccform->subscription;
 		$stm->execute();
@@ -406,6 +408,34 @@ switch($req->form) {
 		}
 		$items = new Authorize\Items();
 		$items->addItem($item);
+
+		try {
+			if (!empty($sub->includes)) {
+				$includes = explode(',', $sub->includes);
+				$sub->includes = [];
+				foreach ($includes as $include) {
+					$include = trim($include);
+					if ($include == $sub->id) {
+						throw new \Exception("Recursive subscription for {$sub->name}.");
+					} else {
+						$stm->id = $include;
+						$stm->execute();
+						$included = $stm->fetchObject();
+						$item = new Authorize\Item();
+						$item->id = $included->id;
+						$item->name = $included->name;
+						$item->description = $included->description;
+						$item->price = '0';
+						$items->addItem($item);
+					}
+				}
+			}
+		} catch(\Exception $e) {
+			$resp->notify(
+				'We are sorry, but there was an error',
+				'Please contact us for help with your subscription.'
+			)->send();
+		}
 
 		$request->addItems($items);
 		$response = $request();
