@@ -222,7 +222,13 @@ function exception_error_handler(
  */
 function restore_login()
 {
-	return \shgysk8zer0\Login\User::restore('user', DB_CREDS);
+	if (@file_exists(DB_CREDS) and Core\PDO::load(DB_CREDS)->connected) {
+		return \shgysk8zer0\Login\User::restore('user', DB_CREDS);
+	} else {
+		$user = new \stdClass();
+		$user->status = array_search('guest', USER_ROLES);
+		return $user;
+	}
 }
 
 function check_role($role = 'admin')
