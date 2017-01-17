@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Install</title>
+		<meta charset="utf8"/>
+		<link rel="stylesheet" href="/stylesheets/styles/import.css" media="all"/>
+		<script src="/scripts/custom.js" async></script>
+	</head>
+	<body>
+		<form name="install" action="/api.php" method="post">
+			<fieldset id="install-user">
+				<legend>User</legend>
+				<label for ="install-user-name">Name</label>
+				<input type="text" name="install[user][name]" id="install-user-name" pattern="[A-z\.\- ]+" minlength="5" maxlength="40" placeholder="Firstname Lastname" autocomplete="name" required/>
+				<br/>
+				<label for="install-user-username">Username</label>
+				<input type="text" name="install[user][username]" id="install-user-username" pattern="[\w\.\-]{4,20}" minlength="4" maxlength="20" placeholder="username" autocomplete="username" required/>
+				<br/>
+				<label for="install-user-email">Email</label>
+				<input type="email" name="install[user][email]" id="install-user-email" placeholder="user@example.com" autocomplete="email" required/>
+				<br/>
+				<label for="install-user-password">Password</label>
+				<input type="password" name="install[user][password]" id="install-user-password" placeholder="************" pattern="(?=^.{12,}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$" minlength="12" autocomplete="new-password"/>
+				<br/>
+				<label for="install-user-pwrepeat">Repeat password</label>
+				<input type="password" name="install[user][repeat]" id="install-user-pwrepeat" placeholder="************" pattern="(?=^.{12,}$)((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$" minlength="12" autocomplete="new-password"/>
+				<br/>
+			</fieldset>
+			<fieldset id="install-db">
+				<legend>Database</legend>
+				<label for="install-db-user">Database username</label>
+				<input type="text" name="install[db][user]" id="install-db-user" placeholder="db-username" autofocus required/>
+				<br/>
+				<label for="install-db-pass">Database password</label>
+				<input type="password" name="install[db][pass]" id="install-db-pass" placeholder="********" required/>
+				<br/>
+				<label for="install-db-host">Database host</label>
+				<input type="text" name="install[db][host]" id="install-db-host" placeholder="localhost" value="localhost"/>
+				<hr/>
+				<label>Restore from SQL file</label>
+				<input type="file" accept="application/sql" name="install[db][backup]" id="install-db-backup"/>
+			</fieldset>
+			<fieldset id="install-site">
+				<legend>Site</legend>
+				<label for="install-site-title">&lt;Title&gt;</label>
+				<input type="text" name="install[site][title]" id="install-site-title" pattern="[\w\- ]{5,20}" minlength="5" maxlength="20" placeholder="Name of site" required/>
+			</fieldset>
+			<button type="submit">Submit</button>
+			<button type="reset">Reset</button>
+		</form>
+	</body>
+</html>
