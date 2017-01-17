@@ -121,6 +121,7 @@ function make_cc_form(DOM\HTMLElement $parent = null, $name = 'ccform')
 		$dom = new DOM\HTML();
 		$parent = $dom->body;
 	}
+
 	$form = $parent->append('form', null, [
 		'method' => 'POST',
 		'action' => '/api.php',
@@ -264,7 +265,7 @@ function get_transactions_for($user)
 	$transaction->bindParam(':user', $user);
 	$transaction->execute();
 
-	return $transaction->fetchAll();
+	return $transaction->fetchAll(\PDO::FETCH_CLASS);
 }
 
 function setcookie(
