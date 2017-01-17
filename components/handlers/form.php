@@ -115,7 +115,7 @@ switch($req->form) {
 					and $head->allSuccessful()
 				) {
 					if (file_put_contents(
-						'config' . DIRECTORY_SEPARATOR . \KVSun\DB_CREDS,
+						\KVSun\DB_CREDS,
 						json_encode([
 							'user'     => $install->db->user,
 							'password' => $install->db->pass,
@@ -172,7 +172,7 @@ switch($req->form) {
 			$resp->notify('Config dir does not exist', \KVSun\CONFIG);
 		} elseif (! is_writable(\KVSun\CONFIG)) {
 			$resp->notify('Cannot write to config directory', \KVSun\CONFIG);
-		} elseif (file_exists(\KVSun\CONFIG . \KVSun\DB_CREDS)) {
+		} elseif (file_exists(\KVSun\DB_CREDS)) {
 			$resp->notify('Already installed', 'Database config file exists.');
 		} elseif (! file_exists(\KVSun\DB_INSTALLER)) {
 			$resp->notify('SQL file not found', 'Please restore "default.sql" using Git.');
@@ -182,7 +182,7 @@ switch($req->form) {
 			if (array_key_exists('db', $installer) and is_array($installer['db'])) {
 				try {
 					file_put_contents(
-						\KVSun\CONFIG . \KVSun\DB_CREDS,
+						\KVSun\DB_CREDS,
 						json_encode($installer['db'], JSON_PRETTY_PRINT)
 					);
 					$pdo = new Core\PDO();

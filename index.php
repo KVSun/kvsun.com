@@ -19,7 +19,7 @@ if (defined(__NAMESPACE__ . '\CSP')) {
 	unset($csp);
 }
 
-if (@file_exists(CONFIG . DB_CREDS) or !Core\PDO::load(DB_CREDS)->connected) {
+if (@file_exists(DB_CREDS) or !Core\PDO::load(DB_CREDS)->connected) {
 	$path = get_path();
 	if (!empty($path) and file_exists(\KVSun\PAGES_DIR . "{$path[0]}.php")) {
 		require \KVSun\PAGES_DIR . "{$path[0]}.php";
