@@ -528,7 +528,7 @@ switch($req->form) {
 		);
 
 		$request = new Authorize\ChargeCard($creds, $card);
-		$request->setInvoice(rand(1000000, 99999999));
+		$request->setInvoice(rand(pow(10, 7), pow(10, 15) - 1));
 		$shipping = new Authorize\ShippingAddress();
 		$shipping->fromAddress($billing);
 		$request->setShippingAddress($shipping);
