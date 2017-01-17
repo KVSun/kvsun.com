@@ -141,14 +141,15 @@ function make_cc_form(DOM\HTMLElement $parent = null, $name = 'ccform')
 	$print_oov = $input->append('optgroup', null, ['label' => 'Out of Valley print subscriptions']);
 
 	$pdo = Core\PDO::load(\KVSun\DB_CREDS);
-	$subs = $pdo('SELECT
-		`id`,
-		`name`,
-		`media`,
-		`price`,
-		`isLocal`
-	FROM `subscription_rates`
-	ORDER BY `price` DESC;'
+	$subs = $pdo(
+		'SELECT
+			`id`,
+			`name`,
+			`media`,
+			`price`,
+			`isLocal`
+		FROM `subscription_rates`
+		ORDER BY `price` DESC;'
 	);
 
 	array_map(function(\stdClass $sub) use (
@@ -180,8 +181,8 @@ function make_cc_form(DOM\HTMLElement $parent = null, $name = 'ccform')
 	}, $subs);
 	$label->for = $input->id;
 
-	$form->importHTML(file_get_contents('components/forms/ccform.html'));
-	$form->importHTML(file_get_contents('components/forms/billing.html'));
+	$form->importHTMLFile('components/forms/ccform.html');
+	$form->importHTMLFile('components/forms/billing.html');
 
 	$form->append('button', 'Submit', ['type' => 'submit']);
 	return $form;
@@ -230,6 +231,40 @@ function check_role($role = 'admin')
 		throw new \InvalidArgumentException("$role is not a valid user role.");
 	}
 	return isset($user->status) and array_search($role, USER_ROLES) >= $user->status;
+}
+
+/**
+ * Get transactions for a user by name, email, or username
+ * @param  String $user Name, email, or username of user
+ * @return Array        Matching transactions + user & subscription info
+ */
+function get_transactions_for($user)
+{
+	$transaction = Core\PDO::load(\KVSun\DB_CREDS)->prepare(
+		'SELECT
+			`user_data`.`name`,
+			`users`.`username`,
+			`users`.`email`,
+			`user_data`.`tel`,
+			`transactions`.`date`,
+			`subscription_rates`.`name` as `subscription`,
+			`subscribers`.`sub_expires` AS `expires`,
+			`transactions`.`authCode`,
+			`transactions`.`transactionID`
+		FROM `transactions`
+		JOIN `subscription_rates` ON `subscription_rates`.`id` = `transactions`.`subscriptionID`
+		JOIN `user_data` ON `user_data`.`id` = `transactions`.`userID`
+		JOIN `users` ON `users`.`id` = `transactions`.`userID`
+		JOIN `subscribers` ON `subscribers`.`id` = `transactions`.`userID`
+		WHERE `users`.`email` = :user
+		OR `users`.`username` = :user
+		OR `user_data`.`name` = :user;'
+	);
+
+	$transaction->bindParam(':user', $user);
+	$transaction->execute();
+
+	return $transaction->fetchAll();
 }
 
 function setcookie(
