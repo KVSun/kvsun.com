@@ -27,6 +27,146 @@ if (
 }
 
 switch($req->form) {
+	case 'install':
+		$install = $req->install;
+		try {
+			$db = new Core\PDO([
+				'user'     => $install->db->user,
+				'password' => $install->db->pass,
+				'host'     => $install->db->host,
+			]);
+			if ($db->connected) {
+				$db->beginTransaction();
+				$db(file_get_contents('default.sql'));
+				$user = $db->prepare(
+					'INSERT INTO `users` (
+						`email`,
+						`username`,
+						`password`
+					) VALUES (
+						:email,
+						:username,
+						:password
+					);'
+				);
+				$user_data = $db->prepare(
+					'INSERT INTO `user_data` (
+						`id`,
+						`name`
+					) VALUES (
+						LAST_INSERT_ID(),
+						:name
+					);'
+				);
+				$subscribers = $db->prepare(
+					'INSERT INTO `subscribers` (
+						`id`,
+						`status`,
+						`sub_expires`
+					) VALUES (
+						LAST_INSERT_ID(),
+						:status,
+						null
+					);'
+				);
+
+				$head = $db->prepare(
+					'INSERT INTO `head` (
+						`name`,
+						`value`
+					) VALUES(
+						:name,
+						:value
+					);'
+				);
+
+				$user->email = $install->user->email;
+				$user->username = $install->user->username;
+				$user->password = password_hash($install->user->password, PASSWORD_DEFAULT);
+				$user->execute();
+
+				$user_data->name = $install->user->name;
+				$user_data->execute();
+
+				$subscribers->status = array_search('god', \KVSun\USER_ROLES);
+				$subscribers->execute();
+
+				$head->execute([
+					'name' => 'title',
+					'value' => $install->site->title
+				]);
+				$head->execute([
+					'name' => 'referrer',
+					'value' => 'origin-when-cross-origin'
+				]);
+				$head->execute([
+					'name' => 'robots',
+					'value' => 'follow, index'
+				]);
+				$head->execute([
+					'name' => 'viewport',
+					'value' => 'width=device-width'
+				]);
+
+				if (
+					$user->allSuccessful()
+					and $user_data->allSuccessful()
+					and $subscribers->allSuccessful()
+					and $head->allSuccessful()
+				) {
+					if (file_put_contents(
+						'config' . DIRECTORY_SEPARATOR . \KVSun\DB_CREDS,
+						json_encode([
+							'user'     => $install->db->user,
+							'password' => $install->db->pass,
+							'host'     => $install->db->host,
+						], JSON_PRETTY_PRINT
+					))) {
+						$db->commit();
+						$resp->notify(
+							'Installation successful',
+							'Reloading'
+						)->reload();
+					} else {
+						$resp->notify(
+							'Could not save credentials. Check permissions',
+							"`# chmod -R '{$_SERVER['DOCUMENT_ROOT']}'`" . PHP_EOL
+							. sprintf(
+								"`# chgrp -R %s '%s'`",
+								posix_getpwuid(posix_geteuid())['name'],
+								$_SERVER{'DOCUMENT_ROOT'}
+							)
+						);
+					}
+				} else {
+					$resp->notify(
+						'There was an error installing',
+						'Database connection was successfully made, but there
+						was an error setting data.'
+					);
+				}
+			} else {
+				$resp->notify(
+					'Error installing',
+					'Double check your database credentials and make sure that
+					the use is created and has access to the existing database
+					on the server. <https://dev.mysql.com/doc/refman/5.7/en/grant.html>'
+				)->focus('#install-db-user');
+			}
+		} catch(\Exception $e) {
+			Core\Console::error([
+				'message' => $e->getMessage(),
+				'file'    => $e->getFile(),
+				'line'    => $e->getLine(),
+				'trace'   => $e->getTrace(),
+			]);
+		} finally {
+			Core\Console::getInstance()->sendLogHeader();
+			$resp->send();
+		}
+		exit;
+		break;
+
 	case 'install-form':
 		if (!is_dir(\KVSun\CONFIG)) {
 			$resp->notify('Config dir does not exist', \KVSun\CONFIG);
