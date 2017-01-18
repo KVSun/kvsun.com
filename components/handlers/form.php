@@ -534,10 +534,7 @@ switch($req->form) {
 		$request->setShippingAddress($shipping);
 		$request->setBillingAddress($billing);
 
-		$item = new Authorize\Item();
-		$item->id($sub->id)->name($sub->name)->description($sub->description);
-		$item->price($sub->price);
-
+		$item = new Authorize\Item(get_object_vars($sub));
 		if (! $item->validate()) {
 			$resp->notify(
 				'Something went wrong',
@@ -560,11 +557,8 @@ switch($req->form) {
 						$stm->id = $include;
 						$stm->execute();
 						$included = $stm->fetchObject();
-						$item = new Authorize\Item();
-						$item->id = $included->id;
-						$item->name = $included->name;
-						$item->description = $included->description;
-						$item->price = '0';
+						$included->price = 0;
+						$item = new Authorize\Item(get_object_vars($included));
 						$items->addItem($item);
 					}
 				}
@@ -599,7 +593,32 @@ switch($req->form) {
 				'subscription' => $sub->id,
 			]);
 
-			Core\Console::table($pdo('SELECT * FROM `transactions`;'));
+			$subscribe = $pdo->prepare(
+				'INSERT INTO `subscribers` (
+					`id`,
+					`status`,
+					`sub_expires`
+				) VALUES (
+					:id,
+					:status,
+					:expires
+				) ON DUPLICATE KEY
+				UPDATE `status` = :status, `sub_expires` = :expires;'
+			);
+
+			foreach ($request->getItems() as $item) {
+				if (
+					isset($item->length, $item->media)
+					and $item->media === 'online'
+				) {
+					$expires = new \DateTime("+ {$item->length}");
+					Core\Console::info($expires);
+					$subscribe->id = $user->id;
+					$subscribe->status = array_search('subscriber', \KVSun\USER_ROLES);
+					$subscribe->expires = $expires->format('Y-m-d H:i:s');
+					$subscribe->execute();
+				}
+			}
 
 			$resp->notify(
 				'Subscription successful',
