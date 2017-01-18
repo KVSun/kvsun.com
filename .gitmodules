@@ -52,3 +52,6 @@
 [submodule "classes/shgysk8zer0/authorize"]
 	path = classes/shgysk8zer0/authorize
 	url = git://github.com/shgysk8zer0/authorize
+[submodule "images/logos"]
+	path = images/logos
+	url = git://github.com/shgysk8zer0/logos.git
