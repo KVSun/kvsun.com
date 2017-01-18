@@ -26,8 +26,18 @@ if (@file_exists(DB_CREDS) or !Core\PDO::load(DB_CREDS)->connected) {
 		exit();
 	}
 	unset($path);
+	// If IE, show update and hide rest of document
+	DOM\HTML::getInstance()->body->ifIE(
+		file_get_contents(\KVSun\COMPONENTS . 'update.html')
+		. '<div style="display:none !important;">'
+	);
+
 	load('head', 'header', 'nav', 'main', 'sidebar', 'footer');
 	DOM\HTML::getInstance()->body->class = 'flex row wrap';
+
+	// Close `<div>` created in [if IE]
+	DOM\HTML::getInstance()->body->ifIE('</div>');
+
 } else {
 	require_once COMPONENTS . 'install.html';
 }
