@@ -19,7 +19,7 @@ if (defined(__NAMESPACE__ . '\CSP')) {
 	unset($csp);
 }
 
-if (@file_exists(CONFIG . DB_CREDS)) {
+if (@file_exists(DB_CREDS) or !Core\PDO::load(DB_CREDS)->connected) {
 	$path = get_path();
 	if (!empty($path) and file_exists(\KVSun\PAGES_DIR . "{$path[0]}.php")) {
 		require \KVSun\PAGES_DIR . "{$path[0]}.php";
@@ -29,7 +29,7 @@ if (@file_exists(CONFIG . DB_CREDS)) {
 	load('head', 'header', 'nav', 'main', 'sidebar', 'footer');
 	DOM\HTML::getInstance()->body->class = 'flex row wrap';
 } else {
-	require_once COMPONENTS . 'install-form.php';
+	require_once COMPONENTS . 'install.html';
 }
 
 Core\Listener::load();

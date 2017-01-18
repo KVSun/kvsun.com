@@ -94,7 +94,7 @@ export const watcher = {
 			break;
 
 		case 'data-request':
-			if ('dataRequest' in this.target.dataset) {
+			if (this.target.dataset.hasOwnProperty('dataRequest')) {
 				this.target.addEventListener('click', handleRequest);
 			} else {
 				this.target.removeEventListener('click', handleRequest);
@@ -102,7 +102,7 @@ export const watcher = {
 			break;
 
 		case 'data-show-modal':
-			if ('showModal' in this.target.dataset) {
+			if (this.target.dataset.hasOwnProperty('showModal')) {
 				this.target.addEventListener('click', clickShowModal);
 			} else {
 				this.target.removeEventListener('click', clickShowModal);
@@ -110,7 +110,7 @@ export const watcher = {
 			break;
 
 		case 'data-load-form':
-			if ('loadForm' in this.target.dataset) {
+			if (this.target.dataset('loadForm')) {
 				this.target.addEventListener('click', getForm);
 			} else {
 				this.target.removeEventListener('click', getForm);

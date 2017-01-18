@@ -6,7 +6,7 @@ use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as Status;
 use \shgysk8zer0\DOM as DOM;
 
 $dom = DOM\HTML::getInstance();
-if (@file_exists(\KVSun\CONFIG . \KVSun\DB_CREDS)) {
+if (@file_exists(\KVSun\DB_CREDS)) {
 	http_response_code(Status::FORBIDDEN);
 	exit('Already installed.');
 }

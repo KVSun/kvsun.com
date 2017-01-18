@@ -27,12 +27,152 @@ if (
 }
 
 switch($req->form) {
+	case 'install':
+		$install = $req->install;
+		try {
+			$db = new Core\PDO([
+				'user'     => $install->db->user,
+				'password' => $install->db->pass,
+				'host'     => $install->db->host,
+			]);
+			if ($db->connected) {
+				$db->beginTransaction();
+				$db(file_get_contents('default.sql'));
+				$user = $db->prepare(
+					'INSERT INTO `users` (
+						`email`,
+						`username`,
+						`password`
+					) VALUES (
+						:email,
+						:username,
+						:password
+					);'
+				);
+				$user_data = $db->prepare(
+					'INSERT INTO `user_data` (
+						`id`,
+						`name`
+					) VALUES (
+						LAST_INSERT_ID(),
+						:name
+					);'
+				);
+				$subscribers = $db->prepare(
+					'INSERT INTO `subscribers` (
+						`id`,
+						`status`,
+						`sub_expires`
+					) VALUES (
+						LAST_INSERT_ID(),
+						:status,
+						null
+					);'
+				);
+
+				$head = $db->prepare(
+					'INSERT INTO `head` (
+						`name`,
+						`value`
+					) VALUES(
+						:name,
+						:value
+					);'
+				);
+
+				$user->email = $install->user->email;
+				$user->username = $install->user->username;
+				$user->password = password_hash($install->user->password, PASSWORD_DEFAULT);
+				$user->execute();
+
+				$user_data->name = $install->user->name;
+				$user_data->execute();
+
+				$subscribers->status = array_search('god', \KVSun\USER_ROLES);
+				$subscribers->execute();
+
+				$head->execute([
+					'name' => 'title',
+					'value' => $install->site->title
+				]);
+				$head->execute([
+					'name' => 'referrer',
+					'value' => 'origin-when-cross-origin'
+				]);
+				$head->execute([
+					'name' => 'robots',
+					'value' => 'follow, index'
+				]);
+				$head->execute([
+					'name' => 'viewport',
+					'value' => 'width=device-width'
+				]);
+
+				if (
+					$user->allSuccessful()
+					and $user_data->allSuccessful()
+					and $subscribers->allSuccessful()
+					and $head->allSuccessful()
+				) {
+					if (file_put_contents(
+						\KVSun\DB_CREDS,
+						json_encode([
+							'user'     => $install->db->user,
+							'password' => $install->db->pass,
+							'host'     => $install->db->host,
+						], JSON_PRETTY_PRINT
+					))) {
+						$db->commit();
+						$resp->notify(
+							'Installation successful',
+							'Reloading'
+						)->reload();
+					} else {
+						$resp->notify(
+							'Could not save credentials. Check permissions',
+							"`# chmod -R '{$_SERVER['DOCUMENT_ROOT']}'`" . PHP_EOL
+							. sprintf(
+								"`# chgrp -R %s '%s'`",
+								posix_getpwuid(posix_geteuid())['name'],
+								$_SERVER{'DOCUMENT_ROOT'}
+							)
+						);
+					}
+				} else {
+					$resp->notify(
+						'There was an error installing',
+						'Database connection was successfully made, but there
+						was an error setting data.'
+					);
+				}
+			} else {
+				$resp->notify(
+					'Error installing',
+					'Double check your database credentials and make sure that
+					the use is created and has access to the existing database
+					on the server. <https://dev.mysql.com/doc/refman/5.7/en/grant.html>'
+				)->focus('#install-db-user');
+			}
+		} catch(\Exception $e) {
+			Core\Console::error([
+				'message' => $e->getMessage(),
+				'file'    => $e->getFile(),
+				'line'    => $e->getLine(),
+				'trace'   => $e->getTrace(),
+			]);
+		} finally {
+			Core\Console::getInstance()->sendLogHeader();
+			$resp->send();
+		}
+		exit;
+		break;
+
 	case 'install-form':
 		if (!is_dir(\KVSun\CONFIG)) {
 			$resp->notify('Config dir does not exist', \KVSun\CONFIG);
 		} elseif (! is_writable(\KVSun\CONFIG)) {
 			$resp->notify('Cannot write to config directory', \KVSun\CONFIG);
-		} elseif (file_exists(\KVSun\CONFIG . \KVSun\DB_CREDS)) {
+		} elseif (file_exists(\KVSun\DB_CREDS)) {
 			$resp->notify('Already installed', 'Database config file exists.');
 		} elseif (! file_exists(\KVSun\DB_INSTALLER)) {
 			$resp->notify('SQL file not found', 'Please restore "default.sql" using Git.');
@@ -42,7 +182,7 @@ switch($req->form) {
 			if (array_key_exists('db', $installer) and is_array($installer['db'])) {
 				try {
 					file_put_contents(
-						\KVSun\CONFIG . \KVSun\DB_CREDS,
+						\KVSun\DB_CREDS,
 						json_encode($installer['db'], JSON_PRETTY_PRINT)
 					);
 					$pdo = new Core\PDO();
@@ -323,129 +463,196 @@ switch($req->form) {
 		break;
 
 	case 'ccform':
-		$sandbox = $_SERVER['SERVER_ADDR'] === $_SERVER['REMOTE_ADDR'];
+		$user = \KVSun\restore_login();
+		$billing = new Authorize\BillingAddress($req->ccform->billing->getArrayCopy());
 
-		$creds = Authorize\Credentials::loadFromIniFile(\KVSun\Authorize, $sandbox);
+		if (!$billing->validate()) {
+			$resp->notify(
+				'Double check your address',
+				'Looks like you missed some info when entering your address',
+				'/images/octicons/lib/svg/credit-card.svg'
+			)->focus('#ccform-billing-first-name')->send();
+		}
+		$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+
+		$stm = $pdo->prepare('SELECT
+				`id`,
+				`name`,
+				`description`,
+				`length`,
+				`price`,
+				`media`,
+				`isLocal`,
+				`includes`
+			FROM `subscription_rates`
+			WHERE `id` = :id
+			LIMIT 1;'
+		);
+		$stm->id = $req->ccform->subscription;
+		$stm->execute();
+
+		$sub = $stm->fetchObject();
+
+		if (
+			$sub->media === 'print'
+			and $sub->isLocal
+			and ! in_array(intval($req->ccform->billing->zip), \KVSun\LOCAL_ZIPS)
+		) {
+			$resp->notify(
+				'You do not qualify for this subscription',
+				'Please select from our out of Valley print subscriptions',
+				'/images/octicons/lib/svg/credit-card.svg'
+			)->focus('#ccform-subscription')->send();
+		} elseif (
+			$sub->media === 'print'
+			and !$sub->isLocal
+			and in_array(intval($req->ccform->billing->zip), \KVSun\LOCAL_ZIPS)
+		) {
+			$resp->notify(
+				'You do not qualify for this subscription',
+				'Please select from our local print subscriptions',
+				'/images/octicons/lib/svg/credit-card.svg'
+			)->focus('#ccform-subscription')->send();
+		}
+
+		$creds = Authorize\Credentials::loadFromIniFile(\KVSun\AUTHORIZE, \KVSun\DEBUG);
 		$expires = new \DateTime(
 			"{$req->ccform->card->expires->year}-{$req->ccform->card->expires->month}"
 		);
+
 		$card = new Authorize\CreditCard(
 			$req->ccform->card->name,
 			$req->ccform->card->num,
 			$expires,
 			$req->ccform->card->csc
 		);
-		$request = new Authorize\ChargeCard($creds, $card);
-		$request->setInvoice(rand(1000000, 99999999));
-		$billing = new Authorize\BillingAddress($req->ccform->billing->getArrayCopy());
 
+		$request = new Authorize\ChargeCard($creds, $card);
+		$request->setInvoice(rand(pow(10, 7), pow(10, 15) - 1));
 		$shipping = new Authorize\ShippingAddress();
 		$shipping->fromAddress($billing);
 		$request->setShippingAddress($shipping);
 		$request->setBillingAddress($billing);
 
-		$item = new Authorize\Item();
-		$item->id(1);
-		$item->name('Online subscription');
-		$item->description("Online subscription to {$_SERVER['SERVER_NAME']}");
-		$item->price($req->ccform->cost);
-		$item->quantity = $req->ccform->quantity;
+		$item = new Authorize\Item(get_object_vars($sub));
+		if (! $item->validate()) {
+			$resp->notify(
+				'Something went wrong',
+				'We seem to be missing information about that subscription.' .
+				PHP_EOL . 'Please contact us about this issue.',
+				'/images/octicons/lib/svg/credit-card.svg'
+			)->send();
+		}
 		$items = new Authorize\Items();
 		$items->addItem($item);
 
+		try {
+			if (!empty($sub->includes)) {
+				$includes = explode(',', $sub->includes);
+				$includes = array_map('intval', $includes);
+				foreach (array_filter($includes) as $include) {
+					if ($include == $sub->id) {
+						throw new \Exception("Recursive subscription for {$sub->name}.");
+					} else {
+						$stm->id = $include;
+						$stm->execute();
+						$included = $stm->fetchObject();
+						$included->price = 0;
+						$item = new Authorize\Item(get_object_vars($included));
+						$items->addItem($item);
+					}
+				}
+			}
+		} catch(\Exception $e) {
+			$resp->notify(
+				'We are sorry, but there was an error',
+				'Please contact us for help with your subscription.'
+			)->send();
+		}
+
 		$request->addItems($items);
 		$response = $request();
-		$resp->notify(
-			'Form Submitted',
-			$response,
-			'/images/octicons/lib/svg/credit-card.svg'
-		);
-		if (!empty($response->errors)) {
-			Core\Console::error($response->errors);
+		if ($response->code == '1') {
+			$record = $pdo->prepare('INSERT INTO `transactions` (
+					`transactionID`,
+					`authCode`,
+					`userID`,
+					`subscriptionID`
+				) VALUES (
+					:transactionID,
+					:authCode,
+					:userID,
+					:subscription
+				);'
+			);
+
+			$record->execute([
+				'transactionID' => $response->transactionID,
+				'authCode' => $response->authCode,
+				'userID' => $user->id,
+				'subscription' => $sub->id,
+			]);
+
+			$subscribe = $pdo->prepare(
+				'INSERT INTO `subscribers` (
+					`id`,
+					`status`,
+					`sub_expires`
+				) VALUES (
+					:id,
+					:status,
+					:expires
+				) ON DUPLICATE KEY
+				UPDATE `status` = :status, `sub_expires` = :expires;'
+			);
+
+			foreach ($request->getItems() as $item) {
+				if (
+					isset($item->length, $item->media)
+					and $item->media === 'online'
+				) {
+					$expires = new \DateTime("+ {$item->length}");
+					Core\Console::info($expires);
+					$subscribe->id = $user->id;
+					$subscribe->status = array_search('subscriber', \KVSun\USER_ROLES);
+					$subscribe->expires = $expires->format('Y-m-d H:i:s');
+					$subscribe->execute();
+				}
+			}
+
+			$resp->notify(
+				'Subscription successful',
+				$response,
+				'/images/octicons/lib/svg/credit-card.svg'
+			);
+			if (\KVSun\DEBUG) {
+				Core\Console::log([
+					'respCode'      => $response->code,
+					'authCode'      => $response->authCode,
+					'transactionID' => $response->transactionID,
+					'messages'      => $response->messages,
+					'errors'        => $response->errors,
+				]);
+			}
+
+			$resp->remove('#ccform-dialog');
+		} else {
+			$resp->notify(
+				'There was an error processing your subscription',
+				$response,
+				'/images/octicons/lib/svg/credit-card.svg'
+			);
+
+			if (\KVSun\DEBUG) {
+				Core\Console::log([
+					'respCode'      => $response->code,
+					'authCode'      => $response->authCode,
+					'transactionID' => $response->transactionID,
+					'messages'      => $response->messages,
+					'errors'        => $response->errors,
+				]);
+			}
 		}
-		if (!empty($response->messages)) {
-			Core\Console::info($response->messages);
-		}
-		Core\Console::log([
-			'respCode'      => $response->code,
-			'authCode'      => $response->authCode,
-			'transactionID' => $response->transactionID,
-		])->info($req->ccform);
-		// $response = $trans($req->ccform->cost);
-		// $resp->notify('Response', "$response");
-		// try {
-		// 	$req->ccform->expires = new \DateTime(
-		// 		"{$req->ccform->expires->year}-{$req->ccform->expires->month}"
-		// 	);
-		// } catch(\Exception $e) {
-		// 	Core\Console::error($e);
-		// }
-		//
-		// // Common setup for API credentials
-		// define("AUTHORIZENET_LOG_FILE", "{$_SERVER['DOCUMENT_ROOT']}auth.log");
-		// $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
-		// $merchantAuthentication->setName($req->ccform->auth->name);
-		// $merchantAuthentication->setTransactionKey($req->ccform->auth->key);
-		//
-		// // Create the payment data for a credit card
-		// $creditCard = new AnetAPI\CreditCardType();
-		// $creditCard->setCardNumber($req->ccform->ccnum);
-		// $creditCard->setExpirationDate("{$req->ccform->expires->format('Y-m')}");
-		// $paymentOne = new AnetAPI\PaymentType();
-		// $paymentOne->setCreditCard($creditCard);
-		//
-		// // Create a transaction
-		// $transactionRequestType = new AnetAPI\TransactionRequestType();
-		// $transactionRequestType->setTransactionType( "authCaptureTransaction");
-		// $transactionRequestType->setAmount(floatval($req->ccform->cost));
-		// $transactionRequestType->setPayment($paymentOne);
-		//
-		// $request = new AnetAPI\CreateTransactionRequest();
-		// $request->setMerchantAuthentication($merchantAuthentication);
-		// $request->setTransactionRequest( $transactionRequestType);
-		// $controller = new AnetController\CreateTransactionController($request);
-		// $response = $controller->executeWithApiResponse(
-		// 	isset($req->ccform->auth->sandbox)
-		// 	? AuthEnv::SANDBOX
-		// 	: AuthEnv::PRODUCTION
-		// );
-		//
-		// if (isset($response)) {
-		// 	$trans = $response->getTransactionResponse();
-		// } else {
-		// 	$resp->notify(
-		// 		'Error contacting server',
-		// 		'Credit card processing server did not respond.',
-		// 		'/images/octicons/lib/svg/server.svg'
-		// 	)->send();
-		// }
-		//
-		// if ($trans->getResponseCode() == '1') {
-		// 	$resp->notify(
-		// 		'Payment accepted',
-		// 		$trans->getMessages()[0]->getDescription(),
-		// 		'/images/octicons/lib/svg/credit-card.svg'
-		// 	);
-		// 	Core\Console::info($trans->getTransId());
-		// } else {
-		// 	$errors = $trans->getErrors();
-		// 	if (!empty($errors)) {
-		// 		$resp->notify(
-		// 			'Payment rejected',
-		// 			$errors[0]->getErrorText(),
-		// 			'/images/octicons/lib/svg/server.svg'
-		// 		);
-		// 		foreach ($errors as $error) {
-		// 			trigger_error($error->getErrorText());
-		// 		}
-		// 	} else {
-		// 		$resp->notify(
-		// 			'Payment rejected',
-		// 			'But no errors were reported.',
-		// 			'/images/octicons/lib/svg/bug.svg'
-		// 		);
-		// 	}
-		// }
 		break;
 
 	default:

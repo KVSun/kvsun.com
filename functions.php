@@ -121,7 +121,7 @@ function make_cc_form(DOM\HTMLElement $parent = null, $name = 'ccform')
 		$dom = new DOM\HTML();
 		$parent = $dom->body;
 	}
-	$user = restore_login();
+
 	$form = $parent->append('form', null, [
 		'method' => 'POST',
 		'action' => '/api.php',
@@ -129,141 +129,63 @@ function make_cc_form(DOM\HTMLElement $parent = null, $name = 'ccform')
 	]);
 
 	$fieldset = $form->append('fieldset');
-	$fieldset->append('legend', 'Item info');
-
-	$label = $fieldset->append('label', '$');
-	$input = $fieldset->append('input', null, [
-		'type' => 'number',
-		'name' => "{$form->name}[cost]",
-		'id' => "{$form->name}-cost",
-		'min' => 0.01,
-		'step' => 0.01,
-		'placeholder' => '2.78',
-		'required' => '',
+	$fieldset->append('legend', 'Choose your subscription');
+	$label = $fieldset->append('label', 'Subscription');
+	$input = $fieldset->append('select', null, [
+		'name' => "{$form->name}[subscription]",
+		'id' => "{$form->name}-subscription",
 	]);
 
+	$online = $input->append('optgroup', null, ['label' => 'Online subscriptions']);
+	$print_local = $input->append('optgroup', null, ['label' => 'Print subscriptions']);
+	$e_edition = $input->append('optgroup', null, ['label' => 'E-Edition subscriptions']);
+	$print_oov = $input->append('optgroup', null, ['label' => 'Out of Valley print subscriptions']);
+
+	$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+	$subs = $pdo(
+		'SELECT
+			`id`,
+			`name`,
+			`media`,
+			`price`,
+			`isLocal`
+		FROM `subscription_rates`
+		ORDER BY `price` DESC;'
+	);
+
+	array_map(function(\stdClass $sub) use (
+		$print_local,
+		$print_oov,
+		$e_edition,
+		$online
+	)
+	{
+		$option = new \DOMElement('option', "{$sub->name} [\${$sub->price}]");
+		switch($sub->media) {
+			case 'online':
+				$online->appendChild($option);
+				break;
+
+			case 'e-edition':
+				$e_edition->appendChild($option);
+				break;
+
+			case 'print':
+				if ($sub->isLocal) {
+					$print_local->appendChild($option);
+				} else {
+					$print_oov->appendChild($option);
+				}
+				break;
+		}
+		$option->setAttribute('value', $sub->id);
+	}, $subs);
 	$label->for = $input->id;
-	$fieldset->append('br');
 
-	$label = $fieldset->append('label', '#');
-	$input = $fieldset->append('input', null, [
-		'name' => "{$form->name}[quantity]",
-		'id' => "{$form->name}-quantity",
-		'type' => 'number',
-		'min' => 1,
-		'value' => 1,
-		'required' => '',
-	]);
-
-	$label->for = $input->id;
-
-	$form->importHTML(file_get_contents('components/forms/ccform.html'));
-	$form->importHTML(file_get_contents('components/forms/billing.html'));
-
-
-	// $fieldset = $form->append('fieldset');
-	//
-	// use_icon('credit-card', $fieldset->append('legend'), ['title' => 'Credit Card info']);
-	//
-	// $label = $fieldset->append('label', 'Name on Card');
-	// $input = $fieldset->append('input' ,null, [
-	// 	'type' => 'text',
-	// 	'name' => "{$form->name}[name]",
-	// 	'id' => "{$form->name}-name",
-	// 	'value' => isset($user->name) ? $user->name : null,
-	// 	'placeholder' => 'Name on credit card',
-	// 	'pattern' => '^[A-z]+ ([A-z]+ )?[A-z]+$',
-	// 	'autocomplete' => 'cc-name',
-	// 	'required' => '',
-	// ]);
-	//
-	// $label->for = $input->id;
-	// $fieldset->append('br');
-	//
-	// $label = $fieldset->append('label', 'Credit Card #');
-	//
-	// $input = $fieldset->append('input',null, [
-	// 	'name' => "{$form->name}[ccnum]",
-	// 	'id' => "{$form->name}-ccnum",
-	// 	'type' => 'number',
-	// 	'min' => pow(10,13),
-	// 	'max' => pow(10, 17) - 1,
-	// 	'autocomplete' => 'cc-number',
-	// 	'size' => 16,
-	// 	'placeholder' => '#############',
-	// 	'required' => '',
-	// ]);
-	// $label->for = $input->id;
-	//
-	// $fieldset->append('br');
-	//
-	// $label = $fieldset->append('label', 'Credit Card expiration');
-	// $fieldset->append('br');
-	// $input = $fieldset->append('input', null, [
-	// 	'name' => "{$form->name}[expires][month]",
-	// 	'id' => "{$form->name}-expires-month",
-	// 	'type' => 'number',
-	// 	'min' => 1,
-	// 	'max' => 12,
-	// 	'placeholder' => 'mm',
-	// 	'size' => 2,
-	// 	'maxlength' => 2,
-	// 	'minlength' => 2,
-	// 	'autocomplete' => 'cc-exp-month',
-	// 	'required' => '',
-	// ]);
-	// $fieldset->append('span', '/');
-	// $fieldset->append('input', null, [
-	// 	'name' => "{$form->name}[expires][year]",
-	// 	'id' => "{$form->name}-expires-year",
-	// 	'type' => 'number',
-	// 	'min' => date('Y'),
-	// 	'max' => date('Y') + 20,
-	// 	'autocomplete' => 'cc-exp-year',
-	// 	'placeholder' => 'YYYY',
-	// 	'maxlength' => 4,
-	// 	'minlength' => 4,
-	// 	'size' => 4,
-	// 	'required' => ''
-	// ]);
-	//
-	// $label->for = $input->id;
-	// $fieldset->append('br');
-	//
-	// $label = $fieldset->append('Label', 'CSC');
-	// $input = $fieldset->append('input', null, [
-	// 	'name' => "{$form->name}[csc]",
-	// 	'id' => "{$form->name}-csc",
-	// 	'type' => 'number',
-	// 	'min' => 100,
-	// 	'max' => 9999,
-	// 	'placeholder' => '####',
-	// 	'autocomplete' => 'cc-csc',
-	// 	'size' => 4,
-	// 	'required' => ''
-	// ]);
-	// $label->for = $input->id;
-	// $fieldset->append('br');
-	//
-	// $fieldset = $form->append('fieldset');
-	// $fieldset->append('legend', 'Payment Info');
-	// $label = $fieldset->append('label', 'Cost');
-	// $input = $fieldset->append('input', null, [
-	// 	'name' => "{$form->name}[cost]",
-	// 	'id' => "{$form->name}-cost",
-	// 	'type' => 'number',
-	// 	'min' => '0',
-	// 	'step' => 0.01,
-	// 	'placeholder' => '1.00',
-	// 	'value' => 1,
-	// 	'size' => 4,
-	// 	'width' => 4,
-	// 	'required' => '',
-	// ]);
-	// $label->for = $input->id;
+	$form->importHTMLFile('components/forms/ccform.html');
+	$form->importHTMLFile('components/forms/billing.html');
 
 	$form->append('button', 'Submit', ['type' => 'submit']);
-	file_put_contents('/home/shgysk8zer0/html/kvsun.com/components/forms/Birth.html', $form);
 	return $form;
 }
 
@@ -300,7 +222,13 @@ function exception_error_handler(
  */
 function restore_login()
 {
-	return \shgysk8zer0\Login\User::restore('user', DB_CREDS);
+	if (@file_exists(DB_CREDS) and Core\PDO::load(DB_CREDS)->connected) {
+		return \shgysk8zer0\Login\User::restore('user', DB_CREDS);
+	} else {
+		$user = new \stdClass();
+		$user->status = array_search('guest', USER_ROLES);
+		return $user;
+	}
 }
 
 function check_role($role = 'admin')
@@ -310,6 +238,40 @@ function check_role($role = 'admin')
 		throw new \InvalidArgumentException("$role is not a valid user role.");
 	}
 	return isset($user->status) and array_search($role, USER_ROLES) >= $user->status;
+}
+
+/**
+ * Get transactions for a user by name, email, or username
+ * @param  String $user Name, email, or username of user
+ * @return Array        Matching transactions + user & subscription info
+ */
+function get_transactions_for($user)
+{
+	$transaction = Core\PDO::load(\KVSun\DB_CREDS)->prepare(
+		'SELECT
+			`user_data`.`name`,
+			`users`.`username`,
+			`users`.`email`,
+			`user_data`.`tel`,
+			`transactions`.`date`,
+			`subscription_rates`.`name` as `subscription`,
+			`subscribers`.`sub_expires` AS `expires`,
+			`transactions`.`authCode`,
+			`transactions`.`transactionID`
+		FROM `transactions`
+		JOIN `subscription_rates` ON `subscription_rates`.`id` = `transactions`.`subscriptionID`
+		JOIN `user_data` ON `user_data`.`id` = `transactions`.`userID`
+		JOIN `users` ON `users`.`id` = `transactions`.`userID`
+		JOIN `subscribers` ON `subscribers`.`id` = `transactions`.`userID`
+		WHERE `users`.`email` = :user
+		OR `users`.`username` = :user
+		OR `user_data`.`name` = :user;'
+	);
+
+	$transaction->bindParam(':user', $user);
+	$transaction->execute();
+
+	return $transaction->fetchAll(\PDO::FETCH_CLASS);
 }
 
 function setcookie(

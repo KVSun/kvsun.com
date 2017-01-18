@@ -65,6 +65,22 @@ if ($header->accept === 'application/json') {
 				break;
 
 			case 'ccform':
+				$user = restore_login();
+				if (!isset($user->status)) {
+					$resp->notify(
+						'You must be logged in for that',
+						'You will need to login to have an account to update'
+					);
+
+					$resp->showModal('#login-dialog');
+					$resp->send();
+				} elseif (check_role('subscriber') and ! DEBUG) {
+					$resp->notify(
+						'You do not need to subscribe',
+						"Your subscription has not yet expired"
+					)->send();
+				}
+
 				$dom = new \shgysk8zer0\DOM\HTML();
 				$dialog = $dom->body->append('dialog', null, [
 					'id' => 'ccform-dialog'
@@ -119,6 +135,9 @@ if ($header->accept === 'application/json') {
 	} else {
 		$resp->notify('Invalid request', 'See console for details.', DOMAIN . 'images/sun-icons/128.png');
 		Core\Console::info($_REQUEST);
+	}
+	if (check_role('admin') or DEBUG) {
+		Core\Console::getInstance()->sendLogHeader();
 	}
 	$resp->send();
 	exit();
