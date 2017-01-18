@@ -6,6 +6,10 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 	$dom->documentElement->itemscope = '';
 	$dom->documentElement->itemtype = 'https://schema.org/WebPage';
 	$head = $dom->head;
+	$head->ifIE('<script type="text/javascript">
+	var html5=new Array(\'header\',\'hgroup\',\'nav\',\'menu\',\'main\',\'section\',\'article\',\'footer\',\'aside\',\'mark\', \'details\', \'summary\', \'dialog\', \'figure\', \'figcaption\', \'picture\', \'source\');
+	for(var i=0;i<html5.length;i++){document.createElement(html5[i]);}
+</script>', 8, 'lte');
 
 	if ($pdo->connected) {
 		$data = $pdo->nameValue('head');
