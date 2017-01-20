@@ -55,3 +55,9 @@
 [submodule "images/logos"]
 	path = images/logos
 	url = git://github.com/shgysk8zer0/logos.git
+[submodule "classes/kvsun/kvsapi"]
+	path = classes/kvsun/kvsapi
+	url = git://github.com/KVSun/kvsapi.git
+[submodule "components/kvs-templates"]
+	path = components/kvs-templates
+	url = git://github.com/KVSun/kvs-templates
