@@ -1,7 +1,7 @@
 import $ from './std-js/zq.es6';
 import handleJSON from './std-js/json_response.es6';
 import {reportError, parseResponse} from './std-js/functions.es6';
-// import supports from './std-js/support_test.es6';
+import updateContent from './kvsapi.es6';
 
 export function handleRequest(click) {
 	click.preventDefault();
@@ -24,8 +24,7 @@ export function sameoriginFrom(form) {
 	return new URL(form.action).origin === location.origin;
 }
 
-export function clickShowModal(click)
-{
+export function clickShowModal(click) {
 	click.preventDefault();
 	if (this.dataset.hasOwnProperty('showModal')) {
 		document.querySelector(this.dataset.showModal).showModal();
@@ -134,18 +133,16 @@ export function getLink(click) {
 	url.searchParams.set('url', this.href);
 	let headers = new Headers();
 	headers.set('Accept', 'application/json');
-	if (typeof ga === 'function') {
-		ga('send', 'pageview', this.href);
-	}
+
 	fetch(url, {
 		method: 'GET',
-		headers
-	}).then(updateFetchHistory).then(parseResponse).then(json => {
-		handleJSON(json);
+		headers,
+		credentials: 'include'
+	}).then(updateContent).then(() => {
 		this.classList.remove('disabled');
 	}).catch(error => {
 		this.classList.remove('disabled');
-		reportError(error);
+		console.error(error);
 	});
 }
 

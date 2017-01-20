@@ -11,10 +11,10 @@ $header  = Core\Headers::getInstance();
 if ($header->accept === 'application/json') {
 	$resp = Core\JSON_Response::getInstance();
 	if (array_key_exists('url', $_GET)) {
-		$url = new Core\URL($_GET['url']);
-		$page = new Page($url);
 		$header->content_type = 'application/json';
-		Core\Console::log($page);
+		$url = new Core\URL($_GET['url']);
+		$page = new \KVSun\KVSAPI\Article(Core\PDO::load(DB_CREDS), "$url");
+		Core\Console::getInstance()->sendLogHeader();
 		exit(json_encode($page));
 	} elseif (array_key_exists('form', $_REQUEST) and is_array($_REQUEST[$_REQUEST['form']])) {
 		require_once COMPONENTS . 'handlers' . DIRECTORY_SEPARATOR . 'form.php';
