@@ -13,8 +13,24 @@ if ($header->accept === 'application/json') {
 	if (array_key_exists('url', $_GET)) {
 		$header->content_type = 'application/json';
 		$url = new Core\URL($_GET['url']);
-		$page = new \KVSun\KVSAPI\Article(Core\PDO::load(DB_CREDS), "$url");
-		Core\Console::getInstance()->sendLogHeader();
+		$path = explode('/', trim($url->path));
+		$path = array_filter($path);
+		$path = array_values($path);
+
+		if (empty($path)) {
+			// This would be a request for home
+			$page = new \KVSun\KVSAPI\Home(Core\PDO::load(DB_CREDS), "$url", [
+				'news',
+				'sports',
+				'valley-life',
+			]);
+		} elseif (count($path) === 1) {
+			$page = new \KVSun\KVSAPI\Category(Core\PDO::load(DB_CREDS), "$url");
+		} else {
+			$page = new \KVSun\KVSAPI\Article(Core\PDO::load(DB_CREDS), "$url");
+		}
+
+		Core\Console::info($path)->sendLogHeader();
 		exit(json_encode($page));
 	} elseif (array_key_exists('form', $_REQUEST) and is_array($_REQUEST[$_REQUEST['form']])) {
 		require_once COMPONENTS . 'handlers' . DIRECTORY_SEPARATOR . 'form.php';
