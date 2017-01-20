@@ -10,6 +10,7 @@ const INCLUDE_PATH = array(
 	__DIR__,
 );
 const COMPONENTS   = __DIR__ . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR;
+const TEMPLATE_DIR = COMPONENTS . DIRECTORY_SEPARATOR . 'kvs-templates' . DIRECTORY_SEPARATOR;
 const CONFIG       = __DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR;
 const PAGES_DIR    = __DIR__ . DIRECTORY_SEPARATOR . 'pages' . DIRECTORY_SEPARATOR;
 const DB_CREDS     = CONFIG . 'connect.json';
@@ -28,6 +29,10 @@ const CSP          = array(
 	'style-src'    => ["'self'", "'unsafe-inline'"],
 	'media-src'    => '*',
 );
+
+const HTML_TEMPLATES = [
+	TEMPLATE_DIR . 'article.html',
+];
 
 const USER_ROLES   = array(
 	0 => 'god',
