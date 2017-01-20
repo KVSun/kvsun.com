@@ -32,6 +32,7 @@ const CSP          = array(
 
 const HTML_TEMPLATES = [
 	TEMPLATE_DIR . 'article.html',
+	TEMPLATE_DIR . 'section.html',
 ];
 
 const USER_ROLES   = array(
