@@ -99,14 +99,6 @@ export function getContextMenu(el) {
 	}
 }
 
-export function updateFetchHistory(resp) {
-	if (resp.ok) {
-		let url = new URL(resp.url);
-		history.pushState({}, document.title, url.searchParams.get('url'));
-	}
-	return resp;
-}
-
 export function matchPattern(match) {
 	match.pattern = new RegExp(document.querySelector(`[name="${match.dataset.mustMatch}"]`).value).escape();
 	document.querySelector(`[name="${match.dataset.mustMatch}"]`).addEventListener('change', change => {
