@@ -1,5 +1,4 @@
 import $ from './std-js/zq.es6';
-// import handleJSON from './std-js/json_response.es6';
 import {query, fullScreen} from './std-js/functions.es6';
 import supports from './std-js/support_test.es6';
 import {
@@ -10,7 +9,6 @@ import {
 	getForm,
 	getDatalist,
 	getContextMenu,
-	// updateFetchHistory,
 	matchPattern,
 	matchInput,
 	getLink,

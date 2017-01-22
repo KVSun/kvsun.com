@@ -1,7 +1,7 @@
 import $ from './std-js/zq.es6';
 import handleJSON from './std-js/json_response.es6';
 import {reportError, parseResponse} from './std-js/functions.es6';
-import updateContent from './kvsapi.es6';
+import getPage from './kvsapi.es6';
 
 export function handleRequest(click) {
 	click.preventDefault();
@@ -124,21 +124,13 @@ export function matchInput(input) {
 
 export function getLink(click) {
 	click.preventDefault();
-	if (this.classList.contains('disabled')) {
+	if (this.classList.contains('disabled') || this.pathname === location.pathname) {
 		return;
 	} else {
 		this.classList.add('disabled');
 	}
-	let url = new URL('api.php', location.origin);
-	url.searchParams.set('url', this.href);
-	let headers = new Headers();
-	headers.set('Accept', 'application/json');
 
-	fetch(url, {
-		method: 'GET',
-		headers,
-		credentials: 'include'
-	}).then(updateContent).then(() => {
+	getPage(this.href).then(() => {
 		this.classList.remove('disabled');
 	}).catch(error => {
 		this.classList.remove('disabled');

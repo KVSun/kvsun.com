@@ -8,15 +8,43 @@ zQ.prototype.bootstrap = mutations.bootstrap;
 
 polyfill();
 
-supportsAsClasses('svg', 'audio', 'video', 'picture', 'canvas', 'menuitem',
-'details', 'dialog', 'dataset', 'HTMLimports', 'classList', 'connectivity',
-'visibility', 'notifications', 'ApplicationCache', 'indexedDB',
-'localStorage', 'sessionStorage', 'CSSgradients', 'transitions',
-'animations', 'CSSvars', 'CSSsupports', 'CSSmatches', 'querySelectorAll',
-'workers', 'promises', 'ajax', 'FormData');
-window.addEventListener('popstate', popstate);
+supportsAsClasses(
+	'svg',
+	'audio',
+	'video',
+	'picture',
+	'canvas',
+	'menuitem',
+	'details',
+	'dialog',
+	'template',
+	'dataset',
+	'HTMLimports',
+	'classList',
+	'connectivity',
+	'visibility',
+	'notifications',
+	'ApplicationCache',
+	'indexedDB',
+	'localStorage',
+	'sessionStorage',
+	'CSSgradients',
+	'transitions',
+	'animations',
+	'CSSvars',
+	'CSSsupports',
+	'CSSmatches',
+	'querySelectorAll',
+	'workers',
+	'promises',
+	'ajax',
+	'FormData'
+);
+
 $(document.body).bootstrap().watch(
 	mutations.watcher,
 	mutations.config,
 	mutations.attributeTree
 );
+
+window.addEventListener('popstate', popstate);
