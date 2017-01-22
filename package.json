@@ -30,7 +30,7 @@
     "build:js": "webpack",
     "build:icons": "svg-sprite-generate -c images/icons.csv -o images/icons.svg",
 	"build:ctags": "ctags --langmap='php:.php,javascript:.es6' --exclude='*.js' --exclude='node_modules/*' --exclude='stylesheets/styles/styles.css' -h '.php.es6' -R",
-    "build:all": "npm run build:icons && npm run build:js && npm run build:ctags",
+    "build:all": "npm run build:icons && npm run build:js",
     "lint:js": "eslint --ignore-path .eslintignore --config .eslintrc js/",
     "lint:php": "php unit.php",
     "git:fetch": "git fetch --all --prune --tags",
