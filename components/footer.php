@@ -19,8 +19,8 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
 	]);
 	$register->append('br');
 
-	\KVSun\append_to_dom('register', $register);
-	\KVSun\append_to_dom('forms/login', $login);
+	$register->importHTMLFile('components/register.html');
+	$login->importHTMLFile('components/forms/login.html');
 
 	$register->getElementById('registration-form')->action = \KVSun\DOMAIN . 'api.php';
 	$login->append('br');
