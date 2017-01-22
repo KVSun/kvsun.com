@@ -10,6 +10,7 @@
 /images/uploads/*
 *.sql
 !/default.sql
+/tags
 #################
 ## Eclipse
 #################
