@@ -1,7 +1,7 @@
 import $ from './std-js/zq.es6';
 import handleJSON from './std-js/json_response.es6';
 import {reportError, parseResponse} from './std-js/functions.es6';
-// import supports from './std-js/support_test.es6';
+import getPage from './kvsapi.es6';
 
 export function handleRequest(click) {
 	click.preventDefault();
@@ -24,8 +24,7 @@ export function sameoriginFrom(form) {
 	return new URL(form.action).origin === location.origin;
 }
 
-export function clickShowModal(click)
-{
+export function clickShowModal(click) {
 	click.preventDefault();
 	if (this.dataset.hasOwnProperty('showModal')) {
 		document.querySelector(this.dataset.showModal).showModal();
@@ -100,14 +99,6 @@ export function getContextMenu(el) {
 	}
 }
 
-export function updateFetchHistory(resp) {
-	if (resp.ok) {
-		let url = new URL(resp.url);
-		history.pushState({}, document.title, url.searchParams.get('url'));
-	}
-	return resp;
-}
-
 export function matchPattern(match) {
 	match.pattern = new RegExp(document.querySelector(`[name="${match.dataset.mustMatch}"]`).value).escape();
 	document.querySelector(`[name="${match.dataset.mustMatch}"]`).addEventListener('change', change => {
@@ -125,27 +116,17 @@ export function matchInput(input) {
 
 export function getLink(click) {
 	click.preventDefault();
-	if (this.classList.contains('disabled')) {
+	if (this.classList.contains('disabled') || this.pathname === location.pathname) {
 		return;
 	} else {
 		this.classList.add('disabled');
 	}
-	let url = new URL('api.php', location.origin);
-	url.searchParams.set('url', this.href);
-	let headers = new Headers();
-	headers.set('Accept', 'application/json');
-	if (typeof ga === 'function') {
-		ga('send', 'pageview', this.href);
-	}
-	fetch(url, {
-		method: 'GET',
-		headers
-	}).then(updateFetchHistory).then(parseResponse).then(json => {
-		handleJSON(json);
+
+	getPage(this.href).then(() => {
 		this.classList.remove('disabled');
 	}).catch(error => {
 		this.classList.remove('disabled');
-		reportError(error);
+		console.error(error);
 	});
 }
 

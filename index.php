@@ -12,7 +12,6 @@ if (version_compare(PHP_VERSION, '5.6', '<')) {
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
 
 DOM\HTMLElement::$import_path = COMPONENTS;
-
 if (defined(__NAMESPACE__ . '\CSP')) {
 	$csp = new Core\CSP(CSP);
 	$csp(false);
@@ -26,17 +25,23 @@ if (@file_exists(DB_CREDS) or !Core\PDO::load(DB_CREDS)->connected) {
 		exit();
 	}
 	unset($path);
+	$dom = DOM\HTML::getInstance();
 	// If IE, show update and hide rest of document
-	DOM\HTML::getInstance()->body->ifIE(
+	$dom->body->ifIE(
 		file_get_contents(\KVSun\COMPONENTS . 'update.html')
 		. '<div style="display:none !important;">'
 	);
 
 	load('head', 'header', 'nav', 'main', 'sidebar', 'footer');
-	DOM\HTML::getInstance()->body->class = 'flex row wrap';
+	$dom->body->class = 'flex row wrap';
+
+	array_map(
+		[$dom->body, 'importHTMLFile'],
+		HTML_TEMPLATES
+	);
 
 	// Close `<div>` created in [if IE]
-	DOM\HTML::getInstance()->body->ifIE('</div>');
+	$dom->body->ifIE('</div>');
 
 } else {
 	require_once COMPONENTS . 'install.html';
