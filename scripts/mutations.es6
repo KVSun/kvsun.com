@@ -1,23 +1,7 @@
 import $ from './std-js/zq.es6';
 import {query, fullScreen} from './std-js/functions.es6';
 import supports from './std-js/support_test.es6';
-import {
-	handleRequest,
-	sameoriginFrom,
-	submitForm,
-	clickShowModal,
-	getForm,
-	getDatalist,
-	getContextMenu,
-	matchPattern,
-	matchInput,
-	getLink,
-	toggleDetails,
-	toggleCheckboxes,
-	closeOnEscapeKey,
-	closeOnOutsideClick,
-	confirmDialogClose
-} from './eventHandlers.es6';
+import * as eventHandler from './eventHandlers.es6';
 import wysiwyg from './std-js/wysiwyg.es6';
 import kbd from './std-js/kbd_shortcuts.es6';
 import DnD from './fileupload.es6';
@@ -61,25 +45,25 @@ export const watcher = {
 	childList: function() {
 		$(this.addedNodes).bootstrap();
 		if ($(this.removedNodes).some(node => node.tagName === 'DIALOG')) {
-			document.body.removeEventListener('click', closeOnOutsideClick);
-			document.body.removeEventListener('keypress', closeOnEscapeKey);
+			document.body.removeEventListener('click', eventHandler.closeOnOutsideClick);
+			document.body.removeEventListener('keypress', eventHandler.closeOnEscapeKey);
 		}
 	},
 	attributes: function() {
 		switch (this.attributeName) {
 		case 'contextmenu':
-			getContextMenu(this.target);
+			eventHandler.getContextMenu(this.target);
 			break;
 
 		case 'open':
 			if (this.target.tagName === 'DIALOG') {
 				if (this.target.hasAttribute('open')) {
 					setTimeout(() => {
-						$(document.body).click(closeOnOutsideClick).keypress(closeOnEscapeKey);
+						$(document.body).click(eventHandler.closeOnOutsideClick).keypress(eventHandler.closeOnEscapeKey);
 					}, 500);
 				} else {
-					document.body.removeEventListener('click', closeOnOutsideClick);
-					document.body.removeEventListener('keypress', closeOnEscapeKey);
+					document.body.removeEventListener('click', eventHandler.closeOnOutsideClick);
+					document.body.removeEventListener('keypress', eventHandler.closeOnEscapeKey);
 				}
 			}
 			break;
@@ -88,30 +72,30 @@ export const watcher = {
 			break;
 
 		case 'list':
-			getDatalist(this.target);
+			eventHandler.getDatalist(this.target);
 			break;
 
 		case 'data-request':
 			if (this.target.dataset.hasOwnProperty('dataRequest')) {
-				this.target.addEventListener('click', handleRequest);
+				this.target.addEventListener('click', eventHandler.handleRequest);
 			} else {
-				this.target.removeEventListener('click', handleRequest);
+				this.target.removeEventListener('click', eventHandler.handleRequest);
 			}
 			break;
 
 		case 'data-show-modal':
 			if (this.target.dataset.hasOwnProperty('showModal')) {
-				this.target.addEventListener('click', clickShowModal);
+				this.target.addEventListener('click', eventHandler.clickShowModal);
 			} else {
-				this.target.removeEventListener('click', clickShowModal);
+				this.target.removeEventListener('click', eventHandler.clickShowModal);
 			}
 			break;
 
 		case 'data-load-form':
 			if (this.target.dataset('loadForm')) {
-				this.target.addEventListener('click', getForm);
+				this.target.addEventListener('click', eventHandler.getForm);
 			} else {
-				this.target.removeEventListener('click', getForm);
+				this.target.removeEventListener('click', eventHandler.getForm);
 			}
 			break;
 
@@ -144,14 +128,14 @@ export function bootstrap() {
 		}
 		if (!supports('details')) {
 			query('details > summary', node).forEach(summary => {
-				summary.addEventListener('click', toggleDetails);
+				summary.addEventListener('click', eventHandler.toggleDetails);
 			});
 		}
 		if (supports('menuitem')) {
-			query('[contextmenu]', node).forEach(getContextMenu);
+			query('[contextmenu]', node).forEach(eventHandler.getContextMenu);
 		}
 		if (supports('datalist')) {
-			query('[list]', node).forEach(getDatalist);
+			query('[list]', node).forEach(eventHandler.getDatalist);
 		}
 		if (!supports('picture')) {
 			query('picture', node).forEach(pictureShim);
@@ -161,16 +145,16 @@ export function bootstrap() {
 			'a[href]:not([target="_blank"]):not([download]):not([href*="\#"])',
 			node
 		).filter(link => link.origin === location.origin).forEach(a => {
-			a.addEventListener('click', getLink);
+			a.addEventListener('click', eventHandler.getLink);
 		});
-		query('form[name]', node).filter(sameoriginFrom).forEach(form => {
-			form.addEventListener('submit', submitForm);
+		query('form[name]', node).filter(eventHandler.sameoriginFrom).forEach(form => {
+			form.addEventListener('submit', eventHandler.submitForm);
 		});
 		query('[data-request]', node).forEach(el => {
-			el.addEventListener('click', handleRequest);
+			el.addEventListener('click', eventHandler.handleRequest);
 		});
 		query('[data-load-form]', node).forEach(el => {
-			el.addEventListener('click', getForm);
+			el.addEventListener('click', eventHandler.getForm);
 		});
 		query('[data-show]', node).forEach(el => {
 			el.addEventListener('click', () => {
@@ -178,7 +162,7 @@ export function bootstrap() {
 			});
 		});
 		query('[data-show-modal]', node).forEach(el => {
-			el.addEventListener('click', clickShowModal);
+			el.addEventListener('click', eventHandler.clickShowModal);
 		});
 		query('[data-scroll-to]', node).forEach(el => {
 			el.addEventListener('click', () => {
@@ -194,14 +178,14 @@ export function bootstrap() {
 			});
 		});
 		query('fieldset button[type="button"].toggle', node).forEach(toggle => {
-			toggle.addEventListener('click', toggleCheckboxes);
+			toggle.addEventListener('click', eventHandler.toggleCheckboxes);
 		});
-		query('[data-must-match]', node).forEach(matchPattern);
+		query('[data-must-match]', node).forEach(eventHandler.matchPattern);
 		// query('[data-dropzone]', node) .forEach(function (el) {
 		// 	document.querySelector(el.dataset.dropzone).DnD(el);
 		// });
 		query('input[data-equal-input]', node).forEach(input => {
-			input.addEventListener('input', matchInput);
+			input.addEventListener('input', eventHandler.matchInput);
 		});
 		query('[contenteditable]', node).forEach(el => {
 			wysiwygToggle(el);
@@ -237,7 +221,7 @@ export function bootstrap() {
 			el.addEventListener('click', () => {
 				let target = $(el.dataset.delete);
 				target.each(el => {
-					if (confirmDialogClose(el)) {
+					if (eventHandler.confirmDialogClose(el)) {
 						try {
 							if (el.nextElementSibling.matches('.backdrop')) {
 								el.nextElementSibling.remove();
