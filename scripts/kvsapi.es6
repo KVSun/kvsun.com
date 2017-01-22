@@ -117,7 +117,7 @@ function makeCategory(category) {
 }
 
 function makeHome(cats) {
-	document.querySelector('body > header > img').hidden = false;
+	document.querySelector('body > header > img').hidden = true;
 	const main = document.querySelector('main');
 	const sections = cats.sections;
 	Array.from(main.children).forEach(child => child.remove());
