@@ -62,12 +62,16 @@ function updateContent(json) {
 	console.info(json);
 	document.title = getTitle(json);
 	switch(json.type) {
+	case 'home':
+		makeHome(json.data);
+		break;
+
 	case 'article':
 		makeArticle(json.data);
 		break;
 
-	case 'home':
-		makeHome(json.data);
+	case 'category':
+		makeCategory(json.data);
 		break;
 
 	default:
@@ -87,6 +91,29 @@ function getTemplate(templateID) {
 		});
 		return frag;
 	}
+}
+
+function makeCategory(category) {
+	document.querySelector('body > header > img').hidden = false;
+	const main = document.querySelector('main');
+	const template = getTemplate('section-template');
+	let container = template.firstElementChild;
+	let title = template.querySelector('h2');
+	title.textContent = category.title;
+	title.className = 'center';
+
+	container.id = category.category;
+	container.className = 'category';
+	category.articles.forEach(article => {
+		let div = container.appendChild(document.createElement('div'));
+		let a = div.appendChild(document.createElement('a'));
+		a.href = `${location.origin}/${article.catURL}/${article.url}`;
+		a.textContent = article.title;
+		a.className = 'currentColor';
+	});
+
+	Array.from(main.children).forEach(child => child.remove());
+	main.appendChild(document.importNode(template, true));
 }
 
 function makeHome(cats) {
