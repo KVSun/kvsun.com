@@ -83,13 +83,13 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 		foreach ($manifest->icons as $icon) {
 			$head->append('link', null, [
 				'rel' => 'icon',
-				'href' => \KVSun\DOMAIN . $icon->src,
+				'href' => \KVSun\DOMAIN . trim($icon->src, '/'),
 				'sizes' => $icon->sizes,
 				'type' => $icon->type
 			]);
 			$head->append('link', null, [
 				'rel' => 'apple-touch-icon',
-				'href' => \KVSun\DOMAIN . $icon->src,
+				'href' => \KVSun\DOMAIN . trim($icon->src, '/'),
 				'sizes' => $icon->sizes,
 				'type' => $icon->type
 			]);
@@ -131,7 +131,7 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 	$head->append('link', null, [
 		'rel' => 'stylesheet',
 		'type' => 'text/css',
-		'href' => \KVSun\DEBUG ? \KVSun\DOMAIN . \KVSun\DEV_STYLE : \KVSun\DOMAIN . \KVSun\STYLE,
+		'href' => \KVSun\DOMAIN . \KVSun\DEV_STYLE,
 	]);
 
 	foreach(\KVSun\SCRIPTS as $script) {

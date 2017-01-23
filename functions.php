@@ -334,6 +334,55 @@ function use_icon(
 }
 
 /**
+ * Creates a basic navigation menu for $parent
+ * @param  DOMElement   $parent The element to append it to
+ * @return DOMElement   The newly created menu
+ */
+function nav_menu(\DOMElement $parent)
+{
+	$pdo = Core\PDO::load(DB_CREDS);
+	$cats = $pdo('SELECT `name`, `url-name` AS `anchor` FROM `categories`;');
+	$menu = $parent->append('menu', null, [
+		'id' => 'nav_menu',
+		'type' => 'context',
+	]);
+
+	$parent->contextmenu = $menu->id;
+
+	$menu->append('menuitem', null, [
+		'label' => 'Login',
+		'icon' => DOMAIN . '/images/octicons/lib/svg/sign-in.svg',
+		'data-show-modal' => '#login-dialog',
+	]);
+
+	$nav = $menu->append('menu', null, [
+		'label' => 'Page navigation',
+	]);
+
+	$nav->append('menuitem', null, [
+		'label' => 'Top',
+		'icon' => DOMAIN . '/images/octicons/lib/svg/link.svg',
+		'data-scroll-to' => 'body > header',
+	]);
+
+	foreach ($cats as $cat) {
+		$nav->append('menuitem', null, [
+			'label' => $cat->name,
+			'icon' => DOMAIN . '/images/octicons/lib/svg/link.svg',
+			'data-scroll-to' => "#{$cat->anchor}",
+		]);
+	}
+
+	$nav->append('menuitem', null, [
+		'label' => 'Bottom',
+		'icon' => DOMAIN . '/images/octicons/lib/svg/link.svg',
+		'data-scroll-to' => 'body > footer',
+	]);
+
+	return $menu;
+}
+
+/**
  * [load description]
  * @param  Array $files  file1, file2, ...
  * @return Array         [description]
