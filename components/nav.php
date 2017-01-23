@@ -20,7 +20,7 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 	}
 	$avatar = $nav->append('img', null, [
 		'id' => 'user-avatar',
-		'src' => 'images/octicons/lib/svg/sign-in.svg',
+		'src' => \KVSun\DOMAIN . '/images/octicons/lib/svg/sign-in.svg',
 		'width' => 64,
 		'height' => 64,
 		'class' => 'round',
