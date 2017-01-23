@@ -2,7 +2,7 @@
 	"name": "Kern Valley Sun",
 	"short_name": "KV Sun",
 	"description": "The valley's choice for hometown news",
-	"start_url": "https://kernvalleysun.com",
+	"start_url": "https://dev.kvsun.com",
 	"theme_color": "#EA5708",
 	"background_color": "#EA5708",
 	"display": "standalone",
@@ -33,7 +33,7 @@
 	}],
 	"screenshots": [{
 		"src": "/screenshot.png",
-		"sizes": "1350x603",
+		"sizes": "1509x670",
 		"type": "image/png"
 	}]
 }

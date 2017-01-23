@@ -13,6 +13,7 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 
 	if ($pdo->connected) {
 		$data = $pdo->nameValue('head');
+
 		$head->append(
 			'title',
 			isset($page->title) ? "{$data->title} | {$page->title}" : $data->title, [
@@ -52,6 +53,10 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 				'name' => 'keywords',
 				'content' => $page->keywords,
 			]);
+			$head->append('meta', null, [
+				'itemprop' => 'keywords',
+				'content' => $page->keywords,
+			]);
 		}
 	} else {
 		$head->append('title', "{$_SERVER['SERVER_NAME']} Installation");
@@ -64,12 +69,65 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 			'content' => 'origin-when-cross-origin'
 		]);
 	}
-	$head->append('link', null, [
-		'rel' => 'icon',
-		'href' => \KVSun\DOMAIN . 'images/sun-icons/any.svg',
-		'type' => 'image/svg+xml',
-		'sizes' => 'any',
-	]);
+	if (@file_exists('manifest.json')) {
+		$manifest = json_decode(file_get_contents('manifest.json'));
+		$head->append('meta', null, [
+			'name' => 'mobile-web-app-capable',
+			'content' => 'yes'
+		]);
+		$head->append('meta', null, [
+			'name' => 'theme-color',
+			'content' => $manifest->theme_color
+		]);
+
+		foreach ($manifest->icons as $icon) {
+			$head->append('link', null, [
+				'rel' => 'icon',
+				'href' => \KVSun\DOMAIN . $icon->src,
+				'sizes' => $icon->sizes,
+				'type' => $icon->type
+			]);
+			$head->append('link', null, [
+				'rel' => 'apple-touch-icon',
+				'href' => \KVSun\DOMAIN . $icon->src,
+				'sizes' => $icon->sizes,
+				'type' => $icon->type
+			]);
+		}
+	}
+	if (@file_exists('manifest.json')) {
+		$manifest = json_decode(file_get_contents('manifest.json'));
+		$head->append('meta', null, [
+			'name' => 'mobile-web-app-capable',
+			'content' => 'yes'
+		]);
+		$head->append('meta', null, [
+			'name' => 'theme-color',
+			'content' => $manifest->theme_color
+		]);
+
+		foreach ($manifest->icons as $icon) {
+			$head->append('link', null, [
+				'rel' => 'icon',
+				'href' => \KVSun\DOMAIN . $icon->src,
+				'sizes' => $icon->sizes,
+				'type' => $icon->type
+			]);
+			$head->append('link', null, [
+				'rel' => 'apple-touch-icon',
+				'href' => \KVSun\DOMAIN . $icon->src,
+				'sizes' => $icon->sizes,
+				'type' => $icon->type
+			]);
+		}
+	} else {
+		$head->append('link', null, [
+			'rel' => 'icon',
+			'href' => \KVSun\DOMAIN . 'images/sun-icons/any.svg',
+			'type' => 'image/svg+xml',
+			'sizes' => 'any',
+		]);
+	}
 	$head->append('link', null, [
 		'rel' => 'stylesheet',
 		'type' => 'text/css',
