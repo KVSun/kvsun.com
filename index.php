@@ -40,6 +40,8 @@ if (@file_exists(DB_CREDS) or !Core\PDO::load(DB_CREDS)->connected) {
 		HTML_TEMPLATES
 	);
 
+	nav_menu($dom->body);
+
 	// Close `<div>` created in [if IE]
 	$dom->body->ifIE('</div>');
 
