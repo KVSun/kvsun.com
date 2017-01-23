@@ -131,7 +131,7 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 	$head->append('link', null, [
 		'rel' => 'stylesheet',
 		'type' => 'text/css',
-		'href' => \KVSun\DEBUG ? \KVSun\DOMAIN . \KVSun\DEV_STYLE : \KVSun\DOMAIN . \KVSun\STYLE,
+		'href' => \KVSun\DOMAIN . \KVSun\DEV_STYLE,
 	]);
 
 	foreach(\KVSun\SCRIPTS as $script) {
