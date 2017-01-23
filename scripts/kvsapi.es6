@@ -31,7 +31,9 @@ export function popstate(pop) {
 function updatePage(resp) {
 	const type = resp.headers.get('Content-Type');
 	if (type === 'application/json') {
-		return resp.json().then(update);
+		return resp.json().then(update).catch(error => {
+			throw new Error(error);
+		});
 	} else {
 		throw new Error(`Unsupported Content-Type, ${type}`);
 	}
