@@ -465,7 +465,7 @@ function load_file($file, $ext = EXT)
 			'sports',
 			'valley-life',
 		]);
-	} elseif (count($kvs) === 1) {
+	} elseif (count($path) === 1) {
 		$kvs = new \KVSun\KVSAPI\Category(Core\PDO::load(DB_CREDS), "$url");
 	} else {
 		$kvs = new \KVSun\KVSAPI\Article(Core\PDO::load(DB_CREDS), "$url");
