@@ -3,6 +3,7 @@ aside {
 	flex-basis: calc(100% - var(--main-width));
 	background: #efefef;
 	border: 2px outset #222;
+	overflow-y: auto;
 }
 @media (min-width: 800px) {
 	aside {
