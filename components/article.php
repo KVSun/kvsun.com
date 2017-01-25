@@ -1,68 +1,44 @@
 <?php
 namespace KVSun\Components\Article;
-return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
+return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page, $kvs)
 {
-	// $article->append('meta', null, ['itemprop' => 'publisher', 'content' => 'Kern Valley Sun']);
-	$main = $dom->getElementsByTagName('main');
 	if (
-		is_object($page)
-		and isset($page->content, $page->posted, $page->title)
-		and ($main->length !== 0)
+		is_object($kvs)
+		and isset($kvs->content, $kvs->posted, $kvs->title)
 	) {
-		$main = $main->item(0);
-		$main->itemtype = 'mainContentOfPage';
+		$main = $dom->getElementsByTagName('main')->item(0);
+		$template = $dom->getElementById('article-template');
+		foreach ($template->childNodes as $node) {
+			$main->appendChild($node->cloneNode(true));
+		}
+		$article = $main->getElementsByTagName('article')->item(0);
+		$xpath = new \DOMXPath($dom);
+		$updated = new \DateTime(isset($kvs->updated) ? $kvs->updated : $kvs->posted);
+		$posted = new \DateTime($kvs->posted);
 
-		$article = $main->append('article');
-		$article->itemscope = '';
-		$article->itemtype = 'https://schema.org/Article';
-		$article->itemprop = 'mainEntityOfPage';
+		try {
+			$xpath->query('.//*[@itemprop="headline"]', $article)->item(0)->textContent = $kvs->title;
+			$xpath->query('.//*[@itemprop="author"]', $article)->item(0)->textContent = $kvs->author;
+			$xpath->query('.//*[@itemprop="dateModified"]', $article)->item(0)->setAttribute('content', $updated->format(\DateTime::W3C));
+			$pub_date = $xpath->query('.//*[@itemprop="datePublished"]', $article)->item(0);
+			$pub_date->textContent = $posted->format('D. M j, Y \a\t h:m a');
+			$pub_date->setAttribute('datetime', $posted->format(\DateTime::W3C));
+			$articleBody = $xpath->query('.//*[@itemprop="articleBody"]', $article)->item(0);
+			$articleBody->importHTML($kvs->content);
 
-		$updated = isset($page->updated)
-			? new \DateTime($page->updated)
-			: new \DateTime($page->posted);
-		$posted = new \DateTime($page->posted);
-		$header = $article->append('header');
-		$header->append('meta', null, [
-			'itemprop' => 'dateModified',
-			'content' => $updated->format(\DateTime::W3C),
-		]);
-
-		$header->append('h2', $page->title, [
-			'itemprop' => 'headline',
-		]);
-		$header->append('b', 'By&nbsp;')->append('span', $page->author, [
-			'itemprop' => 'author',
-		]);
-		$header->append('br');
-		$header->append('i', 'on&nbsp;')->append(
-			'time',
-			$posted->format('D. M j, Y \a\t h:m a'),
-			[
-				'datetime' => $posted->format(\DateTime::W3C),
-				'itemprop' => 'datePublished',
-			]
-		);
-		$header->append('br');
-		$publisher = $header->append('h4', 'Published by&nbsp;')->append('span', null, [
-			'itemscope' => '',
-			'itemprop' => 'publisher',
-			'itemtype' => 'https://schema.org/Organization',
-		]);
-		$publisher->append('a', null, [
-			'itemprop' => 'url',
-			'href' => \KVSun\DOMAIN,
-		])->append('span', 'Kern Valley Sun', [
-			'itemprop' => 'name',
-		]);
-		$publisher->append('meta', null, [
-			'itemprop' => 'logo',
-			'content' => \KVSun\DOMAIN . 'images/sun-icons/128.png',
-		]);
-		$header->append('hr');
-		$container = $article->append('div', null, ['itemprop' => 'articleBody']);
-		$container->importHTML($page->content);
-		set_img_data($container);
-
+			$pub = $xpath->query('.//*[@itemprop="publisher"]', $article);
+			if ($pub) {
+				$pub = $pub->item(0);
+				$xpath->query('.//*[@itemprop="url"]', $pub)->item(0)->setAttribute('href', \KVSun\DOMAIN);
+				$xpath->query('.//*[@itemprop="name"]', $pub)->item(0)->textContent = 'Kern Valley Sun';
+				$xpath->query('.//*[@itemprop="logo"]', $pub)->item(0)->setAttribute('content', \KVSun\DOMAIN . 'images/sun-icons/256.png');
+			}
+			set_img_data($articleBody);
+		} catch(\Exception $e) {
+			trigger_error($e);
+		} catch(\Error $e) {
+			trigger_error($e);
+		}
 	} else {
 		trigger_error('Invalid page contents given.');
 	}
