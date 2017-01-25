@@ -1,10 +1,10 @@
 <?php
 namespace KVSun\Components\Head;
 
-return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
+return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page, $kvs)
 {
 	$dom->documentElement->itemscope = '';
-	$dom->documentElement->itemtype = 'https://schema.org/WebPage';
+	$dom->documentElement->itemtype = 'https://schema.org/WebSite';
 	$head = $dom->head;
 	$head->ifIE('<script type="text/javascript">
 	var html5=new Array(\'header\',\'hgroup\',\'nav\',\'menu\',\'main\',\'section\',\'article\',\'footer\',\'aside\',\'mark\', \'details\', \'summary\', \'dialog\', \'figure\', \'figcaption\', \'picture\', \'source\');
@@ -12,11 +12,11 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 </script>', 8, 'lte');
 
 	if ($pdo->connected) {
-		$data = $pdo->nameValue('head');
+		$data = $kvs->getHead();
 
 		$head->append(
 			'title',
-			isset($page->title) ? "{$data->title} | {$page->title}" : $data->title, [
+			isset($kvs->title) ? "{$data->title} | {$kvs->title}" : $data->title, [
 				'itemprop' => 'name',
 		]);
 		$head->append('base', null, ['href' => \KVSun\DOMAIN]);
@@ -38,24 +38,24 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 			'content' => $data->referrer
 		]);
 
-		if (isset($page->description)) {
+		if (isset($kvs->description)) {
 			$head->append('meta', null, [
 				'name' => 'description',
-				'content' => $page->description,
+				'content' => $kvs->description,
 			]);
 			$head->append('meta', null, [
 				'itemprop' => 'description',
-				'content' => $page->description,
+				'content' => $kvs->description,
 			]);
 		}
-		if (isset($page->keywords)) {
+		if (isset($kvs->keywords)) {
 			$head->append('meta', null, [
 				'name' => 'keywords',
-				'content' => $page->keywords,
+				'content' => $kvs->keywords,
 			]);
 			$head->append('meta', null, [
 				'itemprop' => 'keywords',
-				'content' => $page->keywords,
+				'content' => $kvs->keywords,
 			]);
 		}
 	} else {
