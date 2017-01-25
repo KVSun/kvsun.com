@@ -1,3 +1,8 @@
 body > header {
 	order: 0;
+	height: 23vh;
+	background-image: var(--logo), var(--river-bg);
+	background-size: contain, cover;
+	background-repeat: no-repeat;
+	background-position: right, 0 36%;
 }
