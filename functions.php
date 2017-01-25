@@ -395,27 +395,6 @@ function add_nav_menu(\DOMElement $parent)
 			'data-scroll-to' => 'body > footer',
 		]],
 	]);
-/*
-	$nav->append('menuitem', null, [
-		'label' => 'Top',
-		'icon' => DOMAIN . '/images/octicons/lib/svg/link.svg',
-		'data-scroll-to' => 'body > header',
-	]);
-
-	foreach ($cats as $cat) {
-		$nav->append('menuitem', null, [
-			'label' => $cat->name,
-			'icon' => DOMAIN . '/images/octicons/lib/svg/link.svg',
-			'data-scroll-to' => "#{$cat->anchor}",
-		]);
-	}
-
-	$nav->append('menuitem', null, [
-		'label' => 'Bottom',
-		'icon' => DOMAIN . '/images/octicons/lib/svg/link.svg',
-		'data-scroll-to' => 'body > footer',
-	]);
-	*/
 
 	return $menu;
 }
@@ -474,12 +453,29 @@ function load(...$files)
 function load_file($file, $ext = EXT)
 {
 	static $args = null;
+	$url = Core\URL::getInstance();
+	$path = explode('/', trim($url->path));
+	$path = array_filter($path);
+	$path = array_values($path);
 
+	if (empty($path)) {
+		// This would be a request for home
+		$kvs = new \KVSun\KVSAPI\Home(Core\PDO::load(DB_CREDS), "$url", [
+			'news',
+			'sports',
+			'valley-life',
+		]);
+	} elseif (count($kvs) === 1) {
+		$kvs = new \KVSun\KVSAPI\Category(Core\PDO::load(DB_CREDS), "$url");
+	} else {
+		$kvs = new \KVSun\KVSAPI\Article(Core\PDO::load(DB_CREDS), "$url");
+	}
 	if (is_null($args)) {
 		$args = array(
 			DOM\HTML::getInstance(),
 			Core\PDO::load(DB_CREDS),
 			new Page(Core\URL::getInstance()),
+			$kvs
 		);
 	}
 	$ret = require_once(COMPONENTS . $file . $ext);
