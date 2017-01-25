@@ -443,9 +443,14 @@ function add_share_menu(\DOMElement $parent)
 			'data-share' => 'g+',
 		]],
 		['menuitem', null, [
-			'label' => 'linkedin',
+			'label' => 'Linkedin',
 			'icon' => DOMAIN . '/images/logos/linkedin.svg',
 			'data-share' => 'linkedin',
+		]],
+		['menuitem', null, [
+			'label' => 'Reddit',
+			'icon' => DOMAIN . '/images/logos/Reddit.svg',
+			'data-share' => 'reddit',
 		]],
 	]);
 }
