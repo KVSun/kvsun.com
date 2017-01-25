@@ -95,12 +95,7 @@ function getTemplate(templateID) {
 	}
 }
 
-function hideHeaderImg(hidden = true) {
-	document.querySelector('body > header > img').hidden = hidden;
-}
-
 function makeCategory(category) {
-	hideHeaderImg(true);
 	const main = document.querySelector('main');
 	const template = getTemplate('section-template');
 	let container = template.firstElementChild;
@@ -123,7 +118,6 @@ function makeCategory(category) {
 }
 
 function makeHome(cats) {
-	hideHeaderImg(false);
 	const main = document.querySelector('main');
 	const sections = cats.sections;
 	Array.from(main.children).forEach(child => child.remove());
@@ -152,7 +146,6 @@ function makeHome(cats) {
 }
 
 function makeArticle(post) {
-	hideHeaderImg(true);
 	const main = document.querySelector('main');
 	const created = new Date(post.posted);
 	const article = getTemplate('article-template');
