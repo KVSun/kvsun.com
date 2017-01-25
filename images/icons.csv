@@ -15,6 +15,7 @@ credit-card,images/octicons/lib/svg/credit-card.svg
 device-camera,images/octicons/lib/svg/device-camera.svg
 device-desktop,images/octicons/lib/svg/device-desktop.svg
 device-mobile,images/octicons/lib/svg/device-mobile.svg
+facebook,images/logos/Facebook.svg
 file-directory,images/octicons/lib/svg/file-directory.svg
 file-media,images/octicons/lib/svg/file-media.svg
 file-pdf,images/octicons/lib/svg/file-pdf.svg
@@ -58,6 +59,8 @@ thumbsdown,images/octicons/lib/svg/thumbsdown.svg
 thumbsup,images/octicons/lib/svg/thumbsup.svg
 tools,images/octicons/lib/svg/tools.svg
 trashcan,images/octicons/lib/svg/trashcan.svg
+twitter,images/logos/twitter.svg
 unverified,images/octicons/lib/svg/unverified.svg
 verified,images/octicons/lib/svg/verified.svg
 x,images/octicons/lib/svg/x.svg
+youtube,images/logos/YouTube.svg

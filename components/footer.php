@@ -26,6 +26,7 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
 	$login->append('br');
 	$login->getElementById('login-form')->action = \KVSun\DOMAIN . 'api.php';
 
+
 	\KVSun\use_icon('sign-in', $footer->append('span', null, [
 		'data-show-modal' => "#{$login->id}",
 		'class' => 'logo',
@@ -51,5 +52,28 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
 		'href' => $package->bugs->url,
 		'target' => '_blank',
 		'class' => 'logo',
+	]));
+
+	$footer->append('hr');
+
+	\KVSun\use_icon('twitter', $footer->append('a', null, [
+		'href' => 'https://twitter.com/kvsun',
+		'target' => '_blank',
+		'class' => 'logo',
+		'title' => 'Follow us on Twitter',
+	]));
+
+	\KVSun\use_icon('facebook', $footer->append('a', null, [
+		'href' => 'https://www.facebook.com/KernValleySun',
+		'target' => '_blank',
+		'class' => 'logo',
+		'title' => 'Follow us on Facebook',
+	]));
+
+	\KVSun\use_icon('youtube', $footer->append('a', null, [
+		'href' => 'https://www.youtube.com/user/kernvalleysun1959',
+		'target' => '_blank',
+		'class' => 'logo',
+		'title' => 'Subscribe to our YouTube channel',
 	]));
 };
