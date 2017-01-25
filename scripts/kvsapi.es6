@@ -158,6 +158,22 @@ function makeArticle(post) {
 	article.querySelector('[itemprop="articleBody"]').innerHTML = post.content;
 	article.querySelector('[itemprop="publisher"] [itemprop="url"]').setAttribute('href', location.origin);
 	article.querySelector('[itemprop="logo"]').setAttribute('content', new URL('/images/sun-icons/128.png', location.origin));
+	article.appendChild(document.createElement('hr'));
+	let tw = document.createElement('button');
+	let fb = document.createElement('button');
+	let gp = document.createElement('button');
+	tw.type = 'button';
+	tw.textContent = 'Share on Twitter';
+	tw.dataset.share = 'twitter';
+	fb.type = 'button';
+	fb.textContent = 'Share on Facebook';
+	fb.dataset.share = 'facebook';
+	gp.type = 'button';
+	gp.textContent = 'Share on Google+';
+	gp.dataset.share = 'g+';
 	Array.from(main.children).forEach(child => child.remove());
 	main.appendChild(document.importNode(article, true));
+	main.appendChild(fb);
+	main.appendChild(tw);
+	main.appendChild(gp);
 }

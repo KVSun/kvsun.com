@@ -5,6 +5,38 @@ import * as eventHandler from './eventHandlers.es6';
 import wysiwyg from './std-js/wysiwyg.es6';
 import kbd from './std-js/kbd_shortcuts.es6';
 import DnD from './fileupload.es6';
+import SocialShare from './std-js/socialshare.es6';
+
+function share() {
+	if (this.dataset.hasOwnProperty('share')) {
+		switch(this.dataset.share) {
+		case 'facebook':
+			SocialShare.openPopup(SocialShare.getFacebook());
+			break;
+
+		case 'twitter':
+
+			SocialShare.openPopup(SocialShare.getTwitter(location.href, document.title, 'kvsun'));
+			break;
+
+		case 'g+':
+			SocialShare.openPopup(SocialShare.getGooglePlus());
+			break;
+
+		case 'reddit':
+			SocialShare.openPopup(SocialShare.getReddit());
+			break;
+
+		case 'pintrest':
+			SocialShare.openPopup(SocialShare.getPintrest());
+			break;
+
+		case 'linkedin':
+			SocialShare.openPopup(SocialShare.getLinkedIn());
+			break;
+		}
+	}
+}
 
 function wysiwygToggle(el) {
 	if (
@@ -214,6 +246,9 @@ export function bootstrap() {
 		// query('[data-dropzone]', node).forEach(finput => {
 		// 	document.querySelector(finput.dataset.dropzone).DnD(finput);
 		// });
+		query('[data-share]', node).forEach(node => {
+			node.addEventListener('click', share);
+		});
 		query('[data-fullscreen]', node).forEach(el => {
 			el.addEventListener('click', toggleFullScreen);
 		});

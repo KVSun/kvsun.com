@@ -53,6 +53,15 @@ const LOCAL_ZIPS = [
 	93285
 ];
 
+const LOGGED_OUT_ONLY = [
+	'[data-show-modal="#login-dialog"]',
+	'[data-show-modal="#registration-dialog"]',
+];
+
+const LOGGED_IN_ONLY = [
+	'[data-request="action=logout"]',
+];
+
 if (! array_key_exists('SERVER_NAME', $_SERVER)) {
 	$_SERVER['SERVER_NAME'] = 'localhost';
 }
