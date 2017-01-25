@@ -28,11 +28,10 @@ if (@file_exists(DB_CREDS) or !Core\PDO::load(DB_CREDS)->connected) {
 	$dom = DOM\HTML::getInstance();
 	// If IE, show update and hide rest of document
 	$dom->body->ifIE(
-		file_get_contents(\KVSun\COMPONENTS . 'update.html')
+		file_get_contents(COMPONENTS . 'update.html')
 		. '<div style="display:none !important;">'
 	);
 
-	load('head', 'header', 'nav', 'main', 'sidebar', 'footer');
 	$dom->body->class = 'flex row wrap';
 
 	array_map(
@@ -41,8 +40,9 @@ if (@file_exists(DB_CREDS) or !Core\PDO::load(DB_CREDS)->connected) {
 	);
 
 	add_main_menu($dom->body);
+	load('head', 'header', 'nav', 'main', 'sidebar', 'footer');
 
-	// Close `<div>` created in [if IE]
+	// Close `</div>` created in [if IE]
 	$dom->body->ifIE('</div>');
 
 } else {
