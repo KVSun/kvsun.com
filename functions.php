@@ -333,32 +333,69 @@ function use_icon(
 	return $svg;
 }
 
-/**
- * Creates a basic navigation menu for $parent
- * @param  DOMElement   $parent The element to append it to
- * @return DOMElement   The newly created menu
- */
-function nav_menu(\DOMElement $parent)
+function add_main_menu(\DOMElement $parent)
 {
-	$pdo = Core\PDO::load(DB_CREDS);
-	$cats = $pdo('SELECT `name`, `url-name` AS `anchor` FROM `categories`;');
 	$menu = $parent->append('menu', null, [
-		'id' => 'nav_menu',
+		'id' => 'main-menu',
 		'type' => 'context',
 	]);
 
 	$parent->contextmenu = $menu->id;
 
-	$menu->append('menuitem', null, [
+	$login = $menu->append('menuitem', null, [
 		'label' => 'Login',
 		'icon' => DOMAIN . '/images/octicons/lib/svg/sign-in.svg',
 		'data-show-modal' => '#login-dialog',
 	]);
 
-	$nav = $menu->append('menu', null, [
-		'label' => 'Page navigation',
+	$register = $menu->append('menuitem', null, [
+		'label' => 'Register',
+		'icon' => DOMAIN . '/images/octicons/lib/svg/sign-in.svg',
+		'data-show-modal' => '#registration-dialog',
 	]);
 
+	$logout = $menu->append('menuitem', null, [
+		'label' => 'Sign out',
+		'icon' => DOMAIN . '/images/octicons/lib/svg/sign-out.svg',
+		'data-request' => 'action=logout',
+		'data-confirm' => 'Are you sure you want to logout?'
+	]);
+
+	if (check_role('guest')) {
+		$login->disabled = '';
+		$register->disabled = '';
+	} else {
+		$logout->disabled = '';
+	}
+
+	add_share_menu($menu);
+	add_nav_menu($menu);
+	return $menu;
+}
+
+/**
+ * Creates a basic navigation menu for $parent
+ * @param  DOMElement   $parent The element to append it to
+ * @return DOMElement   The newly created menu
+ */
+function add_nav_menu(\DOMElement $parent)
+{
+	return $parent->append('menu', null, [
+		'label' => 'Page navigation',
+		'id' => 'nav-menu',
+	],  [
+		['menuitem', null, [
+			'label' => 'Top',
+			'icon' => DOMAIN . '/images/octicons/lib/svg/arrow-up.svg',
+			'data-scroll-to' => 'body > header',
+		]],
+		['menuitem', null, [
+			'label' => 'Bottom',
+			'icon' => DOMAIN . '/images/octicons/lib/svg/arrow-down.svg',
+			'data-scroll-to' => 'body > footer',
+		]],
+	]);
+/*
 	$nav->append('menuitem', null, [
 		'label' => 'Top',
 		'icon' => DOMAIN . '/images/octicons/lib/svg/link.svg',
@@ -378,8 +415,39 @@ function nav_menu(\DOMElement $parent)
 		'icon' => DOMAIN . '/images/octicons/lib/svg/link.svg',
 		'data-scroll-to' => 'body > footer',
 	]);
+	*/
 
 	return $menu;
+}
+
+function add_share_menu(\DOMElement $parent)
+{
+	return $parent->append('menu', null, [
+		'label' => 'Share page...',
+		'type' => 'context',
+		'id' => 'share-menu',
+	], [
+		['menuitem', null, [
+			'label' => 'Facebook',
+			'icon' => DOMAIN . '/images/logos/Facebook.svg',
+			'data-share' => 'facebook',
+		]],
+		['menuitem', null, [
+			'label' => 'Twitter',
+			'icon' => DOMAIN . '/images/logos/twitter.svg',
+			'data-share' => 'twitter',
+		]],
+		['menuitem', null, [
+			'label' => 'Google+',
+			'icon' => DOMAIN . '/images/logos/Google_plus.svg',
+			'data-share' => 'g+',
+		]],
+		['menuitem', null, [
+			'label' => 'linkedin',
+			'icon' => DOMAIN . '/images/logos/linkedin.svg',
+			'data-share' => 'linkedin',
+		]],
+	]);
 }
 
 /**
