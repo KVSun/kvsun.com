@@ -1,24 +1,26 @@
 <?php
 namespace KVSun\Components\Main;
-return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
+return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page, $kvs)
 {
 	$main = $dom->body->append('main');
 
-	$path = \KVSun\get_path();
+	switch($kvs::TYPE) {
+		case 'home':
+			\KVSun\load('category-loop');
+			break;
 
-	if (count($path) === 0) {
-		\KVSun\load('category-loop');
-	} else {
-		switch(count($path)) {
-			case 1:
-				if (file_exists(\KVSun\PAGES_DIR . "{$path[0]}.php")) {
-					$page = require \KVSun\PAGES_DIR . "{$path[0]}.php";
-					call_user_func_array($page, func_get_args());
-				}
-				break;
-			case 2:
-				\KVSun\load('article');
-				break;
-		}
+		case 'category':
+			break;
+
+		case 'article':
+			\KVSun\load('article');
+			break;
+
+		default:
+			/*if (file_exists(\KVSun\PAGES_DIR . "{$path[0]}.php")) {
+				$page = require \KVSun\PAGES_DIR . "{$path[0]}.php";
+				call_user_func_array($page, func_get_args());
+			}*/
+			trigger_error('Request for unknown page.');
 	}
 };
