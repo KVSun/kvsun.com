@@ -6,6 +6,7 @@ import wysiwyg from './std-js/wysiwyg.es6';
 import kbd from './std-js/kbd_shortcuts.es6';
 import DnD from './fileupload.es6';
 import SocialShare from './std-js/socialshare.es6';
+import Reader from './ArticleReader.es6';
 
 function share() {
 	if (this.dataset.hasOwnProperty('share')) {
@@ -157,6 +158,11 @@ export function bootstrap() {
 	this.each(function(node) {
 		if (node.nodeType !== 1) {
 			return this;
+		}
+		if (Reader.speechSupported()) {
+			query('article', node).forEach(article => {
+				new Reader(article, article.querySelector('article header'));
+			});
 		}
 		if (!supports('details')) {
 			query('details > summary', node).forEach(summary => {
