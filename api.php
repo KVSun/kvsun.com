@@ -145,6 +145,8 @@ if ($header->accept === 'application/json') {
 				$resp->attributes('#user-avatar', 'src', '/images/octicons/lib/svg/sign-in.svg');
 				$resp->attributes('#user-avatar', 'data-load-form', false);
 				$resp->attributes('#user-avatar', 'data-show-modal', '#login-dialog');
+				$resp->enable('[data-show-modal="#login-dialog"], [data-show-modal="#registration-dialog"]');
+				$resp->disable('[data-request="action=logout"]');
 				$resp->send();
 				break;
 		}

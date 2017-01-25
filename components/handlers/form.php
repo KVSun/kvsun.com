@@ -228,6 +228,8 @@ switch($req->form) {
 			$resp->notify('Login Successful', "Welcome back, {$user->name}", "{$grav}");
 			$resp->close('#login-dialog');
 			$resp->clear('login');
+			$resp->disable('[data-show-modal="#login-dialog"], [data-show-modal="#registration-dialog"]');
+			$resp->enable('[data-request="action=logout"]');
 			$resp->attributes('#user-avatar', 'src', "$grav");
 			//$avatar->data_load_form = 'update-user';
 			$resp->attributes('#user-avatar', 'data-load-form', 'update-user');
