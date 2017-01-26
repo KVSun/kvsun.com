@@ -1,8 +1,13 @@
 <?php
 namespace
 {
-	set_include_path(__DIR__ . DIRECTORY_SEPARATOR . 'classes');
-	spl_autoload_register('spl_autoload');
+	if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
+		require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
+	} else {
+		http_response_code(404);
+		exit();
+	}
+
 	if (! function_exists('php_check_syntax')) {
 		/**
 		* Check the PHP syntax of (and execute) the specified file
@@ -21,9 +26,5 @@ namespace
 }
 namespace Unit
 {
-	if (PHP_SAPI !== 'cli') {
-		http_response_code(403);
-		exit();
-	}
 	\shgysk8zer0\Core\NamespacedFunction::{'\Test_funcs\lint_scripts_recursive'}(__DIR__);
 }

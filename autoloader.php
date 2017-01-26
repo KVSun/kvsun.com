@@ -1,29 +1,49 @@
 <?php
-namespace KVSun;
+namespace KVSun\AutoLoader;
 
-error_reporting(0);
+error_reporting(defined('\KVSun\ERROR_REPORTING') ? \KVSun\ERROR_REPORTING : 0);
 ob_start();
 
+if (array_key_exists('MIN_PHP_VERSION', $_SERVER)) {
+	if (version_compare(\PHP_VERSION, $_SERVER['MIN_PHP_VERSION'], '<')) {
+		http_response_code(500);
+		exit("PHP {$_SERVER['MIN_PHP_VERSION']} or greater is required.");
+	}
+}
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'consts.php';
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'functions.php';
 
-set_path(INCLUDE_PATH);
 spl_autoload_register('spl_autoload');
 
-session_name($_SERVER['SERVER_NAME']);
-session_set_cookie_params(0, '/', $_SERVER['HTTP_HOST'], array_key_exists('HTTPS', $_SERVER), true);
-session_start();
-
-if (defined(__NAMESPACE__ . '\REQUIRED')) {
-	foreach(REQUIRED as $req) {
-		require_once __DIR__ . DIRECTORY_SEPARATOR . $req;
-	}
-	unset($req);
+if (defined('\KVSun\INCLUDE_PATH')) {
+	set_path(\KVSun\INCLUDE_PATH);
 }
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'events.php';
 
-set_exception_handler('\shgysk8zer0\Core\Listener::exception');
-set_error_handler('\shgysk8zer0\Core\Listener::error');
+if (defined('\KVSun\ERROR_HANDLER')) {
+	set_error_handler(\KVSun\ERROR_HANDLER);
+}
+if (defined('KVSun\EXCEPTION_HANDLER')) {
+	set_exception_handler(\KVSun\EXCEPTION_HANDLER);
+}
+
+if (defined('\KVSun\REQUIRED')) {
+	array_map(
+		function($file)
+		{
+			require_once __DIR__ . DIRECTORY_SEPARATOR .$file;
+		},
+		\KVSun\REQUIRED
+	);
+}
+
+session_name($_SERVER['SERVER_NAME']);
+session_set_cookie_params(
+	0,
+	'/',
+	$_SERVER['HTTP_HOST'],
+	array_key_exists('HTTPS', $_SERVER),
+	true
+);
+session_start();
 
 function set_path(Array $path, $use_existing = true)
 {

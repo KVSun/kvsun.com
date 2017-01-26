@@ -1,6 +1,7 @@
 <?php
 namespace KVSun;
 const REQUIRED = [
+	'functions.php',
 	'vendor/autoload.php',
 ];
 const EXT          = '.php';
@@ -9,6 +10,12 @@ const INCLUDE_PATH = array(
 	'./config',
 	__DIR__,
 );
+const ERROR_REPORTING = 0;
+const EXCEPTION_HANDLER = '\shgysk8zer0\Core\Listener::exception';
+const ERROR_HANDLER = '\shgysk8zer0\Core\Listener::error';
+const ERROR_LOG = 'errors.log';
+const EXCEPTION_LOG = 'exceptions.log';
+
 const COMPONENTS   = __DIR__ . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR;
 const TEMPLATE_DIR = COMPONENTS . DIRECTORY_SEPARATOR . 'kvs-templates' . DIRECTORY_SEPARATOR;
 const CONFIG       = __DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR;

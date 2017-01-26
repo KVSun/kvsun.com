@@ -4,12 +4,9 @@ namespace KVSun;
 use \shgysk8zer0\Core as Core;
 use \shgysk8zer0\DOM as DOM;
 
-if (version_compare(PHP_VERSION, '5.6', '<')) {
-	http_response_code(500);
-	exit('PHP 5.6 or greater is required.');
+if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
+	require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
 }
-
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
 
 DOM\HTMLElement::$import_path = COMPONENTS;
 if (defined(__NAMESPACE__ . '\CSP')) {

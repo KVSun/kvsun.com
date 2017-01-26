@@ -3,7 +3,9 @@ namespace WebHook;
 
 const CONFIG = 'config/github.json';
 error_reporting(0);
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
+if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
+	require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
+}
 header('Content-Type: text/plain');
 
 function handler_exception(\Exception $e)
