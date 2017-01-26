@@ -1,0 +1,6 @@
+@font-face {
+	font-family: 'TrajanPro3';
+	font-weight: normal;
+	font-style: normal;
+	src: url('/custom-fonts/TrajanPro3.woff') format('woff'), url('/custom-fonts/TrajanPro3.ttf') format('truetype'), url('/custom-fonts/TrajanPro3.svg') format('svg');
+}

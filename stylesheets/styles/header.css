@@ -6,3 +6,9 @@ body > header {
 	background-repeat: no-repeat;
 	background-position: right, 0 36%;
 }
+.site-title {
+	font-family: 'TrajanPro3';
+	font-size: 5em;
+	color: #1e1e1e;
+	text-shadow: 0.03em 0.03em #cfcfcf;
+}
