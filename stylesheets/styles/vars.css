@@ -10,6 +10,9 @@
 	--border-color: rgb(45, 45, 45);
 	--default-cursor: auto;
 	--pointer: pointer;
+	
+	--nav-height: 2.3rem;
+	--nav-padding: 0.1rem;
 	/*========== Set background images, etc here ==========*/
 	/*--main-bg: url(../../images/backgrounds/dark_abstract.svgz);*/
 	--glass-grad: linear-gradient(to top left, rgba(80, 80, 80, 0.7), rgba(140, 140, 140, 0.9), rgba(40, 40, 40, 0.7));
