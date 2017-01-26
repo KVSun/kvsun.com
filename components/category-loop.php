@@ -1,42 +1,48 @@
 <?php
 namespace KVSun\Components\CategoryLoop;
 
-return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
+return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page, $kvs)
 {
+	$section_template = $dom->getElementById('section-template');
 	$main = $dom->getElementsByTagName('main')->item(0);
-	$categories = $page->getCategories();
 	$date = new \shgysk8zer0\Core\DateTime('last week');
 	$date->format = 'Y-m-d H:j:s';
 	$console = \shgysk8zer0\Core\Console::getInstance();
 
-	foreach ($categories as $cat) {
-		$section = $main->append('section', null, [
-			'id' => $cat->url,
-			'class' => 'category',
-			// 'data-scroll-snap' => 'vertical',
-		]);
-		$header = $section->append('header');
-		$header->append('h2', null, ['class' => 'center'])->append('a', $cat->name, [
-			'href' => \KVSun\DOMAIN . $cat->url,
-		]);
-		$stm = $pdo->prepare('SELECT `title`,
-				`author`,
-				`posted`,
-				`url`
-			FROM `posts`
-			WHERE `cat-id` = :cat
-			ORDER BY `posted` DESC
-			LIMIT 15;
-		');
-		$stm->cat = $cat->id;
-		$posts = $stm->execute()->getResults();
-		foreach($posts as $post) {
-			$container = $section->append('div');
-			$container->append('a', $post->title, [
-				'href' => \KVSun\DOMAIN . "{$cat->url}/{$post->url}",
-				'class' => 'currentColor',
+	$xpath = new \DOMXPath($dom);
+	foreach (get_object_vars($kvs->sections) as $name => $section) {
+		if (empty($section)) {
+			continue;
+		}
+		try {
+			foreach ($section_template->childNodes as $node) {
+				$node = $main->appendChild($node->cloneNode(true));
+				$node->id = $name;
+				$node->class = 'category';
+			}
+
+			\shgysk8zer0\Core\Console::log([$name => $section]);
+			$container = $main->getElementById($name);
+			$title = $xpath->query('.//h2', $container)->item(0);
+			$link = $title->appendChild($dom->createElement('a'));
+			$title->class = 'center';
+			$link->href = \KVSun\DOMAIN . "{$name}/";
+			$link->textContent = $section[0]->category;
+
+			foreach ($section as $article) {
+				$div = $container->appendChild($dom->createElement('div'));
+				$a = $div->appendChild($dom->createElement('a'));
+				$a->href = \KVSun\DOMAIN . "{$article->catURL}/{$article->url}";
+				$a->textContent = $article->title;
+				$a->class = 'currentColor';
+			}
+		} catch (\Throwable $e) {
+			\shgysk8zer0\Core\Console::error([
+				'message' => $e->getMessage(),
+				'file' => $e->getFile(),
+				'line' => $e->getLine(),
+				'trace' => $e->getTrace(),
 			]);
 		}
-
 	}
 };
