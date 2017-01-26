@@ -2,6 +2,7 @@
 @import url("../core-css/viewport.css");
 @import url("vars.css");
 @import url("viewport.css");
+@import url("custom-fonts.css");
 @import url("../normalize/normalize.css");
 @import url("../core-css/fonts.css");
 @import url("../core-css/details.css");
