@@ -10,12 +10,12 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page, 
 	$console = \shgysk8zer0\Core\Console::getInstance();
 
 	$xpath = new \DOMXPath($dom);
-	foreach (get_object_vars($kvs->sections) as $name => $section) {
+	foreach ($kvs->sections as $name => $section) {
 		if (empty($section)) {
 			continue;
 		}
 
-		foreach ($section_template->childNodes as $name => $node) {
+		foreach ($section_template->childNodes as $node) {
 			if (isset($node->tagName)) {
 				$container = $main->appendChild($node->cloneNode(true));
 				$container->id = $name;

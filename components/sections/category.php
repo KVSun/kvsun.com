@@ -24,7 +24,6 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page, 
 	$container->class = 'category';
 	$title = $xpath->query('.//h2', $container)->item(0);
 	$title->class = 'center';
-	$title->href = \KVSun\DOMAIN . "{$name}/";
 	$title->textContent = $kvs->title;
 
 	foreach ($kvs->articles as $article) {
