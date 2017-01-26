@@ -4,7 +4,9 @@ namespace KVSun;
 use \shgysk8zer0\Core as Core;
 use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as Status;
 
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
+if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
+	require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
+}
 
 $header  = Core\Headers::getInstance();
 

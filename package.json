@@ -12,7 +12,7 @@
     "url": "https://chriszuber.com"
   },
   "contributors": [],
-  "homepage": "https://kernvalleysun.com",
+  "homepage": "https://dev.kvsun.com",
   "license": "GPL-3.0",
   "repository": {
     "type": "git",
@@ -31,7 +31,7 @@
     "build:icons": "svg-sprite-generate -c images/icons.csv -o images/icons.svg",
 	"build:ctags": "ctags --langmap='php:.php,javascript:.es6' --exclude='*.js' --exclude='node_modules/*' --exclude='stylesheets/styles/styles.css' -h '.php.es6' -R",
     "build:all": "npm run build:icons && npm run build:js",
-    "lint:js": "eslint --ignore-path .eslintignore --config .eslintrc js/",
+    "lint:js": "eslint --ext .es6 scripts/",
     "lint:php": "php unit.php",
     "git:fetch": "git fetch --all --prune --tags",
     "git:submodules": "git submodule update --init --recursive",

@@ -7,7 +7,7 @@ use \shgysk8zer0\DOM as DOM;
 new Core\Listener('error', function($severity, $message, $file, $line)
 {
 	file_put_contents(
-		'errors.log',
+		ERROR_LOG,
 		"Error: '{$message}' in {$file}:{$line}" . PHP_EOL,
 		FILE_APPEND |  LOCK_EX
 	);
@@ -15,7 +15,7 @@ new Core\Listener('error', function($severity, $message, $file, $line)
 
 new Core\Listener('exception', function($e)
 {
-	file_put_contents('exceptions.log', $e . PHP_EOL, FILE_APPEND | LOCK_EX);
+	file_put_contents(EXCEPTION_LOG, $e . PHP_EOL, FILE_APPEND | LOCK_EX);
 });
 
 if (check_role('admin') or DEBUG) {
@@ -25,7 +25,7 @@ if (check_role('admin') or DEBUG) {
 		Core\Console::info("Loaded in $timer seconds.");
 		Core\Console::getInstance()->sendLogHeader();
 	});
-	new Core\Listener('error', '\shgysk8zer0\Core\Console::error');
-	new Core\Listener('exception', '\shgysk8zer0\Core\Console::error');
+	new Core\Listener('error', \KVSun\ERROR_HANDLER);
+	new Core\Listener('exception', \KVSun\EXCEPTION_HANDLER);
 	unset($timer);
 }
