@@ -6,15 +6,18 @@ const ATTRS = array(
 	'role' => 'button',
 );
 
-return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
+return function (
+	\shgysk8zer0\DOM\HTML $dom,
+	\shgysk8zer0\Core\PDO $pdo,
+	\KVSun\KVSAPI\Abstracts\Content $kvs
+)
 {
 	$nav = $dom->body->append('nav');
 	$nav->class = 'flex sticky';
 	$nav->append('a', 'Home', array_merge(ATTRS, ['href' => \KVSun\DOMAIN]));
 
-	$categories = $page->getCategories();
 	$pages = $pdo('SELECT `name`, `url` FROM `pages`');
-
+	$categories = $pdo('SELECT `name`, `url-name` AS `url` FROM `categories`');
 	foreach(array_merge($categories, $pages) as $cat) {
 		$nav->append('a', $cat->name, array_merge(ATTRS, ['href' => \KVSun\DOMAIN . $cat->url]));
 	}

@@ -1,7 +1,11 @@
 <?php
 namespace KVSun\Components\Head;
 
-return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page, $kvs)
+return function (
+	\shgysk8zer0\DOM\HTML $dom,
+	\shgysk8zer0\Core\PDO $pdo,
+	\KVSun\KVSAPI\Abstracts\Content $kvs
+)
 {
 	$dom->documentElement->itemscope = '';
 	$dom->documentElement->itemtype = 'https://schema.org/WebSite';

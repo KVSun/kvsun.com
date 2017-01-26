@@ -474,7 +474,6 @@ function load_file($file, $ext = EXT)
 		$args = array(
 			DOM\HTML::getInstance(),
 			Core\PDO::load(DB_CREDS),
-			new Page(Core\URL::getInstance()),
 			$kvs
 		);
 	}

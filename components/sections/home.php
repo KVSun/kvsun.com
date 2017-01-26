@@ -1,7 +1,11 @@
 <?php
 namespace KVSun\Components\Home;
 
-return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page, $kvs)
+return function (
+	\shgysk8zer0\DOM\HTML $dom,
+	\shgysk8zer0\Core\PDO $pdo,
+	\KVSun\KVSAPI\Abstracts\Content $kvs
+)
 {
 	$section_template = $dom->getElementById('section-template');
 	$main = $dom->getElementsByTagName('main')->item(0);

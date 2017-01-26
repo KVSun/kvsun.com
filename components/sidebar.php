@@ -1,6 +1,6 @@
 <?php
 namespace KVSun\Components\Sidebar;
-return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
+return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
 {
 	$sidebar = $dom->body->append('aside');
 	$search = $sidebar->append('form', null, [
@@ -22,7 +22,7 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page)
 	$submit = $search->append('button', null, ['type' => 'submit', 'class' => 'icon']);
 	\KVSun\use_icon('search', $submit, ['class' => 'icon']);
 	$list = $sidebar->append('ul');
-	foreach($page->getCategories() as $category) {
+	foreach($pdo('SELECT `name`, `url-name` AS `url` FROM `categories`') as $category) {
 		$list->append('li')->append('a', $category->name, ['href' => $category->url]);
 	}
 };
