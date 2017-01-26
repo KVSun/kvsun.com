@@ -1,5 +1,5 @@
 <?php
-namespace KVSun\Components\CategoryLoop;
+namespace KVSun\Components\Home;
 
 return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo, $page, $kvs)
 {
