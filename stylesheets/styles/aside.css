@@ -7,8 +7,8 @@ aside {
 }
 @media (min-width: 800px) {
 	aside {
-		height: 90vh;
+		height: calc(100vh - var(--nav-height) + var(--nav-padding));
 		position: sticky;
-		top: 10vh;
+		top: calc(var(--nav-height) + 2 * var(--nav-padding));
 	}
 }

@@ -1,11 +1,12 @@
 nav {
 	order: 1;
-	padding: 1em 0;
+	padding: var(--nav-padding) 0;
 	background: var(--primary-color);
 	top: 0;
 	justify-content: space-around;
-	height: 10vh;
 }
 nav > * {
 	display: inline-block;
+	height: var(--nav-height);
+	width: auto;
 }
