@@ -41,7 +41,6 @@ try {
 					echo `git pull`;
 					$status = `git status`;
 					echo $status . PHP_EOL;
-					`npm install`;
 					$email->message = $status;
 					$email->send();
 				}
