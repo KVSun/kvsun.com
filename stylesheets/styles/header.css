@@ -1,10 +1,20 @@
 body > header {
 	order: 0;
 	height: 15rem;
-	background-image: var(--logo), var(--river-bg);
+	background-image: var(--logo), var(--river-l);
 	background-size: contain, cover;
 	background-repeat: no-repeat;
 	background-position: right bottom, 0 36%;
+}
+@media (max-width: 800px) {
+	body > header {
+		background-image: var(--logo), var(--river-m);
+	}
+}
+@media (max-width: 500px) {
+	body > header {
+			background-image: var(--logo), var(--river-s);
+	}
 }
 .site-title {
 	font-family: 'TrajanPro3';
