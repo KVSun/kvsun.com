@@ -20,7 +20,9 @@
 	--tint-glass: linear-gradient(rgba(40, 40, 40, 0.8), rgba(80, 80, 80, 0.7));
 	--header-bg: linear-gradient(rgba(40, 40, 40, 1), rgba(80, 80, 80, 0.97));
 	--logo: url(/images/sun-icons/sun-rise.svg);
-	--river-bg: url(/images/scenic/river.jpg);
+	--river-l: url(/images/scenic/river.jpg);
+	--river-m: url(/images/scenic/river-800.jpg);
+	--river-s: url(/images/scenic/river-300.jpg);
 	--progress-grad: linear-gradient(var(--highlight-color), var(--primary-color), var(--highlight-color));
 	/*==================== Set fonts here ====================*/
 	--header-font: 'PressStart';
