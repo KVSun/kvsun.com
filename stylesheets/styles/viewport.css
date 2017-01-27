@@ -1,16 +1,16 @@
 @media screen and (min-width:1000px) {
 	:root {
-		font-size: 1.3vw;
+		font-size: 2.5vmin;
 	}
 }
 @media screen and (max-width:999px) and (min-width:500px) {
 	:root {
-		font-size: 2vw;
+		font-size: 2.8vmin;
 	}
 }
 @media screen and (max-width: 499px) {
 	:root {
-		font-size: 3vw;
+		font-size: 3vmin;
 	}
 }
 body {

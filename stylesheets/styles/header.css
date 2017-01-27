@@ -1,10 +1,10 @@
 body > header {
 	order: 0;
-	height: 23vh;
+	height: 15rem;
 	background-image: var(--logo), var(--river-bg);
 	background-size: contain, cover;
 	background-repeat: no-repeat;
-	background-position: right, 0 36%;
+	background-position: right bottom, 0 36%;
 }
 .site-title {
 	font-family: 'TrajanPro3';
