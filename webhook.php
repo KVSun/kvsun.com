@@ -38,16 +38,15 @@ try {
 			case 'push':
 				echo "Push to {$webhook->parsed->ref}" . PHP_EOL;
 				if ($webhook->parsed->ref === 'refs/heads/master') {
-					echo `git pull`;
+					$pull = `git pull`;
 					$status = `git status`;
-					echo $status . PHP_EOL;
-					$email->message = $status;
+					echo $pull . PHP_EOL;
+					$email->message = $pull . PHP_EOL . PHP_EOL . $status;
 					$email->send();
 				}
 				break;
 
 			default:
-				file_put_contents(__DIR__ . $webhook->event . '_' . date('Y-m-d\TH:i:s') . '.json', json_encode($webhook->parsed, JSON_PRETTY_PRINT));
 				throw new \Exception("Unhandled event: {$webhook->event}", 501);
 		}
 	} else {
