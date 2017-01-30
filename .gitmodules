@@ -64,3 +64,6 @@
 [submodule "scripts/es6-promise"]
 	path = scripts/es6-promise
 	url = git://github.com/stefanpenner/es6-promise.git
+[submodule "classes/shgysk8zer0/phpcrypt"]
+	path = classes/shgysk8zer0/phpcrypt
+	url = git://github.com/shgysk8zer0/phpcrypt.git
