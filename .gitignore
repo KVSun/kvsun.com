@@ -1,5 +1,6 @@
 /config/*.json
 /config/*.ini
+/keys/*.pem
 /node_modules/
 /vendor/
 /stylesheets/styles/styles.css
