@@ -6,26 +6,43 @@ use \shgysk8zer0\DOM as DOM;
 
 new Core\Listener('error', function($severity, $message, $file, $line)
 {
-	file_put_contents(
-		ERROR_LOG,
-		"Error: '{$message}' in {$file}:{$line}" . PHP_EOL,
-		FILE_APPEND |  LOCK_EX
-	);
+	$err = new \ErrorException($message, 0, $severity, $file, $line);
+	error_log($err . PHP_EOL, 3,ERROR_LOG);
+	return true;
 });
 
 new Core\Listener('exception', function($e)
 {
-	file_put_contents(EXCEPTION_LOG, $e . PHP_EOL, FILE_APPEND | LOCK_EX);
+	error_log($e . PHP_EOL, 3, ERROR_LOG);
 });
 
 if (check_role('admin') or DEBUG) {
 	$timer = new Core\Timer();
+	new Core\Listener('error', function($severity, $message, $file, $line)
+	{
+		Core\Console::error([
+			'message' => $message,
+			'file'    => $file,
+			'line'    => $line,
+			'trace'   => debug_backtrace(),
+		]);
+		return true;
+	});
+
+	new Core\Console('exception', function($e)
+	{
+		Core\Console::error([
+			'message' => $e->getMessage(),
+			'file'    => $e->getFile(),
+			'line'    => $e->getLine(),
+			'trace'   => $e->getTrace(),
+		]);
+	});
+
 	new Core\Listener('load', function() use ($timer)
 	{
-		Core\Console::info("Loaded in $timer seconds.");
-		Core\Console::getInstance()->sendLogHeader();
+		Core\Console::log(get_included_files());
+		Core\Console::info("Loaded in $timer seconds.")->sendLogHeader();
 	});
-	new Core\Listener('error', \KVSun\ERROR_HANDLER);
-	new Core\Listener('exception', \KVSun\EXCEPTION_HANDLER);
 	unset($timer);
 }
