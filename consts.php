@@ -31,10 +31,15 @@ const SCRIPTS      = array('custom.js');
 const SPRITES      = 'images/icons.svg';
 const CSP          = array(
 	'default-src'  => "'self'",
-	'img-src'      => ['*', 'data:'],
-	'script-src'   => "'self'",
+	'img-src'      => [
+		"'self'",
+		'https://www.gravatar.com',
+		'https://i.imgur.com',
+		'https://kernvalleysun.com',
+	],
+	'script-src'   => ["'self'"],
 	'style-src'    => ["'self'", "'unsafe-inline'"],
-	'media-src'    => '*',
+	'media-src'    => ["'self'"],
 );
 
 const HTML_TEMPLATES = [
