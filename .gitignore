@@ -1,4 +1,5 @@
 /config/*.json
+/config/.*
 /config/*.ini
 /keys/*.pem
 /node_modules/
