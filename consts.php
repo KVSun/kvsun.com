@@ -2,6 +2,7 @@
 namespace KVSun;
 const REQUIRED = [
 	'functions.php',
+	'events.php',
 	'vendor/autoload.php',
 ];
 const EXT          = '.php';
