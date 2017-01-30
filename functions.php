@@ -223,7 +223,7 @@ function exception_error_handler(
 function restore_login()
 {
 	if (@file_exists(DB_CREDS) and Core\PDO::load(DB_CREDS)->connected) {
-		return \shgysk8zer0\Login\User::restore('user', DB_CREDS);
+		return \shgysk8zer0\Login\User::restore('user', DB_CREDS, PASSWD);
 	} else {
 		$user = new \stdClass();
 		$user->status = array_search('guest', USER_ROLES);

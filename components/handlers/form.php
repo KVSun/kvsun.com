@@ -221,7 +221,7 @@ switch($req->form) {
 		$user::$check_wp_pass = true;
 		if ($user($req->login->email, $req->login->password)) {
 			if (isset($req->login->remember)) {
-				$user->setCookie('user');
+				$user->setCookie('user', \KVSun\PASSWD);
 			}
 			$grav = new Core\Gravatar($req->login->email, 64);
 			$user->setSession('user');
