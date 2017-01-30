@@ -1,16 +1,21 @@
 /config/*.json
 /config/*.ini
 /node_modules/
+/vendor/
 /stylesheets/styles/styles.css
 /images/icons.svg
 /scripts/custom.js
-*.js.map
 /pages/current
 /pages/e-edition
 /images/uploads/*
 *.sql
-!/default.sql
+*.js.map
 /tags
+/my-httpd.pp
+/my-httpd.te
+!/default.sql
+!/config/modules.json
+
 #################
 ## Eclipse
 #################
@@ -227,7 +232,3 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
-
-/vendor/
-/my-httpd.pp
-/my-httpd.te
