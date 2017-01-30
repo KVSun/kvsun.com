@@ -7,7 +7,6 @@ const REQUIRED = [
 ];
 const EXT          = '.php';
 const INCLUDE_PATH = array(
-	'../',
 	'./classes',
 	'./config',
 	__DIR__,
