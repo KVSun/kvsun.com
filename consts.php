@@ -7,6 +7,7 @@ const REQUIRED = [
 ];
 const EXT          = '.php';
 const INCLUDE_PATH = array(
+	'../',
 	'./classes',
 	'./config',
 	__DIR__,
@@ -86,3 +87,9 @@ if (! array_key_exists('REQUEST_SCHEME', $_SERVER)) {
 }
 define(__NAMESPACE__ . '\DEBUG', $_SERVER['SERVER_ADDR'] === $_SERVER['REMOTE_ADDR']);
 define(__NAMESPACE__ . '\DOMAIN', "{$_SERVER['REQUEST_SCHEME']}://{$_SERVER['HTTP_HOST']}/");
+if (@file_exists('./config/.passwd')) {
+	define(__NAMESPACE__ . '\PASSWD', file_get_contents('./config/.passwd'));
+} else {
+	file_put_contents('./config/passwd', bin2hex(openssl_random_pseudo_bytes(rand(20, 40))));
+	define(__NAMESPACE__ .'\PASSWD', file_get_contents('./config/.passwd'));
+}
