@@ -5,7 +5,7 @@ php_flag display_errors off
 php_flag html_errors off
 php_flag log_errors on
 <IfModule env_module>
-	SetEnv MIN_PHP_VERSION 5.6
+	SetEnv MIN_PHP_VERSION 7.0
 </IfModule>
 #Configure PHP's autoloader and set include_path, min PHP version
 <IfModule headers_module>
