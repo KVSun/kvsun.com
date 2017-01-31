@@ -34,16 +34,13 @@ if (defined('\KVSun\REQUIRED')) {
 		\KVSun\REQUIRED
 	);
 }
-
-session_name($_SERVER['SERVER_NAME']);
-session_set_cookie_params(
-	0,
-	'/',
-	$_SERVER['HTTP_HOST'],
-	array_key_exists('HTTPS', $_SERVER),
-	true
-);
-session_start();
+if (session_status() !== PHP_SESSION_ACTIVE) {
+	session_start([
+		'name' => $_SERVER['SERVER_NAME'],
+		'cookie_secure' => true,
+		'cookie_httponly' => true,
+	]);
+}
 
 function set_path(Array $path, $use_existing = true)
 {
