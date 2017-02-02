@@ -4,7 +4,7 @@ import {parseResponse} from './std-js/functions.es6';
 import getPage from './kvsapi.es6';
 import SocialShare from './std-js/socialshare.es6';
 
-export function dataSahre() {
+export function dataShare() {
 	if (this.dataset.hasOwnProperty('share')) {
 		switch(this.dataset.share) {
 		case 'facebook':
