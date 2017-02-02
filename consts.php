@@ -25,6 +25,9 @@ const DB_CREDS     = CONFIG . 'connect.json';
 const AUTHORIZE    = 'authorize.ini';
 const DB_INSTALLER = __DIR__ . DIRECTORY_SEPARATOR . 'default.sql';
 
+const PUBLIC_KEY   = 'keys/public.pem';
+const PRIVATE_KEY  = 'keys/private.pem';
+
 const DEV_STYLE    = 'stylesheets/styles/import.css';
 const STYLE        = 'stylesheets/styles/styles.css';
 const SCRIPTS_DIR  = 'scripts/';
@@ -76,16 +79,14 @@ const LOGGED_IN_ONLY = [
 ];
 
 if (! array_key_exists('SERVER_NAME', $_SERVER)) {
-	$_SERVER['SERVER_NAME'] = 'localhost';
-}
-if (! array_key_exists('HTTP_HOST', $_SERVER)) {
-	$_SERVER['HTTP_HOST'] = $_SERVER['SERVER_NAME'];
-}
-if (! array_key_exists('REQUEST_SCHEME', $_SERVER)) {
+	$_SERVER['SERVER_NAME'] = $_SERVER['HTTP_HOST'] = 'localhost';
+	$_SERVER['REMOTE_ADDR'] = $_SERVER['SERVER_ADDR'] = '127.0.0.1';
 	$_SERVER['REQUEST_SCHEME'] = 'http';
 }
+
 define(__NAMESPACE__ . '\DEBUG', $_SERVER['SERVER_ADDR'] === $_SERVER['REMOTE_ADDR']);
 define(__NAMESPACE__ . '\DOMAIN', "{$_SERVER['REQUEST_SCHEME']}://{$_SERVER['HTTP_HOST']}/");
+
 if (@file_exists('./config/.passwd')) {
 	define(__NAMESPACE__ . '\PASSWD', file_get_contents('./config/.passwd'));
 } else {
