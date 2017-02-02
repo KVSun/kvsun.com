@@ -23,7 +23,7 @@
   },
   "engines": {
     "php": ">=7.0",
-    "npm": ">=4.2"
+    "npm": ">=3.10"
   },
   "scripts": {
     "build:css": "myth stylesheets/styles/import.css -c stylesheets/styles/styles.css",
