@@ -2,8 +2,75 @@ import $ from './std-js/zq.es6';
 import handleJSON from './std-js/json_response.es6';
 import {parseResponse} from './std-js/functions.es6';
 import getPage from './kvsapi.es6';
+import SocialShare from './std-js/socialshare.es6';
 
-export async function handleRequest(click) {
+export function dataShare() {
+	if (this.dataset.hasOwnProperty('share')) {
+		switch(this.dataset.share) {
+		case 'facebook':
+			SocialShare.openPopup(SocialShare.getFacebook());
+			break;
+
+		case 'twitter':
+
+			SocialShare.openPopup(SocialShare.getTwitter(location.href, document.title, 'kvsun'));
+			break;
+
+		case 'g+':
+			SocialShare.openPopup(SocialShare.getGooglePlus());
+			break;
+
+		case 'reddit':
+			SocialShare.openPopup(SocialShare.getReddit());
+			break;
+
+		case 'pintrest':
+			SocialShare.openPopup(SocialShare.getPintrest());
+			break;
+
+		case 'linkedin':
+			SocialShare.openPopup(SocialShare.getLinkedIn());
+			break;
+		}
+	}
+}
+
+export function dataClose() {
+	document.querySelector(this.dataset.close).close();
+}
+
+export function dataScrollTo() {
+	document.querySelector(this.dataset.scrollTo).scrollIntoView();
+}
+
+export function dataShow() {
+	document.querySelector(this.dataset.show).show();
+}
+
+export function dataDelete() {
+	$(this.dataset.delete).each(el => {
+		if (confirmDialogClose(el)) {
+			try {
+				if (el.nextElementSibling.matches('.backdrop')) {
+					el.nextElementSibling.remove();
+				}
+				el.remove();
+			} catch(e) {
+				el.remove();
+			}
+		}
+	});
+}
+
+
+export function dataShowModal(click) {
+	click.preventDefault();
+	if (this.dataset.hasOwnProperty('showModal')) {
+		document.querySelector(this.dataset.showModal).showModal();
+	}
+}
+
+export async function dataRequest(click) {
 	click.preventDefault();
 	if (!(this.dataset.hasOwnProperty('confirm')) || confirm(this.dataset.confirm)) {
 		let url = new URL('api.php', location.origin);
@@ -26,14 +93,23 @@ export async function handleRequest(click) {
 		}
 	}
 }
-export function sameoriginFrom(form) {
-	return new URL(form.action).origin === location.origin;
-}
 
-export function clickShowModal(click) {
+export async function dataLoadForm(click) {
 	click.preventDefault();
-	if (this.dataset.hasOwnProperty('showModal')) {
-		document.querySelector(this.dataset.showModal).showModal();
+	let url = new URL('api.php', location.origin);
+	let headers = new Headers();
+	url.searchParams.set('load_form', this.dataset.loadForm);
+	headers.set('Accept', 'application/json');
+	try {
+		let resp = await fetch(url, {
+			method: 'GET',
+			headers,
+			credentials: 'include'
+		});
+		let json = await parseResponse(resp);
+		handleJSON(json);
+	} catch(e) {
+		console.error(e);
 	}
 }
 
@@ -68,23 +144,8 @@ export async function submitForm(submit) {
 	}
 }
 
-export async function getForm(click) {
-	click.preventDefault();
-	let url = new URL('api.php', location.origin);
-	let headers = new Headers();
-	url.searchParams.set('load_form', this.dataset.loadForm);
-	headers.set('Accept', 'application/json');
-	try {
-		let resp = await fetch(url, {
-			method: 'GET',
-			headers,
-			credentials: 'include'
-		});
-		let json = await parseResponse(resp);
-		handleJSON(json);
-	} catch(e) {
-		console.error(e);
-	}
+export function sameoriginFrom(form) {
+	return new URL(form.action).origin === location.origin;
 }
 
 export async function getDatalist(list) {

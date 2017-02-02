@@ -9,7 +9,8 @@ env:
   global:
     - MIN_PHP_VERSION="7.0"
 before_script:
-  npm install
+  - phpenv config-rm xdebug.ini
+  - npm install
 script: npm test
 notifications:
   webhooks:
