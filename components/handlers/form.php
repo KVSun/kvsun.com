@@ -37,7 +37,7 @@ switch($req->form) {
 			]);
 			if ($db->connected) {
 				$db->beginTransaction();
-				$db(file_get_contents('default.sql'));
+				$db(file_get_contents(\KVSun\DB_INSTALLER));
 				$user = $db->prepare(
 					'INSERT INTO `users` (
 						`email`,
@@ -220,20 +220,7 @@ switch($req->form) {
 		$user = \shgysk8zer0\Login\User::load(\KVSun\DB_CREDS);
 		$user::$check_wp_pass = true;
 		if ($user($req->login->email, $req->login->password)) {
-			if (isset($req->login->remember)) {
-				$user->setCookie('user', \KVSun\PASSWD);
-			}
-			$grav = new Core\Gravatar($req->login->email, 64);
-			$user->setSession('user');
-			$resp->notify('Login Successful', "Welcome back, {$user->name}", "{$grav}");
-			$resp->close('#login-dialog');
-			$resp->clear('login');
-			$resp->enable(join(', ', \KVSun\LOGGED_IN_ONLY));
-			$resp->disable(join(', ', \KVSun\LOGGED_OUT_ONLY));
-			$resp->attributes('#user-avatar', 'src', "$grav");
-			//$avatar->data_load_form = 'update-user';
-			$resp->attributes('#user-avatar', 'data-load-form', 'update-user');
-			$resp->attributes('#user-avatar', 'data-show-modal', false);
+			Core\Listener::login($user, isset($req->login->remember));
 		} else {
 			$resp->notify('Login Rejected');
 			$resp->focus('#login-email');
