@@ -57,7 +57,9 @@ export const watcher = {
 			break;
 
 		case 'list':
-			eventHandler.getDatalist(this.target);
+			if (this.target.hasAttribute('list')) {
+				eventHandler.getDatalist(this.target);
+			}
 			break;
 
 		case 'open':
@@ -74,11 +76,13 @@ export const watcher = {
 			break;
 
 		case 'contenteditable':
-			wysiwygToggle(this.target);
+			if (this.target.hasAttribute('contenteditable')) {
+				wysiwygToggle(this.target);
+			}
 			break;
 
 		case 'data-show':
-			if (this.target.hasOwnProperty('show')) {
+			if (this.target.dataset.hasOwnProperty('show')) {
 				this.target.addEventListener('click', eventHandler.dataShow);
 			} else {
 				this.target.removeEventListener('click', eventHandler.dataShow);
@@ -94,7 +98,7 @@ export const watcher = {
 			break;
 
 		case 'data-close':
-			if (this.target.dataset.hasOwnProperty('dataClose')) {
+			if (this.target.dataset.hasOwnProperty('close')) {
 				this.target.addEventListener('click', eventHandler.dataClose);
 			} else {
 				this.target.removeEventListener('click', eventHandler.dataClose);
@@ -102,7 +106,7 @@ export const watcher = {
 			break;
 
 		case 'data-delete':
-			if (this.target.dataset.hasOwnProperty('dataDelete')) {
+			if (this.target.dataset.hasOwnProperty('delete')) {
 				this.target.addEventListener('click', eventHandler.dataDelete);
 			} else {
 				this.target.removeEventListener('click', eventHandler.dataDelete);
@@ -118,7 +122,7 @@ export const watcher = {
 			break;
 
 		case 'data-load-form':
-			if (this.target.dataset('loadForm')) {
+			if (this.target.dataset.hasOwnProperty('loadForm')) {
 				this.target.addEventListener('click', eventHandler.dataLoadForm);
 			} else {
 				this.target.removeEventListener('click', eventHandler.dataLoadForm);
@@ -126,7 +130,7 @@ export const watcher = {
 			break;
 
 		case 'data-request':
-			if (this.target.dataset.hasOwnProperty('dataRequest')) {
+			if (this.target.dataset.hasownProperty('request')) {
 				this.target.addEventListener('click', eventHandler.dataRequest);
 			} else {
 				this.target.removeEventListener('click', eventHandler.dataRequest);
