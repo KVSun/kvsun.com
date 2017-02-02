@@ -5,16 +5,21 @@ const REQUIRED = [
 	'url'
 ];
 
-export default function getPage(page) {
+export default async function getPage(page) {
 	let url = new URL('api.php', location.origin);
 	let headers = new Headers();
 	headers.set('Accept', 'application/json');
 	url.searchParams.set('url', page);
-	return fetch(url, {
-		method: 'GET',
-		headers,
-		credentials: 'include'
-	}).then(updatePage);
+	try {
+		let resp = await fetch(url, {
+			method: 'GET',
+			headers,
+			credentials: 'include'
+		});
+		return updatePage(resp);
+	} catch(e) {
+		console.error(e);
+	}
 }
 
 export function popstate(pop) {
@@ -28,12 +33,15 @@ export function popstate(pop) {
 	}
 }
 
-function updatePage(resp) {
+async function updatePage(resp) {
 	const type = resp.headers.get('Content-Type');
 	if (type === 'application/json') {
-		return resp.json().then(update).catch(error => {
-			throw new Error(error);
-		});
+		try {
+			let json = await resp.json();
+			return update(json);
+		} catch(err) {
+			console.error(err);
+		}
 	} else {
 		throw new Error(`Unsupported Content-Type, ${type}`);
 	}

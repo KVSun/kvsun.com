@@ -1,9 +1,9 @@
 import $ from './std-js/zq.es6';
 import handleJSON from './std-js/json_response.es6';
-import {reportError, parseResponse} from './std-js/functions.es6';
+import {parseResponse} from './std-js/functions.es6';
 import getPage from './kvsapi.es6';
 
-export function handleRequest(click) {
+export async function handleRequest(click) {
 	click.preventDefault();
 	if (!(this.dataset.hasOwnProperty('confirm')) || confirm(this.dataset.confirm)) {
 		let url = new URL('api.php', location.origin);
@@ -13,11 +13,17 @@ export function handleRequest(click) {
 		if (this.dataset.hasOwnProperty('prompt')) {
 			url.searchParams.set('prompt_value', prompt(this.dataset.prompt));
 		}
-		fetch(url, {
-			method: 'GET',
-			headers,
-			credentials: 'include'
-		}).then(parseResponse).then(handleJSON).catch(reportError);
+		try {
+			let resp = await fetch(url, {
+				method: 'GET',
+				headers,
+				credentials: 'include'
+			});
+			let json = await parseResponse(resp);
+			handleJSON(json);
+		} catch(e) {
+			console.error(e);
+		}
 	}
 }
 export function sameoriginFrom(form) {
@@ -31,7 +37,7 @@ export function clickShowModal(click) {
 	}
 }
 
-export function submitForm(submit) {
+export async function submitForm(submit) {
 	submit.preventDefault();
 	let els = Array.from(this.querySelectorAll('fieldset, button'));
 	if (!(this.dataset.hasOwnProperty('confirm')) || confirm(this.dataset.confirm)) {
@@ -45,44 +51,63 @@ export function submitForm(submit) {
 		});
 		els.forEach(el => el.disabled = true);
 		headers.set('Accept', 'application/json');
-		fetch(url, {
-			method: this.method || 'POST',
-			headers,
-			body,
-			credentials: 'include'
-		}).then(parseResponse).then(handleJSON).catch(reportError);
-		els.forEach(el => el.disabled = false);
+		try {
+			let resp = await fetch(url, {
+				method: submit.target.method,
+				headers,
+				body,
+				credentials: 'include'
+			});
+			let json = await parseResponse(resp);
+			handleJSON(json);
+		} catch(e) {
+			console.error(e);
+		} finally {
+			els.forEach(el => el.disabled = false);
+		}
 	}
 }
 
-export function getForm(click) {
+export async function getForm(click) {
 	click.preventDefault();
 	let url = new URL('api.php', location.origin);
 	let headers = new Headers();
 	url.searchParams.set('load_form', this.dataset.loadForm);
 	headers.set('Accept', 'application/json');
-	fetch(url, {
-		method: 'GET',
-		headers,
-		credentials: 'include'
-	}).then(parseResponse).then(handleJSON).catch(reportError);
+	try {
+		let resp = await fetch(url, {
+			method: 'GET',
+			headers,
+			credentials: 'include'
+		});
+		let json = await parseResponse(resp);
+		handleJSON(json);
+	} catch(e) {
+		console.error(e);
+	}
 }
 
-export function getDatalist(list) {
+export async function getDatalist(list) {
 	if (!$('#' + list.getAttribute('list')).found) {
 		let url = new URL('api.php', document.baseURI);
 		let headers = new Headers();
 		headers.set('Accept', 'application/json');
 		url.searchParams.set('datalist', list.getAttribute('list'));
-		fetch(url, {
-			method: 'GET',
-			headers,
-			credentials: 'include'
-		}).then(parseResponse).then(handleJSON).catch(reportError);
+		try {
+			let resp = await fetch(url, {
+				method: 'GET',
+				headers,
+				credentials: 'include'
+			});
+			let json = await parseResponse(resp);
+			handleJSON(json);
+		} catch(e) {
+			console.error(e);
+		}
 	}
 }
 
-export function getContextMenu(el) {
+export async function getContextMenu(el) {
 	let menu = el.getAttribute('contextmenu');
 	if (menu && menu !== '') {
 		if (!$(`menu#${menu}`).found) {
@@ -90,11 +115,17 @@ export function getContextMenu(el) {
 			let url = new URL('api.php', document.baseURI);
 			url.searchParams.set('load_menu', menu.replace(/\_menu$/, ''));
 			headers.set('Accept', 'application/json');
-			fetch(url, {
-				method: 'GET',
-				headers,
-				credentials: 'include'
-			}).then(parseResponse).then(handleJSON).catch(reportError);
+			try {
+				let resp = await fetch(url, {
+					method: 'GET',
+					headers,
+					credentials: 'include'
+				});
+				let json = await parseResponse(resp);
+				handleJSON(json);
+			} catch(e) {
+				console.error(e);
+			}
 		}
 	}
 }

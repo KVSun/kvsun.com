@@ -21,6 +21,7 @@ if (defined('\KVSun\INCLUDE_PATH')) {
 if (defined('\KVSun\ERROR_HANDLER')) {
 	set_error_handler(\KVSun\ERROR_HANDLER);
 }
+
 if (defined('KVSun\EXCEPTION_HANDLER')) {
 	set_exception_handler(\KVSun\EXCEPTION_HANDLER);
 }
@@ -34,6 +35,14 @@ if (defined('\KVSun\REQUIRED')) {
 		\KVSun\REQUIRED
 	);
 }
+
+if (!@file_exists(\KVSun\PUBLIC_KEY) or !@file_exists(\KVSun\PRIVATE_KEY)) {
+	$keys = \shgysk8zer0\PHPCrypt\KeyPair::generateKeyPair(\KVSun\PASSWD);
+	$keys->public->exportToFile(\KVSun\PUBLIC_KEY);
+	$keys->private->exportToFile(\KVSun\PRIVATE_KEY, \KVSun\PASSWD);
+	unset($keys);
+}
+
 if (session_status() !== PHP_SESSION_ACTIVE) {
 	session_start([
 		'name' => $_SERVER['SERVER_NAME'],
@@ -42,7 +51,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 	]);
 }
 
-function set_path(Array $path, $use_existing = true)
+function set_path(Array $path, Bool $use_existing = true): String
 {
 	$path = array_map('realpath', $path);
 	$path = join(\PATH_SEPARATOR, $path);

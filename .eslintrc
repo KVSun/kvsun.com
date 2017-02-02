@@ -5,8 +5,10 @@
     },
     "extends": "eslint:recommended",
     "parserOptions": {
-        "sourceType": "module"
+        "sourceType": "module",
+        "ecmaVersion": 2017
     },
+    "plugins": ["async-await", "babel"],
     "rules": {
         "indent": [
             2,
@@ -20,7 +22,9 @@
             2,
             "always"
         ],
-        "no-console": 0
+        "no-console": 0,
+        "async-await/space-after-async": 2,
+        "async-await/space-after-await": 2
     },
     "globals": {
         "URLSearchParams": false,
