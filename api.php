@@ -2,6 +2,7 @@
 namespace KVSun;
 
 use \shgysk8zer0\Core as Core;
+use \shgysk8zer0\DOM as DOM;
 use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as Status;
 
 if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
@@ -70,6 +71,23 @@ if ($header->accept === 'application/json') {
 			$resp->notify('Request for menu', $_GET['load_menu']);
 		}
 	} elseif(array_key_exists('load_form', $_REQUEST)) {
+		// All HTML forms in forms/ should be considered publicly available
+		if (@file_exists("./components/forms/{$_REQUEST['load_form']}.html")) {
+			$form = file_get_contents("./components/forms/{$_REQUEST['load_form']}.html");
+			$dom = new DOM\HTML();
+			$dialog = $dom->body->append('dialog', null, [
+				'id' => "{$_REQUEST['load_form']}-dialog",
+			]);
+			$dialog->append('button', null, [
+				'type'        => 'button',
+				'data-delete' => "#{$dialog->id}",
+			]);
+			$dialog->append('br');
+			$dialog->importHTML($form);
+			$resp->append('body', "{$dialog}");
+			$resp->showModal("#{$dialog->id}");
+			$resp->send();
+		}
 		switch($_REQUEST['load_form']) {
 			case 'update-user':
 				if (!\KVSUn\check_role('guest')) {
@@ -141,16 +159,7 @@ if ($header->accept === 'application/json') {
 	} elseif (array_key_exists('action', $_REQUEST)) {
 		switch($_REQUEST['action']) {
 			case 'logout':
-				restore_login()->logout();
-				$resp->notify('Success', 'You have been logged out.');
-				$resp->close('dialog[open]');
-				$resp->remove('#update-user-dialog');
-				$resp->attributes('#user-avatar', 'src', '/images/octicons/lib/svg/sign-in.svg');
-				$resp->attributes('#user-avatar', 'data-load-form', false);
-				$resp->attributes('#user-avatar', 'data-show-modal', '#login-dialog');
-				$resp->enable(join(', ', LOGGED_OUT_ONLY));
-				$resp->disable(join(', ', LOGGED_IN_ONLY));
-				$resp->send();
+				Core\Listener::logout(restore_login());
 				break;
 		}
 	} else {
