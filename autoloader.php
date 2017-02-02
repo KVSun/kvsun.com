@@ -42,7 +42,7 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 	]);
 }
 
-function set_path(Array $path, $use_existing = true)
+function set_path(Array $path, Bool $use_existing = true)
 {
 	$path = array_map('realpath', $path);
 	$path = join(\PATH_SEPARATOR, $path);

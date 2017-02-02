@@ -47,7 +47,8 @@ if ($header->accept === 'application/json') {
 				);
 				$stm->role = array_search('freelancer', USER_ROLES);
 				$authors = $stm->execute()->getResults();
-				$authors = array_map(function(\stdClass $author) {
+				$authors = array_map(function(\stdClass $author): String
+				{
 					return $author->name;
 				}, $authors);
 

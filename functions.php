@@ -10,7 +10,7 @@ use \shgysk8zer0\DOM as DOM;
  * @param  shgysk8zer0\Login\User          $user User data to update from
  * @return shgysk8zer0\DOM\HTMLElement     `<dialog><form>...</dialog>`
  */
-function user_update_form(\shgysk8zer0\Login\User $user)
+function user_update_form(\shgysk8zer0\Login\User $user): \DOMElement
 {
 	$dom = new DOM\HTML();
 	$dialog = $dom->body->append('dialog', null, [
@@ -115,7 +115,7 @@ function user_update_form(\shgysk8zer0\Login\User $user)
 	return $dialog;
 }
 
-function make_cc_form(DOM\HTMLElement $parent = null, $name = 'ccform')
+function make_cc_form(DOM\HTMLElement $parent = null, String $name = 'ccform'): \DOMElement
 {
 	if (is_null($parent)) {
 		$dom = new DOM\HTML();
@@ -142,16 +142,20 @@ function make_cc_form(DOM\HTMLElement $parent = null, $name = 'ccform')
 	$print_oov = $input->append('optgroup', null, ['label' => 'Out of Valley print subscriptions']);
 
 	$pdo = Core\PDO::load(\KVSun\DB_CREDS);
-	$subs = $pdo(
-		'SELECT
+	try {
+		$subs = $pdo(
+			'SELECT
 			`id`,
 			`name`,
 			`media`,
 			`price`,
 			`isLocal`
-		FROM `subscription_rates`
-		ORDER BY `price` DESC;'
-	);
+			FROM `subscription_rates`
+			ORDER BY `price` DESC;'
+		);
+	} catch(\Throwable $e) {
+		trigger_error($e->getMessage());
+	}
 
 	array_map(function(\stdClass $sub) use (
 		$print_local,
@@ -198,13 +202,13 @@ function make_cc_form(DOM\HTMLElement $parent = null, $name = 'ccform')
  * @return Bool             [description]
  */
 function exception_error_handler(
-	$severity,
-	$message,
-	$file,
-	$line
-)
+	Int    $severity,
+	String $message,
+	String $file,
+	Int    $line
+): Bool
 {
-	$e = new \Throwable($message, 0, $severity, $file, $line);
+	$e = new \ErrorException($message, 0, $severity, $file, $line);
 	Core\Console::getInstance()->error(['error' => [
 		'message' => $e->getMessage(),
 		'file'    => $e->getFile(),
@@ -220,7 +224,7 @@ function exception_error_handler(
  * @param void
  * @return shgysk8zer0\Login\User [description]
  */
-function restore_login()
+function restore_login(): \shgysk8zer0\Login\User
 {
 	if (@file_exists(DB_CREDS) and Core\PDO::load(DB_CREDS)->connected) {
 		return \shgysk8zer0\Login\User::restore('user', DB_CREDS, PASSWD);
@@ -231,7 +235,7 @@ function restore_login()
 	}
 }
 
-function check_role($role = 'admin')
+function check_role(String $role = 'admin'): Bool
 {
 	$user = restore_login();
 	if (! in_array($role, USER_ROLES)) {
@@ -245,7 +249,7 @@ function check_role($role = 'admin')
  * @param  String $user Name, email, or username of user
  * @return Array        Matching transactions + user & subscription info
  */
-function get_transactions_for($user)
+function get_transactions_for(String $user): \stdClass
 {
 	$transaction = Core\PDO::load(\KVSun\DB_CREDS)->prepare(
 		'SELECT
@@ -292,7 +296,7 @@ function setcookie(
 	);
 }
 
-function make_datalist($name, Array $items, $return_string = true)
+function make_datalist(String $name, Array $items, Bool $return_string = true)
 {
 	$tmp = new \DOMDocument();
 	$datalist = $tmp->appendChild($tmp->createElement('datalist'));
@@ -313,10 +317,10 @@ function make_datalist($name, Array $items, $return_string = true)
  * @return [type]                 [description]
  */
 function use_icon(
-	$icon,
+	String          $icon,
 	DOM\HTMLElement $parent,
-	Array $attrs = array()
-)
+	Array           $attrs = array()
+): \DOMElement
 {
 	$attrs = array_merge([
 		'xmlns'       => 'http://www.w3.org/2000/svg',
@@ -333,7 +337,7 @@ function use_icon(
 	return $svg;
 }
 
-function add_main_menu(\DOMElement $parent)
+function add_main_menu(\DOMElement $parent): \DOMElement
 {
 	$menu = $parent->append('menu', null, [
 		'id' => 'main-menu',
@@ -378,7 +382,7 @@ function add_main_menu(\DOMElement $parent)
  * @param  DOMElement   $parent The element to append it to
  * @return DOMElement   The newly created menu
  */
-function add_nav_menu(\DOMElement $parent)
+function add_nav_menu(\DOMElement $parent): \DOMElement
 {
 	return $parent->append('menu', null, [
 		'label' => 'Page navigation',
@@ -399,7 +403,7 @@ function add_nav_menu(\DOMElement $parent)
 	return $menu;
 }
 
-function add_share_menu(\DOMElement $parent)
+function add_share_menu(\DOMElement $parent): \DOMElement
 {
 	return $parent->append('menu', null, [
 		'label' => 'Share page...',
@@ -439,7 +443,7 @@ function add_share_menu(\DOMElement $parent)
  * @param  Array $files  file1, file2, ...
  * @return Array         [description]
  */
-function load(...$files)
+function load(String ...$files): Array
 {
 	return array_map(__NAMESPACE__ . '\load_file', $files);
 }
@@ -450,7 +454,7 @@ function load(...$files)
  * @param  String $ext  [description]
  * @return mixed        [description]
  */
-function load_file($file, $ext = EXT)
+function load_file(String $file, String $ext = EXT)
 {
 	static $args = null;
 	$url = Core\URL::getInstance();
@@ -494,7 +498,7 @@ function load_file($file, $ext = EXT)
  * @param  DOM\HTML\Element  $el    [description]
  * @return DOM\HTML\Element         [description]
  */
-function append_to_dom($fname, DOM\HTMLElement $el)
+function append_to_dom(String $fname, DOM\HTMLElement $el)
 {
 	$ext = pathinfo($fname, PATHINFO_EXTENSION);
 	if (empty($ext)) {
@@ -508,7 +512,7 @@ function append_to_dom($fname, DOM\HTMLElement $el)
  * [get_path description]
  * @return Array [description]
  */
-function get_path()
+function get_path(): Array
 {
 	static $path = null;
 	if (is_null($path)) {
