@@ -5,39 +5,7 @@ import * as eventHandler from './eventHandlers.es6';
 import wysiwyg from './std-js/wysiwyg.es6';
 import kbd from './std-js/kbd_shortcuts.es6';
 import DnD from './fileupload.es6';
-import SocialShare from './std-js/socialshare.es6';
 import Reader from './ArticleReader.es6';
-
-function share() {
-	if (this.dataset.hasOwnProperty('share')) {
-		switch(this.dataset.share) {
-		case 'facebook':
-			SocialShare.openPopup(SocialShare.getFacebook());
-			break;
-
-		case 'twitter':
-
-			SocialShare.openPopup(SocialShare.getTwitter(location.href, document.title, 'kvsun'));
-			break;
-
-		case 'g+':
-			SocialShare.openPopup(SocialShare.getGooglePlus());
-			break;
-
-		case 'reddit':
-			SocialShare.openPopup(SocialShare.getReddit());
-			break;
-
-		case 'pintrest':
-			SocialShare.openPopup(SocialShare.getPintrest());
-			break;
-
-		case 'linkedin':
-			SocialShare.openPopup(SocialShare.getLinkedIn());
-			break;
-		}
-	}
-}
 
 function wysiwygToggle(el) {
 	if (
@@ -52,19 +20,19 @@ function wysiwygToggle(el) {
 	}
 }
 
-function pictureShim(picture) {
-	if ('matchMedia' in window) {
-		let sources = picture.querySelectorAll('source[media][srcset]');
-		for (let n = 0; n < sources.length; n++) {
-			if (matchMedia(sources[n].getAttribute('media')).matches) {
-				picture.getElementsByTagName('img')[0].src = sources[n].getAttribute('srcset');
-				break;
-			}
-		}
-	} else {
-		picture.getElementsByTagName('img')[0].src = picture.querySelector('source[media][srcset]').getAttribute('srcset');
-	}
-}
+// function pictureShim(picture) {
+// 	if ('matchMedia' in window) {
+// 		let sources = picture.querySelectorAll('source[media][srcset]');
+// 		for (let n = 0; n < sources.length; n++) {
+// 			if (matchMedia(sources[n].getAttribute('media')).matches) {
+// 				picture.getElementsByTagName('img')[0].src = sources[n].getAttribute('srcset');
+// 				break;
+// 			}
+// 		}
+// 	} else {
+// 		picture.getElementsByTagName('img')[0].src = picture.querySelector('source[media][srcset]').getAttribute('srcset');
+// 	}
+// }
 
 function toggleFullScreen(){
 	if (fullScreen) {
@@ -88,6 +56,10 @@ export const watcher = {
 			eventHandler.getContextMenu(this.target);
 			break;
 
+		case 'list':
+			eventHandler.getDatalist(this.target);
+			break;
+
 		case 'open':
 			if (this.target.tagName === 'DIALOG') {
 				if (this.target.hasAttribute('open')) {
@@ -100,35 +72,80 @@ export const watcher = {
 				}
 			}
 			break;
+
 		case 'contenteditable':
 			wysiwygToggle(this.target);
 			break;
 
-		case 'list':
-			eventHandler.getDatalist(this.target);
-			break;
-
-		case 'data-request':
-			if (this.target.dataset.hasOwnProperty('dataRequest')) {
-				this.target.addEventListener('click', eventHandler.handleRequest);
+		case 'data-show':
+			if (this.target.hasOwnProperty('show')) {
+				this.target.addEventListener('click', eventHandler.dataShow);
 			} else {
-				this.target.removeEventListener('click', eventHandler.handleRequest);
+				this.target.removeEventListener('click', eventHandler.dataShow);
 			}
 			break;
 
 		case 'data-show-modal':
 			if (this.target.dataset.hasOwnProperty('showModal')) {
-				this.target.addEventListener('click', eventHandler.clickShowModal);
+				this.target.addEventListener('click', eventHandler.dataShowModal);
 			} else {
-				this.target.removeEventListener('click', eventHandler.clickShowModal);
+				this.target.removeEventListener('click', eventHandler.dataShowModal);
+			}
+			break;
+
+		case 'data-close':
+			if (this.target.dataset.hasOwnProperty('dataClose')) {
+				this.target.addEventListener('click', eventHandler.dataClose);
+			} else {
+				this.target.removeEventListener('click', eventHandler.dataClose);
+			}
+			break;
+
+		case 'data-delete':
+			if (this.target.dataset.hasOwnProperty('dataDelete')) {
+				this.target.addEventListener('click', eventHandler.dataDelete);
+			} else {
+				this.target.removeEventListener('click', eventHandler.dataDelete);
+			}
+			break;
+
+		case 'data-scroll-to':
+			if (this.target.dataset.hasOwnProperty('scrollTo')) {
+				this.target.addEventListener('click', eventHandler.dataScrollTo);
+			} else {
+				this.target.removeEventListener('click', eventHandler.dataScrollTo);
 			}
 			break;
 
 		case 'data-load-form':
 			if (this.target.dataset('loadForm')) {
-				this.target.addEventListener('click', eventHandler.getForm);
+				this.target.addEventListener('click', eventHandler.dataLoadForm);
 			} else {
-				this.target.removeEventListener('click', eventHandler.getForm);
+				this.target.removeEventListener('click', eventHandler.dataLoadForm);
+			}
+			break;
+
+		case 'data-request':
+			if (this.target.dataset.hasOwnProperty('dataRequest')) {
+				this.target.addEventListener('click', eventHandler.dataRequest);
+			} else {
+				this.target.removeEventListener('click', eventHandler.dataRequest);
+			}
+			break;
+
+		case 'data-share':
+			if (this.target.dataset.hasOwnProperty('share')) {
+				this.target.addEventListener('click', eventHandler.dataShare);
+			} else {
+				this.target.removeEventListener('click', eventHandler.dataShare);
+			}
+			break;
+
+		case 'data-fullscreen':
+			if (this.target.dataset.hasOwnProperty('fullscreen')) {
+				this.target.addEventListener('click', fullScreen);
+			} else {
+				this.target.removeEventListener('click', fullScreen);
 			}
 			break;
 
@@ -148,9 +165,15 @@ export const attributeTree = [
 	'list',
 	'open',
 	'contenteditable',
-	'data-request',
+	'data-show',
 	'data-show-modal',
-	'data-load-form'
+	'data-close',
+	'data-delete',
+	'data-scroll-to',
+	'data-load-form',
+	'data-request',
+	'data-share',
+	'data-fullscreen'
 ];
 
 export function bootstrap() {
@@ -175,9 +198,9 @@ export function bootstrap() {
 		if (supports('datalist')) {
 			query('[list]', node).forEach(eventHandler.getDatalist);
 		}
-		if (!supports('picture')) {
-			query('picture', node).forEach(pictureShim);
-		}
+		// if (!supports('picture')) {
+		// 	query('picture', node).forEach(pictureShim);
+		// }
 		query('[autofocus]', node).forEach(input => input.focus());
 		query(
 			'a[href]:not([target="_blank"]):not([download]):not([href*="\#"])',
@@ -189,31 +212,34 @@ export function bootstrap() {
 			form.addEventListener('submit', eventHandler.submitForm);
 		});
 		query('[data-request]', node).forEach(el => {
-			el.addEventListener('click', eventHandler.handleRequest);
+			el.addEventListener('click', eventHandler.dataRequest);
 		});
 		query('[data-load-form]', node).forEach(el => {
-			el.addEventListener('click', eventHandler.getForm);
+			el.addEventListener('click', eventHandler.dataLoadForm);
 		});
 		query('[data-show]', node).forEach(el => {
-			el.addEventListener('click', () => {
-				document.querySelector(el.dataset.show).show();
-			});
+			el.addEventListener('click', eventHandler.dataShow);
 		});
 		query('[data-show-modal]', node).forEach(el => {
-			el.addEventListener('click', eventHandler.clickShowModal);
+			el.addEventListener('click', eventHandler.dataShowModal);
 		});
 		query('[data-scroll-to]', node).forEach(el => {
-			el.addEventListener('click', () => {
-				document.querySelector(el.dataset.scrollTo).scrollIntoView();
-			});
+			el.addEventListener('click', eventHandler.dataScrollTo);
 		});
 		// query('[data-import]', node).forEach(el => {
 		// 	el.HTMLimport();
 		// });
 		query('[data-close]', node).forEach(el => {
-			el.addEventListener('click', () => {
-				document.querySelector(el.dataset.close).close();
-			});
+			el.addEventListener('click', eventHandler.dataClose);
+		});
+		query('[data-share]', node).forEach(node => {
+			node.addEventListener('click', eventHandler.dataShare);
+		});
+		query('[data-fullscreen]', node).forEach(el => {
+			el.addEventListener('click', toggleFullScreen);
+		});
+		query('[data-delete]', node).forEach(el => {
+			el.addEventListener('click', eventHandler.dataDelete);
 		});
 		query('fieldset button[type="button"].toggle', node).forEach(toggle => {
 			toggle.addEventListener('click', eventHandler.toggleCheckboxes);
@@ -225,9 +251,7 @@ export function bootstrap() {
 		query('input[data-equal-input]', node).forEach(input => {
 			input.addEventListener('input', eventHandler.matchInput);
 		});
-		query('[contenteditable]', node).forEach(el => {
-			wysiwygToggle(el);
-		});
+		query('[contenteditable]', node).forEach(el => wysiwygToggle(el));
 		query('menu[type="context"]', node).forEach(wysiwyg);
 		// query('[data-request]', node).forEach(el => {
 		// 	el.addEventListener('click', click => {
@@ -252,29 +276,6 @@ export function bootstrap() {
 		// query('[data-dropzone]', node).forEach(finput => {
 		// 	document.querySelector(finput.dataset.dropzone).DnD(finput);
 		// });
-		query('[data-share]', node).forEach(node => {
-			node.addEventListener('click', share);
-		});
-		query('[data-fullscreen]', node).forEach(el => {
-			el.addEventListener('click', toggleFullScreen);
-		});
-		query('[data-delete]', node).forEach(function(el) {
-			el.addEventListener('click', () => {
-				let target = $(el.dataset.delete);
-				target.each(el => {
-					if (eventHandler.confirmDialogClose(el)) {
-						try {
-							if (el.nextElementSibling.matches('.backdrop')) {
-								el.nextElementSibling.remove();
-							}
-							el.remove();
-						} catch(e) {
-							el.remove();
-						}
-					}
-				});
-			});
-		});
 	});
 	return this;
 }
