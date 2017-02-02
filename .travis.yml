@@ -1,6 +1,4 @@
-language:
-  - php
-  - node_js
+language: php
 sudo: required
 dist: trusty
 php:
