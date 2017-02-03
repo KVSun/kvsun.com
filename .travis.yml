@@ -1,12 +1,11 @@
 language: php
-# sudo: required
-dist: xenial
+dist: trusty
 php:
   - '7.0'
 env: MIN_PHP_VERSION="7.0"
 before_install:
   - phpenv config-rm xdebug.ini
-  - npm install 3.10.10
+  - npm install -g npm@'>=3.10'
 before_script:
   - npm install
 script: npm test
