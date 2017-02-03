@@ -6,6 +6,10 @@ const REQUIRED = [
 ];
 
 export default async function getPage(page) {
+	return loadPage(page);
+}
+
+async function loadPage(page) {
 	let url = new URL('api.php', location.origin);
 	let headers = new Headers();
 	headers.set('Accept', 'application/json');
@@ -23,13 +27,17 @@ export default async function getPage(page) {
 }
 
 export function popstate(pop) {
-	if (
-		('state' in pop) && pop.state !== null
-		&& REQUIRED.every(prop => (prop in pop.state))
-	) {
-		updateContent(pop.state);
-	} else {
-		getPage(document.location);
+	try {
+		if (
+			('state' in pop) && pop.state !== null
+			&& REQUIRED.every(prop => (prop in pop.state))
+		) {
+			updateContent(pop.state);
+		} else {
+			loadPage(document.location);
+		}
+	} catch(e) {
+		console.error(e);
 	}
 }
 
