@@ -8,6 +8,12 @@ export function makePost() {
 	header.appendChild(document.createElement('br'));
 	let author = header.appendChild(document.createElement('input'));
 	header.appendChild(document.createElement('br'));
+	const cat = header.appendChild(document.createElement('input'));
+	cat.setAttribute('list', 'categories');
+	cat.name = `${form.name}[category]`;
+	cat.required = true;
+	cat.pattern = '[\\w ]+';
+	cat.placeholder = 'Category';
 	let content = form.appendChild(document.createElement('div'));
 	let button = form.appendChild(document.createElement('button'));
 	form.name = 'new-post';
