@@ -29,18 +29,30 @@ return function (
 			}
 		}
 
-		$title = $xpath->query('.//h2', $container)->item(0);
-		$link = $title->appendChild($dom->createElement('a'));
-		$title->class = 'center';
-		$link->href = \KVSun\DOMAIN . "{$name}/";
-		$link->textContent = $section[0]->category;
+		try {
+			$title = $xpath->query('.//h2', $container)->item(0);
+			$link = $title->appendChild($dom->createElement('a'));
+			$title->class = 'center';
+			$link->href = \KVSun\DOMAIN . "{$name}/";
+			$link->textContent = $section[0]->category;
+			$feed = $xpath->query('.//h2', $container)->item(0)->append('a', null, [
+				'href'   => \KVSun\DOMAIN . "rss/{$name}.rss",
+				'target' => '_blank',
+				'style'  => 'float:right;',
+				'class'  => 'feed',
+			]);
+			\KVSun\use_icon('rss', $feed, ['class' => 'icon currentColor']);
 
-		foreach ($section as $article) {
-			$div = $container->appendChild($dom->createElement('div'));
-			$a = $div->appendChild($dom->createElement('a'));
-			$a->href = \KVSun\DOMAIN . "{$article->catURL}/{$article->url}";
-			$a->textContent = $article->title;
-			$a->class = 'currentColor';
+			foreach ($section as $article) {
+				$div = $container->appendChild($dom->createElement('div'));
+				$a = $div->appendChild($dom->createElement('a'));
+				$a->href = \KVSun\DOMAIN . "{$article->catURL}/{$article->url}";
+				$a->textContent = $article->title;
+				$a->class = 'currentColor';
+			}
+		} catch (\Throwable $e) {
+			trigger_error($e->getMessage());
 		}
+
 	}
 };
