@@ -28,3 +28,18 @@ export function makePost() {
 
 	return article;
 }
+
+export function updatePost() {
+	const main = document.querySelector('main');
+	const article = main.querySelector('article');
+	if (!article) {
+		return false;
+	}
+
+	const form = document.createElement('form');
+	form.action = new URL('api.php', location.origin);
+	form.method = 'POST';
+	form.name = 'update-post';
+
+	return form;
+}
