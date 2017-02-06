@@ -4,6 +4,7 @@ namespace KVSun;
 use \shgysk8zer0\Core as Core;
 use \shgysk8zer0\Core_API as API;
 use \shgysk8zer0\DOM as DOM;
+use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as HTTP;
 
 /**
  * Create `<dialog>` & `<form>` for updating user data
@@ -519,4 +520,129 @@ function get_path(): Array
 		$path = array_filter(explode('/', trim($_SERVER['REQUEST_URI'], '/')));
 	}
 	return $path;
+}
+
+/**
+ * Get an array of categories with their names and URLs
+ * @return Array Array of categories
+ */
+function get_categories(): Array
+{
+	static $cats;
+	if (!is_array($cats)) {
+		try {
+			$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+			$cats = $pdo(
+				'SELECT
+					`url-name` AS `url`,
+					`name`
+				FROM `categories`
+				ORDER BY `sort` ASC;'
+			);
+		} catch(\Throwable $e) {
+			trigger_error($e->getMessage());
+			$cats = [];
+		}
+	}
+	return $cats ?? [];
+}
+
+/**
+ * Check if a category exists according to its URL
+ * @param  String $query Category URL
+ * @return Bool          Whether or not it exists
+ */
+function category_exists(String $query): Bool
+{
+	$categories = get_categories();
+	$exists     = false;
+	$query      = trim(strtolower($query));
+
+	foreach($categories as $category) {
+		if (trim(strtolower($category->url)) === $query) {
+			$exists = true;
+			break;
+		}
+	}
+	return $exists;
+}
+
+/**
+ * Get posts in category
+ * @param  String  $cat   Category URL
+ * @param  integer $limit Max number of results
+ * @return Array          Array of posts. Empty array on failure
+ */
+function get_category(String $cat, Int $limit = 20): Array
+{
+	try {
+		$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+		$stm = $pdo->prepare(
+			"SELECT
+			`posts`.`title`,
+			`posts`.`author`,
+			`posts`.`content`,
+			`posts`.`posted`,
+			`posts`.`updated`,
+			`posts`.`keywords`,
+			`posts`.`description`,
+			`posts`.`url`,
+			`categories`.`name` AS `category`,
+			`categories`.`url-name` AS `catURL`
+			FROM `categories`
+			JOIN `posts` ON `categories`.`id` = `posts`.`cat-id`
+			WHERE `categories`.`url-name` = :cat
+			ORDER BY `updated` DESC
+			LIMIT {$limit};"
+		);
+		$stm->execute(['cat' => $cat]);
+		return $stm->getResults() ?? [];
+	} catch(\Throwable $e) {
+		trigger_error($e->getMessage());
+		return [];
+	}
+}
+
+/**
+ * Create an RSS document for $category
+ * @param  String $category Category URL
+ * @return RSS             An RSS/XML document
+ */
+function build_rss(String $category): DOM\RSS
+{
+	try {
+		$head        = Core\PDO::load(\KVSun\DB_CREDS)->nameValue('head');
+		$img         = new \stdClass;
+		$img->url    = 'images/sun-icons/256.png';
+		$img->height = 256;
+		$img->width  = 256;
+
+		$rss = new DOM\RSS(
+			ucwords("{$head->title} | {$category} Feed"),
+			$head->description ?? ucwords("RSS feed for {$head->title}"),
+			'Newspaper',
+			$img,
+			\KVSun\DOMAIN,
+			$_SERVER['SERVER_ADMIN'],
+			'editor@kvsun.com',
+			DOM\RSS::LANGUAGE,
+			sprintf('Copyright %d, %s', date('Y'), $head->title)
+		);
+
+		$articles = get_category($category);
+
+		if (empty($articles)) {
+			http_response_code(HTTP::NO_CONTENT);
+		} else {
+			foreach ($articles as $article) {
+				$article->posted = new \DateTime($article->posted);
+				$rss->addItem($article);
+			}
+		}
+	} catch (\Throwable $e) {
+		http_response_code(HTTP::INTERNAL_SERVER_ERROR);
+		trigger_error($e->getMessage());
+	} finally {
+		return $rss;
+	}
 }
