@@ -12,6 +12,7 @@
 /images/uploads/*
 *.sql
 *.js.map
+*.rss
 /tags
 /my-httpd.pp
 /my-httpd.te
