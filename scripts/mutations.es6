@@ -6,6 +6,7 @@ import wysiwyg from './std-js/wysiwyg.es6';
 import kbd from './std-js/kbd_shortcuts.es6';
 import DnD from './fileupload.es6';
 import Reader from './ArticleReader.es6';
+import * as Admin from './admin.es6';
 
 function wysiwygToggle(el) {
 	if (
@@ -14,7 +15,6 @@ function wysiwygToggle(el) {
 	) {
 		el.addEventListener('keydown', kbd);
 		DnD(el);
-
 	} else {
 		el.removeEventListener('keydown', kbd);
 	}
@@ -153,6 +153,14 @@ export const watcher = {
 			}
 			break;
 
+		case 'data-admin':
+			if (this.target.dataset.hasOwnProperty('admin') && Admin[this.target.dataset.admin] instanceof Function) {
+				this.target.addEventListener('click', Admin[this.target.dataset.admin]);
+			} else if (Admin[this.oldValue] instanceof Function) {
+				this.target.removeEventListener('click', Admin[this.oldValue]);
+			}
+			break;
+
 		default:
 			console.error(`Unhandled attribute in watch: "${this.attributeName}"`);
 		}
@@ -177,7 +185,8 @@ export const attributeTree = [
 	'data-load-form',
 	'data-request',
 	'data-share',
-	'data-fullscreen'
+	'data-fullscreen',
+	'data-admin'
 ];
 
 export function bootstrap() {
@@ -245,6 +254,11 @@ export function bootstrap() {
 		query('[data-delete]', node).forEach(el => {
 			el.addEventListener('click', eventHandler.dataDelete);
 		});
+		query('[data-admin]', node).forEach(el => {
+			if (Admin[el.dataset.admin] instanceof Function) {
+				el.addEventListener('click', Admin[el.dataset.admin]);
+			}
+		});
 		query('fieldset button[type="button"].toggle', node).forEach(toggle => {
 			toggle.addEventListener('click', eventHandler.toggleCheckboxes);
 		});
@@ -256,7 +270,7 @@ export function bootstrap() {
 			input.addEventListener('input', eventHandler.matchInput);
 		});
 		query('[contenteditable]', node).forEach(el => wysiwygToggle(el));
-		query('menu[type="context"]', node).forEach(wysiwyg);
+		query('menu#wysiwyg_menu[type="context"]', node).forEach(wysiwyg);
 		// query('[data-request]', node).forEach(el => {
 		// 	el.addEventListener('click', click => {
 		// 		click.preventDefault();
