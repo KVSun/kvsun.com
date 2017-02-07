@@ -17,6 +17,16 @@ return function (
 		}
 		$article = $main->getElementsByTagName('article')->item(0);
 		$xpath = new \DOMXPath($dom);
+		try {
+			$breadcrumbs = $xpath->query('.//*[@itemprop="item"]', $main);
+			$xpath->query('.//*[@itemprop="url"]', $breadcrumbs->item(0))->item(0)->setAttribute('href', \KVSun\DOMAIN);
+			$xpath->query('.//*[@itemprop="name"]', $breadcrumbs->item(1))->item(0)->textContent = $kvs->category;
+			$xpath->query('.//*[@itemprop="url"]', $breadcrumbs->item(1))->item(0)->setAttribute('href', \KVSun\DOMAIN . $kvs->category);
+			$xpath->query('.//*[@itemprop="name"]', $breadcrumbs->item(2))->item(0)->textContent = $kvs->title;
+			// $xpath->query('.//*[@itemprop="url"]', $breadcrumbs->item(2))->item(0)->setAttribute('href', \KVSun\DOMAIN . ltrim($kvs->url->path, '/'));
+		} catch (\Throwable $e) {
+			trigger_error($e->getMessage());
+		}
 		$updated = new \DateTime(isset($kvs->updated) ? $kvs->updated : $kvs->posted);
 		$posted = new \DateTime($kvs->posted);
 
