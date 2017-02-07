@@ -33,7 +33,7 @@ function get_cat_id(String $cat): Int
  * Get an array of categories with their names and URLs
  * @return Array Array of categories
  */
-function get_categories(): Array
+function get_categories(String $mapping = null): Array
 {
 	static $cats;
 	if (!is_array($cats)) {
@@ -51,7 +51,10 @@ function get_categories(): Array
 			$cats = [];
 		}
 	}
-	return $cats ?? [];
+	return isset($mapping) ? array_map(function(\stdClass $cat) use ($mapping): String
+	{
+		return $cat->{$mapping};
+	}, $cats) : $cats;
 }
 
 /**
@@ -569,11 +572,7 @@ function load_file(String $file, String $ext = EXT)
 
 	if (empty($path)) {
 		// This would be a request for home
-		$kvs = new \KVSun\KVSAPI\Home(Core\PDO::load(DB_CREDS), "$url", [
-			'news',
-			'sports',
-			'valley-life',
-		]);
+		$kvs = new \KVSun\KVSAPI\Home(Core\PDO::load(DB_CREDS), "$url", get_categories('url'));
 	} elseif (count($path) === 1) {
 		$kvs = new \KVSun\KVSAPI\Category(Core\PDO::load(DB_CREDS), "$url");
 	} else {
