@@ -383,16 +383,17 @@ function get_transactions_for(String $user): \stdClass
 }
 
 function setcookie(
-	$name,
-	$value,
-	$httpOnly = true,
-	$path = '/'
-)
+	String $name,
+	String $value,
+	String $expires  = '+1 month',
+	Bool   $httpOnly = true,
+	String $path     = '/'
+): Bool
 {
 	return \setcookie(
 		$name,
 		$value,
-		strtotime('+1 month'),
+		strtotime($expires),
 		$path,
 		$_SERVER['HTTP_HOST'],
 		array_key_exists('HTTPS', $_SERVER),
@@ -585,14 +586,19 @@ function load_file(String $file, String $ext = EXT)
 			$kvs
 		);
 	}
-	$ret = require_once(COMPONENTS . $file . $ext);
 
-	if (is_callable($ret)) {
-		return call_user_func_array($ret, $args);
-	} elseif (is_string($ret)) {
-		return $ret;
-	} else {
-		trigger_error("$file did not return a function or string.");
+	try {
+		$ret = require_once(COMPONENTS . $file . $ext);
+
+		if (is_callable($ret)) {
+			return call_user_func_array($ret, $args);
+		} elseif (is_string($ret)) {
+			return $ret;
+		} else {
+			trigger_error("$file did not return a function or string.");
+		}
+	} catch (\Throwable $e) {
+		trigger_error($e->getMessage());
 	}
 }
 
