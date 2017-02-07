@@ -382,7 +382,7 @@ switch($req->form) {
 
 		$post = new Core\FormData($_POST['new-post']);
 
-		if (! isset($post->author, $post->title, $post->content)) {
+		if (! isset($post->author, $post->title, $post->content, $post->category)) {
 			$resp->notify(
 				'Missing info for post',
 				'Please make sure it has a title, author, and content.'
@@ -420,7 +420,7 @@ switch($req->form) {
 		$stm = $pdo->prepare($sql);
 		$user = \KVSun\restore_login();
 		$stm->title = strip_tags($post->title);
-		$stm->cat = 1;
+		$stm->cat = \KVSun\get_cat_id($post->category);
 		$stm->author = strip_tags($post->author);
 		$stm->content = $post->content;
 		$stm->draft = isset($post->draft);
@@ -433,7 +433,8 @@ switch($req->form) {
 		$article_dom->loadHTML($post->content);
 		$imgs = $article_dom->getElementsByTagName('img');
 
-		$stm->img = isset($imgs) ? $imgs->item(0)->getAttribute('src') : null;
+		$stm->img = ($imgs = $article_dom->getElementsByTagName('img') and $imgs->length !== 0)
+			? $imgs->item(0)->getAttribute('src') : null;
 
 		unset($article_dom, $imgs);
 		Core\Console::info($post);
