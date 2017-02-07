@@ -22,8 +22,14 @@ return function (
 
 		try {
 			$xpath->query('.//*[@itemprop="headline"]', $article)->item(0)->textContent = $kvs->title;
+			$xpath->query('.//*[@itemprop="articleSection"]', $article)->item(0)->textContent = $kvs->category;
 			$xpath->query('.//*[@itemprop="author"]', $article)->item(0)->textContent = $kvs->author;
 			$xpath->query('.//*[@itemprop="dateModified"]', $article)->item(0)->setAttribute('content', $updated->format(\DateTime::W3C));
+			$keywords = $xpath->query('.//*[@itemprop="keywords"]', $article);
+			if ($keywords = $xpath->query('.//*[@itemprop="keywords"]', $article)) {
+				set_keywords($keywords->item(0), $kvs->keywords);
+			}
+
 			$pub_date = $xpath->query('.//*[@itemprop="datePublished"]', $article)->item(0);
 			$pub_date->textContent = $posted->format('D. M j, Y \a\t h:m a');
 			$pub_date->setAttribute('datetime', $posted->format(\DateTime::W3C));
@@ -47,6 +53,14 @@ return function (
 		trigger_error('Invalid page contents given.');
 	}
 };
+
+function set_keywords(\DOMElement $container, Array $keywords) {
+	foreach ($keywords as $keyword) {
+		$item = $container->ownerDocument->createElement('a', $keyword);
+		$container->appendChild($item);
+		$item->setAttribute('rel', 'tag');
+	}
+}
 
 function set_img_data(\DOMElement $container)
 {
