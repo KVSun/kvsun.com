@@ -7,19 +7,7 @@ use \shgysk8zer0\Login\User as User;
 use \shgysk8zer0\Core\Console as Console;
 use \shgysk8zer0\Core\JSON_Response as Resp;
 
-new Core\Listener('error', function(Int $severity, String $message, String $file, Int $line): Bool
-{
-	$err = new \ErrorException($message, 0, $severity, $file, $line);
-	error_log($err . PHP_EOL, 3,ERROR_LOG);
-	return true;
-});
-
-new Core\Listener('exception', function(\Throwable $e)
-{
-	error_log($e . PHP_EOL, 3, ERROR_LOG);
-});
-
-new Core\Listener('login', function(User $user, Bool $remember = true): Resp
+function login_handler(User $user, Bool $remember = true): Resp
 {
 	try {
 		if ($remember) {
@@ -45,9 +33,9 @@ new Core\Listener('login', function(User $user, Bool $remember = true): Resp
 	} finally {
 		return $resp;
 	}
-});
+}
 
-new Core\Listener('logout', function(User $user): Resp
+function logout_handler(User $user): Resp
 {
 	try {
 		$user->logout();
@@ -67,7 +55,23 @@ new Core\Listener('logout', function(User $user): Resp
 	} finally {
 		return $resp;
 	}
+}
+
+new Core\Listener('error', function(Int $severity, String $message, String $file, Int $line): Bool
+{
+	$err = new \ErrorException($message, 0, $severity, $file, $line);
+	error_log($err . PHP_EOL, 3,ERROR_LOG);
+	return true;
 });
+
+new Core\Listener('exception', function(\Throwable $e)
+{
+	error_log($e . PHP_EOL, 3, ERROR_LOG);
+});
+
+new Core\Listener('login', __NAMESPACE__ . '\login_handler');
+
+new Core\Listener('logout', __NAMESPACE__ . '\logout_handler');
 
 if (check_role('admin') or DEBUG) {
 	$timer = new Core\Timer();
