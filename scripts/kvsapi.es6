@@ -194,12 +194,12 @@ function makeArticle(post) {
 	const article = template.querySelector('[itemprop="mainEntityOfPage"]');
 	const publisher = template.querySelector('[itemprop="publisher"]');
 	breadcrumbs.item(0).querySelector('[itemprop="url"]').href = location.origin;
-	breadcrumbs.item(1).querySelector('[itemprop="name"]').textContent = post.category;
-	breadcrumbs.item(1).querySelector('[itemprop="url"]').href = post.category;
+	breadcrumbs.item(1).querySelector('[itemprop="name"]').textContent = post.category.name;
+	breadcrumbs.item(1).querySelector('[itemprop="url"]').href = post.category.url;
 	breadcrumbs.item(2).querySelector('[itemprop="name"]').textContent = post.title;
 	breadcrumbs.item(2).querySelector('[itemprop="url"]').href = location.href;
 	article.querySelector('[itemprop="headline"]').textContent = post.title;
-	article.querySelector('[itemprop="articleSection"]').textContent = post.category;
+	article.querySelector('[itemprop="articleSection"]').textContent = post.category.name;
 	article.querySelector('[itemprop="dateModified"]').setAttribute('content', post.updated);
 	article.querySelector('[itemprop="datePublished"]').textContent = formatDate(created);
 	article.querySelector('[itemprop="datePublished"]').setAttribute('datetime', created);
@@ -210,7 +210,7 @@ function makeArticle(post) {
 	publisher.querySelector('[itemprop="logo"]').setAttribute('content', new URL('/images/sun-icons/128.png', location.origin));
 	article.appendChild(document.createElement('hr'));
 	Array.from(main.children).forEach(child => child.remove());
-	main.appendChild(document.importNode(article, true));
+	main.appendChild(document.importNode(template, true));
 }
 
 function formatDate(date) {
