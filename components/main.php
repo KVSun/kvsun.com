@@ -7,5 +7,8 @@ return function (
 )
 {
 	$main = $dom->body->append('main');
+	if (\KVSun\check_role('editor')) {
+		$main->contextmenu = 'admin_menu';
+	}
 	\KVSun\load('sections' . DIRECTORY_SEPARATOR . $kvs::TYPE);
 };
