@@ -190,11 +190,14 @@ function makeArticle(post) {
 	const main = document.querySelector('main');
 	const created = new Date(post.posted);
 	const template = getTemplate('article-template');
+	const breadcrumbs = template.querySelectorAll('[itemprop="breadcrumb"] [itemprop="item"]');
 	const article = template.querySelector('[itemprop="mainEntityOfPage"]');
 	const publisher = template.querySelector('[itemprop="publisher"]');
-	const tw = document.createElement('button');
-	const fb = document.createElement('button');
-	const gp = document.createElement('button');
+	breadcrumbs.item(0).querySelector('[itemprop="url"]').href = location.origin;
+	breadcrumbs.item(1).querySelector('[itemprop="name"]').textContent = post.category;
+	breadcrumbs.item(1).querySelector('[itemprop="url"]').href = post.category;
+	breadcrumbs.item(2).querySelector('[itemprop="name"]').textContent = post.title;
+	breadcrumbs.item(2).querySelector('[itemprop="url"]').href = location.href;
 	article.querySelector('[itemprop="headline"]').textContent = post.title;
 	article.querySelector('[itemprop="articleSection"]').textContent = post.category;
 	article.querySelector('[itemprop="dateModified"]').setAttribute('content', post.updated);
@@ -206,20 +209,8 @@ function makeArticle(post) {
 	publisher.querySelector('[itemprop="url"]').setAttribute('href', location.origin);
 	publisher.querySelector('[itemprop="logo"]').setAttribute('content', new URL('/images/sun-icons/128.png', location.origin));
 	article.appendChild(document.createElement('hr'));
-	tw.type = 'button';
-	tw.textContent = 'Share on Twitter';
-	tw.dataset.share = 'twitter';
-	fb.type = 'button';
-	fb.textContent = 'Share on Facebook';
-	fb.dataset.share = 'facebook';
-	gp.type = 'button';
-	gp.textContent = 'Share on Google+';
-	gp.dataset.share = 'g+';
 	Array.from(main.children).forEach(child => child.remove());
 	main.appendChild(document.importNode(article, true));
-	main.appendChild(fb);
-	main.appendChild(tw);
-	main.appendChild(gp);
 }
 
 function formatDate(date) {
