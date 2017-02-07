@@ -28,9 +28,10 @@ export function makePost() {
 		const header = form.querySelector('header');
 		const title = header.querySelector('[itemprop="headline"]').appendChild(document.createElement('input'));
 		const author = header.querySelector('[itemprop="author"]').appendChild(document.createElement('input'));
-		const category = header.insertAdjacentElement('beforeend', document.createElement('input'));
+		const category = header.querySelector('[itemprop="articleSection"]').appendChild(document.createElement('input'));
 		const content = form.querySelector('[itemprop="articleBody"]');
 		const submit = form.appendChild(document.createElement('button'));
+		form.querySelector('footer').hidden = true;
 		title.name = `${form.name}[title]`;
 		title.required = true;
 		title.placeholder = 'Title';
@@ -56,44 +57,6 @@ export function makePost() {
 	}
 }
 
-// export function makePost() {
-// 	let main = document.querySelector('main');
-// 	console.log(buildArticleForm('article-template').outerHTML);
-// 	Array.from(main.querySelectorAll('*')).forEach(el => el.remove());
-// 	let article = main.appendChild(document.createElement('article'));
-// 	let form = article.appendChild(document.createElement('form'));
-// 	let header = form.appendChild(document.createElement('header'));
-// 	let title = header.appendChild(document.createElement('input'));
-// 	header.appendChild(document.createElement('br'));
-// 	let author = header.appendChild(document.createElement('input'));
-// 	header.appendChild(document.createElement('br'));
-// 	const cat = header.appendChild(document.createElement('input'));
-// 	cat.setAttribute('list', 'categories');
-// 	cat.name = `${form.name}[category]`;
-// 	cat.required = true;
-// 	cat.pattern = '[\\w ]+';
-// 	cat.placeholder = 'Category';
-// 	let content = form.appendChild(document.createElement('div'));
-// 	let button = form.appendChild(document.createElement('button'));
-// 	form.name = 'new-post';
-// 	form.action = new URL('api.php', location.origin);
-// 	form.method = 'POST';
-// 	content.contentEditable = 'true';
-// 	title.name = `${form.name}[title]`;
-// 	author.name = `${form.name}[author]`;
-// 	author.placeholder = 'Author';
-// 	title.placeholder = 'Title';
-// 	author.required = true;
-// 	title.required = true;
-// 	author.setAttribute('list', 'author_list');
-// 	content.setAttribute('contextmenu', 'wysiwyg_menu');
-// 	content.dataset.inputName = `${form.name}[content]`;
-// 	button.textContent = 'Submit';
-// 	button.type = 'submit';
-//
-// 	return article;
-// }
-
 export function updatePost() {
 	const main = document.querySelector('main');
 	if (main.querySelectorAll('[itemprop="mainEntityOfPage"]').length === 0) {
@@ -111,9 +74,10 @@ export function updatePost() {
 		const header = form.querySelector('header');
 		const title = header.querySelector('[itemprop="headline"]').appendChild(document.createElement('input'));
 		const author = header.querySelector('[itemprop="author"]').appendChild(document.createElement('input'));
-		const category = header.insertAdjacentElement('beforeend', document.createElement('input'));
+		const category = header.querySelector('[itemprop="articleSection"]').appendChild(document.createElement('input'));
 		const content = form.querySelector('[itemprop="articleBody"]');
 		const submit = form.appendChild(document.createElement('button'));
+		form.querySelector('footer').hidden = true;
 		title.name = `${form.name}[title]`;
 		title.required = true;
 		title.placeholder = 'Title';
@@ -122,6 +86,7 @@ export function updatePost() {
 		author.placeholder = 'Author';
 		author.setAttribute('list', 'author_list');
 		category.name = `${form.name}[category]`;
+		category.value = main.querySelector('[itemprop="articleSection"]').textContent;
 		category.pattern = '[\\w ]+';
 		category.required = true;
 		category.placeholder = 'Category';
