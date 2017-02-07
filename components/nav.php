@@ -12,9 +12,14 @@ return function (
 	\KVSun\KVSAPI\Abstracts\Content $kvs
 )
 {
-	$nav = $dom->body->append('nav');
+	$nav = $dom->body->append('nav', null, [
+		'role' => 'navigation',
+	]);
 	$nav->class = 'flex sticky';
-	$nav->append('a', 'Home', array_merge(ATTRS, ['href' => \KVSun\DOMAIN]));
+	$nav->append('a', 'Home', array_merge(ATTRS, [
+		'href' => \KVSun\DOMAIN,
+		'rel'  => 'bookmark',
+	]));
 
 	$pages = $pdo('SELECT `name`, `url` FROM `pages`');
 	$categories = $pdo('SELECT `name`, `url-name` AS `url` FROM `categories`');

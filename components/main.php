@@ -6,7 +6,9 @@ return function (
 	\KVSun\KVSAPI\Abstracts\Content $kvs
 )
 {
-	$main = $dom->body->append('main');
+	$main = $dom->body->append('main', null, [
+		'role' => 'main',
+	]);
 	if (\KVSun\check_role('editor')) {
 		$main->contextmenu = 'admin_menu';
 	}

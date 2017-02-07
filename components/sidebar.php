@@ -2,10 +2,13 @@
 namespace KVSun\Components\Sidebar;
 return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
 {
-	$sidebar = $dom->body->append('aside');
+	$sidebar = $dom->body->append('aside', null, [
+		'role' => 'sidebar',
+	]);
 	$search = $sidebar->append('form', null, [
-		'name' => 'search',
+		'name'   => 'search',
 		'action' => \KVSun\DOMAIN . 'api.php',
+		'role'   => 'search',
 		'method' => 'post',
 	]);
 	$search->append('input', null, [
@@ -50,7 +53,7 @@ function make_rail(\DOMElement $parent, \shgysk8zer0\Core\PDO $pdo)
 			'width' => 256,
 			'height' => 256,
 		]);
-		$link->append('p', "{$post->category} &gt; {$post->title}");
+		$link->append('p', "{$post->category} &raquo; {$post->title}");
 		$parent->append('hr');
 	};
 }

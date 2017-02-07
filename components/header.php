@@ -8,6 +8,7 @@ return function (
 {
 	$dom->body->append('header')->append('h1', $kvs->getHead()->title, [
 		'class' => 'site-title',
+		'role'  => 'banner',
 	]);
 
 };

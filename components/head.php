@@ -8,7 +8,7 @@ return function (
 )
 {
 	$dom->documentElement->itemscope = '';
-	$dom->documentElement->itemtype = 'https://schema.org/WebSite';
+	$dom->documentElement->itemtype = 'https://schema.org/WebPage';
 	$head = $dom->head;
 	$head->ifIE('<script type="text/javascript">
 	var html5=new Array(\'header\',\'hgroup\',\'nav\',\'menu\',\'main\',\'section\',\'article\',\'footer\',\'aside\',\'mark\', \'details\', \'summary\', \'dialog\', \'figure\', \'figcaption\', \'picture\', \'source\');
@@ -55,11 +55,15 @@ return function (
 		if (isset($kvs->keywords)) {
 			$head->append('meta', null, [
 				'name' => 'keywords',
-				'content' => $kvs->keywords,
+				'content' => is_array($kvs->keywords)
+					? join(', ', $kvs->keywords)
+					: $kvs->keywords,
 			]);
 			$head->append('meta', null, [
 				'itemprop' => 'keywords',
-				'content' => $kvs->keywords,
+				'content' => is_array($kvs->keywords)
+					? join(', ', $kvs->keywords)
+					: $kvs->keywords,
 			]);
 		}
 	} else {
