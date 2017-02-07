@@ -22,11 +22,8 @@ if ($header->accept === 'application/json') {
 
 		if (empty($path)) {
 			// This would be a request for home
-			$page = new \KVSun\KVSAPI\Home(Core\PDO::load(DB_CREDS), "$url", [
-				'news',
-				'sports',
-				'valley-life',
-			]);
+			// $categories = \KVSun\get_categories();
+			$page = new \KVSun\KVSAPI\Home(Core\PDO::load(DB_CREDS), "$url", \KVSun\get_categories('url'));
 		} elseif (count($path) === 1) {
 			$page = new \KVSun\KVSAPI\Category(Core\PDO::load(DB_CREDS), "$url");
 		} else {
