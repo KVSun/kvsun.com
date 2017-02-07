@@ -123,6 +123,9 @@ switch($req->form) {
 						], JSON_PRETTY_PRINT
 					))) {
 						$db->commit();
+						$user_login = \shgysk8zer0\Login\User::load(\KVSun\DB_CREDS);
+						$user_login($user->email, $user->password);
+						Core\Listener::login($user_login);
 						$resp->notify(
 							'Installation successful',
 							'Reloading'
@@ -277,15 +280,7 @@ switch($req->form) {
 				$pdo->commit();
 				$user = \shgysk8zer0\Login\User::load(\KVSun\DB_CREDS);
 				if ($user($req->register->email, $req->register->password)) {
-					$grav = new Core\Gravatar($req->register->email, 64);
-					$user->setSession('user');
-					$user->setCookie('user');
-					$resp->close('#registration-dialog');
-					$resp->clear('register');
-					$resp->notify('Success', "Welcome {$req->register->name}");
-					$resp->attributes('#user-avatar', 'src', "$grav");
-					$resp->attributes('#user-avatar', 'data-load-form', 'update-user');
-					$resp->attributes('#user-avatar', 'data-show-modal', false);
+					Core\Listener::login($user);
 				} else {
 					$resp->notify('Error registering', 'There was an error saving your user info');
 				}
