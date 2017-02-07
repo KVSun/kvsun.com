@@ -33,6 +33,7 @@ export function makePost() {
 		const submit = form.appendChild(document.createElement('button'));
 		title.name = `${form.name}[title]`;
 		title.required = true;
+		title.placeholder = 'Title';
 		author.name = `${form.name}[author]`;
 		author.required = true;
 		author.placeholder = 'Author';
@@ -115,6 +116,7 @@ export function updatePost() {
 		const submit = form.appendChild(document.createElement('button'));
 		title.name = `${form.name}[title]`;
 		title.required = true;
+		title.placeholder = 'Title';
 		author.name = `${form.name}[author]`;
 		author.required = true;
 		author.placeholder = 'Author';
