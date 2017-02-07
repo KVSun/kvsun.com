@@ -1,12 +1,19 @@
-nav {
+body > nav {
 	order: 1;
 	padding: var(--nav-padding) 0;
 	background: var(--primary-color);
 	top: 0;
 	justify-content: space-around;
 }
-nav > * {
+body > nav > * {
 	display: inline-block;
 	height: var(--nav-height);
 	width: auto;
+}
+[itemprop="breadcrumb"] [itemprop="itemListElement"] {
+	padding: 0.3em;
+	display: inline-block;
+}
+[itemprop="breadcrumb"] [itemprop="itemListElement"]:not(:last-child)::after {
+	content: "»";
 }
