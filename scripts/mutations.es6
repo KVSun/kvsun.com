@@ -196,7 +196,7 @@ export function bootstrap() {
 			return this;
 		}
 		if (Reader.speechSupported()) {
-			query('article', node).forEach(article => {
+			query(':not(form) > article', node).forEach(article => {
 				new Reader(article, article.querySelector('article header'));
 			});
 		}
