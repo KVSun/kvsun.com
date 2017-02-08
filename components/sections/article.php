@@ -51,6 +51,11 @@ return function (
 				$xpath->query('.//*[@itemprop="logo"]', $pub)->item(0)->setAttribute('content', \KVSun\DOMAIN . 'images/sun-icons/256.png');
 			}
 			set_img_data($articleBody);
+			$count = add_comments($main->getElementsByTagName('footer')->item(0), $kvs->comments);
+			$article->append('meta', null, [
+				'itemprop' => 'commentCount',
+				'content' => $count,
+			]);
 		} catch(\Exception $e) {
 			trigger_error($e);
 		} catch(\Error $e) {
@@ -60,6 +65,38 @@ return function (
 		trigger_error('Invalid page contents given.');
 	}
 };
+
+function add_comments(\DOMElement $parent, Array $comments): Int
+{
+	$added = 0;
+	foreach ($comments as $comment) {
+		$container = $parent->append('div', null, [
+			'itemprop' => 'comment',
+			'itemtype' => 'http://schema.org/Comment',
+			'itemscope' => '',
+		]);
+		$user = $container->append('div', null,
+		[
+			'itemprop' => 'author',
+			'itemtype' => 'http://schema.org/Person',
+			'itemscope' => '',
+		]);
+		$user->append('img', null, [
+			'src' => "https://www.gravatar.com/avatar/{$comment->email}",
+			'width' => 80,
+			'height' => 80,
+			'itemprop' => 'image',
+		]);
+		$user->append('b', 'By&nbsp;')->append('u', $comment->name, [
+			'itemprop' => 'name',
+		]);
+		$container->append('div', $comment->text, [
+			'itemprop' => 'text',
+		]);
+		$added++;
+	}
+	return $added;
+}
 
 function set_keywords(\DOMElement $container, Array $keywords) {
 	foreach ($keywords as $keyword) {

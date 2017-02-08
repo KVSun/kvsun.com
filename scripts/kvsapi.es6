@@ -135,6 +135,58 @@ function getTemplate(templateID) {
 		return frag;
 	}
 }
+function add_comments(parent, comments) {
+	let added = 0;
+	comments.forEach(comment => {
+		let container = parent.appendChild(document.createElement('div'));
+		container.setAttribute('itemprop', 'comment');
+		container.setAttribute('itemtype', 'http://schema.org/Comment');
+		container.setAttribute('itemscope', null);
+
+		let user = container.appendChild(document.createElement('div'));
+		user.setAttribute('itemprop', 'author');
+		user.setAttribute('itemtype', 'http://schema.org/Person');
+		user.setAttribute('itemscope', null);
+		let grav = user.appendChild(document.createElement('img'));
+		grav.src = `https://www.gravatar.com/avatar/${comment.email}`;
+		grav.width = 80;
+		grav.height = 80;
+		grav.setAttribute('itemprop', 'image');
+		let byLine = user.appendChild(document.createElement('b'));
+		byLine.appendChild(document.createTextNode('By '));
+		let commenter = byLine.appendChild(document.createElement('u'));
+		commenter.textContent = comment.name;
+		commenter.setAttribute('itemprop', 'name');
+
+		let addedComment = container.appendChild(document.createElement('div'));
+		addedComment.textContent = comment.text;
+		addedComment.setAttribute('itemprop', 'text');
+
+		/*container = $parent->append('div', null, [
+			'itemprop' => 'comment',
+			'itemtype' => 'http://schema.org/Comment',
+			'itemscope' => '',
+		]);
+		$user = $container->append('div', null,
+		[
+			'itemprop' => 'author',
+			'itemtype' => 'http://schema.org/Person',
+			'itemscope' => '',
+		]);
+		$user->append('img', null, [
+			'src' => "https://www.gravatar.com/avatar/{$comment->email}",
+			'width' => 80,
+			'height' => 80,
+			'itemprop' => 'image',
+		]);
+		$user->append('b', 'By&nbsp;')->append('u', $comment->name);
+		$container->append('div', $comment->text, [
+			'itemprop' => 'text',
+		]);*/
+		added++;
+	});
+	return added;
+}
 
 function makeCategory(category) {
 	const main = document.querySelector('main');
@@ -209,6 +261,10 @@ function makeArticle(post) {
 	publisher.querySelector('[itemprop="url"]').setAttribute('href', location.origin);
 	publisher.querySelector('[itemprop="logo"]').setAttribute('content', new URL('/images/sun-icons/128.png', location.origin));
 	article.appendChild(document.createElement('hr'));
+	const count = add_comments(article.querySelector('footer'), post.comments);
+	const meta = article.appendChild(document.createElement('meta'));
+	meta.setAttribute('itemprop', 'commentCount');
+	meta.setAttribute('content', count);
 	Array.from(main.children).forEach(child => child.remove());
 	main.appendChild(document.importNode(template, true));
 }
