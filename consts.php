@@ -6,11 +6,19 @@ const REQUIRED = [
 	'vendor/autoload.php',
 ];
 const EXT          = '.php';
-const INCLUDE_PATH = array(
+const INCLUDE_PATH = [
 	'./classes',
 	'./config',
 	__DIR__,
-);
+];
+const PAGE_COMPONENTS = [
+	'head',
+	'header',
+	'nav',
+	'main',
+	'sidebar',
+	'footer',
+];
 const ERROR_REPORTING = 0;
 const EXCEPTION_HANDLER = '\shgysk8zer0\Core\Listener::exception';
 const ERROR_HANDLER = '\shgysk8zer0\Core\Listener::error';

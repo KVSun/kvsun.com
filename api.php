@@ -3,7 +3,7 @@ namespace KVSun;
 
 use \shgysk8zer0\Core as Core;
 use \shgysk8zer0\DOM as DOM;
-use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as Status;
+use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as HTTP;
 
 if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
 	require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
@@ -154,7 +154,7 @@ if ($header->accept === 'application/json') {
 	} elseif(array_key_exists('upload', $_FILES)) {
 		if (! check_role('editor')) {
 			trigger_error('Unauthorized upload attempted');
-			http_response_code(Status::UNAUTHORIZED);
+			http_response_code(HTTP::UNAUTHORIZED);
 			exit('{}');
 		}
 		$file = new \shgysk8zer0\Core\UploadFile('upload');
@@ -187,12 +187,12 @@ if ($header->accept === 'application/json') {
 	$url = new Core\URL($_GET['url']);
 	if ($url->host === $_SERVER['SERVER_NAME']) {
 		$header->location = "{$url}";
-		http_response_code(Status\SEE_OTHER);
+		http_response_code(HTTP::SEE_OTHER);
 	} else {
-		http_response_code(Status\BAD_REQUEST);
+		http_response_code(HTTP::BAD_REQUEST);
 	}
 } else {
-	http_response_code(Status\BAD_REQUEST);
+	http_response_code(HTTP::BAD_REQUEST);
 	$header->content_type = 'application/json';
 	exit('{}');
 }
