@@ -69,7 +69,10 @@ function category_exists(String $query): Bool
 	$query      = trim(strtolower($query));
 
 	foreach($categories as $category) {
-		if (trim(strtolower($category->url)) === $query) {
+		if (
+			trim(strtolower($category->url)) === $query
+			or trim(strtolower($category->name)) === $query
+		) {
 			$exists = true;
 			break;
 		}
