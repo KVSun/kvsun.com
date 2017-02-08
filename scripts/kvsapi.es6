@@ -152,6 +152,7 @@ function add_comments(parent, comments) {
 		container.setAttribute('itemprop', 'comment');
 		container.setAttribute('itemtype', 'http://schema.org/Comment');
 		container.setAttribute('itemscope', null);
+		container.id = `comment-${comment.commentID}`;
 
 		user.setAttribute('itemprop', 'author');
 		user.setAttribute('itemtype', 'http://schema.org/Person');

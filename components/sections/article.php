@@ -73,8 +73,9 @@ function add_comments(\DOMElement $parent, Array $comments)
 	foreach ($comments as $comment) {
 		$created = new \DateTime($comment->created);
 		$container = $parent->append('div', null, [
-			'itemprop' => 'comment',
-			'itemtype' => 'http://schema.org/Comment',
+			'itemprop'  => 'comment',
+			'itemtype'  => 'http://schema.org/Comment',
+			'id'        => "comment-{$comment->commentID}",
 			'itemscope' => '',
 		]);
 		$user = $container->append('span', null,
