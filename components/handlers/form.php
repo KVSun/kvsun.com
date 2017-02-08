@@ -374,6 +374,49 @@ switch($req->form) {
 		}
 		break;
 
+	case 'comments':
+		if (\KVSun\check_role('guest')) {
+			$headers = Core\Headers::getInstance();
+			if (!isset($headers->referer)) {
+				$resp->notify(
+					'Cannot post comment',
+					'You seem to have your privacy settings blocking us from knowing which post you are trying to post a comment on.'
+				)->send();
+			} else {
+				$url = $headers->referer;
+				$comment = new Core\FormData($_POST['comments']);
+				if (!filter_var($url, FILTER_VALIDATE_URL, [
+					'flags' => FILTER_FLAG_PATH_REQUIRED
+				])) {
+					$resp->notify(
+						'You cannot post on this page',
+						'You seem to by trying to comment on the home page.'
+					)->send();
+				} elseif (!isset($comment->text)) {
+					$resp->notify(
+						'We seem to be missing the comment',
+						'Double check that you\'ve filled out the comment box and try again.'
+					)->send();
+				}
+				$user = \KVSun\restore_login();
+				if (\KVSun\post_comment(
+					$url,
+					$user,
+					$comment->text,
+					\KVSun\check_role('editor'),
+					true//\KVSun\check_role('editor')
+				)) {
+					$resp->notify('Comment submitted', 'Check console');
+				} else {
+					$resp->notify('There was an error posting your comment.');
+				}
+			}
+		} else {
+			$resp->notify('You must be logged in to comment.');
+			$resp->showModal('#login-dialog');
+		}
+		break;
+
 	case 'new-post':
 		if (! \KVSun\check_role('editor')) {
 			http_response_code(HTTP::UNAUTHORIZED);
@@ -443,7 +486,7 @@ switch($req->form) {
 			? $imgs->item(0)->getAttribute('src') : null;
 
 			unset($article_dom, $imgs);
-			$errs = $stm->errorInfo();
+
 			if (intval($stm->errorCode()) !== 0) {
 				throw new \Exception('SQL Error: '. join(PHP_EOL, $stm->errorInfo()));
 			}
