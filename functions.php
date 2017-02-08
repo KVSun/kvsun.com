@@ -58,6 +58,42 @@ function get_categories(String $mapping = null): Array
 }
 
 /**
+ * Create a new category
+ * @param  String  $name   Name of category
+ * @param  integer $sort   Sort order
+ * @param  String  $parent Optional parent category
+ * @return Bool            Whether or not the category was created
+ */
+function make_category(String $name, Int $sort = 12, String $parent = null): Bool
+{
+	$stm = Core\PDO::load(\KVSun\DB_CREDS)->prepare(
+		'INSERT INTO `categories` (
+			`name`,
+			`sort`,
+			`parent`,
+			`url-name`
+		) VALUES (
+			:name,
+			:sort,
+			:parent,
+			:url
+		);'
+	);
+
+	$stm->name = $name;
+	$stm->sort = $sort;
+	$stm->parent = $parent;
+	$stm->url = str_replace(' ', '-', strtolower($name));
+	$stm->execute();
+	if (intval($stm->errorCode()) !== 0) {
+		trigger_error('SQL Error: '. join(PHP_EOL, $stm->errorInfo()));
+		return false;
+	} else {
+		return true;
+	}
+}
+
+/**
  * Check if a category exists according to its URL
  * @param  String $query Category URL
  * @return Bool          Whether or not it exists
