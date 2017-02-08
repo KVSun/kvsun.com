@@ -418,6 +418,11 @@ switch($req->form) {
 			:description
 		);';
 		try {
+			if (!\KVSun\category_exists($post->category)) {
+				if (!\KVSun\make_category($post->category)) {
+					$resp->notify('Error creating category', 'Try an existing category or contact an admin.');
+				}
+			}
 			$stm = $pdo->prepare($sql);
 			$user = \KVSun\restore_login();
 			$stm->title = strip_tags($post->title);
@@ -427,8 +432,8 @@ switch($req->form) {
 			$stm->draft = isset($post->draft);
 			$stm->url = strtolower(str_replace(' ', '-', strip_tags($post->title)));
 			$stm->posted = $user->id;
-			$stm->keywords = isset($post->keywords) ? $post->keywords : null;
-			$stm->description = isset($post->description) ? $post->description: null;
+			$stm->keywords = $post->keywords ?? null;
+			$stm->description = $post->description ?? null;
 
 			$article_dom = new \DOMDocument();
 			$article_dom->loadHTML($post->content);
@@ -439,8 +444,8 @@ switch($req->form) {
 
 			unset($article_dom, $imgs);
 			$errs = $stm->errorInfo();
-			if (!empty($errs) and $errs[0] != '00000') {
-				throw new \Exception(join(PHP_EOL, $errs));
+			if (intval($stm->errorCode()) !== 0) {
+				throw new \Exception('SQL Error: '. join(PHP_EOL, $stm->errorInfo()));
 			}
 			if ($stm->execute()) {
 				$resp->notify('Received post', $post->title);
@@ -490,8 +495,12 @@ switch($req->form) {
 		);
 
 		try {
+			if (!\KVSun\category_exists($post->category)) {
+				if (!\KVSun\make_category($post->category)) {
+					$resp->notify('Error creating category', 'Try an existing category or contact an admin.');
+				}
+			}
 			$url = explode('/', rtrim($post->url, '/'));
-			Core\Console::info(['url' => end($url)]);
 			$stm->cat = \KVSun\get_cat_id($post->category);
 			$stm->title = strip_tags($post->title);
 			$stm->author = strip_tags($post->author);
@@ -509,9 +518,8 @@ switch($req->form) {
 
 			unset($article_dom, $imgs);
 			$stm->execute();
-			$errs = $stm->errorInfo();
-			if (!empty($errs) and $errs[0] != '00000') {
-				throw new \Exception(join(PHP_EOL, $errs));
+			if (intval($stm->errorCode()) !== 0) {
+				throw new \Exception('SQL Error: '. join(PHP_EOL, $stm->errorInfo()));
 			}
 			$resp->notify('Update submitted', "Updated '{$post->title}'");
 			$resp->reload();
