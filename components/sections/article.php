@@ -56,7 +56,7 @@ return function (
 			$count = add_comments($main->getElementsByTagName('footer')->item(0), $kvs->comments);
 			$article->append('meta', null, [
 				'itemprop' => 'commentCount',
-				'content' => $count,
+				'content' => count($kvs->comments),
 			]);
 		} catch(\Exception $e) {
 			trigger_error($e);
@@ -68,9 +68,8 @@ return function (
 	}
 };
 
-function add_comments(\DOMElement $parent, Array $comments): Int
+function add_comments(\DOMElement $parent, Array $comments)
 {
-	$added = 0;
 	foreach ($comments as $comment) {
 		$created = new \DateTime($comment->created);
 		$container = $parent->append('div', null, [
@@ -102,9 +101,7 @@ function add_comments(\DOMElement $parent, Array $comments): Int
 			'itemprop' => 'text',
 		]);
 		$container->append('hr');
-		$added++;
 	}
-	return $added;
 }
 
 function set_keywords(\DOMElement $container, Array $keywords) {
