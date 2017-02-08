@@ -1,50 +1,47 @@
 <?php
-namespace KVSun;
+namespace KVSun\Index;
 
 use \shgysk8zer0\Core as Core;
 use \shgysk8zer0\DOM as DOM;
+
+function build_dom(Array $path, Bool $csp_report_only = false): \DOMDocument
+{
+	if (defined('KVSun\CSP')) {
+		(new Core\CSP(\KVSun\CSP))($csp_report_only);
+	}
+	if (@file_exists(\KVSun\DB_CREDS) and Core\PDO::load(\KVSun\DB_CREDS)->connected) {
+		DOM\HTMLElement::$import_path = \KVSun\COMPONENTS;
+		$dom = DOM\HTML::getInstance();
+		if (!empty($path) and file_exists(\KVSun\PAGES_DIR . "{$path[0]}.php")) {
+			require \KVSun\PAGES_DIR . "{$path[0]}.php";
+			exit();
+		}
+		// If IE, show update and hide rest of document
+		$dom->body->ifIE(
+			file_get_contents(\KVSun\COMPONENTS . 'update.html')
+			. '<div style="display:none !important;">'
+		);
+
+		$dom->body->class = 'flex row wrap';
+
+		array_map([$dom->body, 'importHTMLFile'], \KVSun\HTML_TEMPLATES);
+
+		\KVSun\add_main_menu($dom->body);
+		\KVSun\load(...\KVSun\PAGE_COMPONENTS);
+
+		// Close `</div>` created in [if IE]
+		$dom->body->ifIE('</div>');
+
+	} else {
+		$dom = new \DOMDocument();
+		$dom->loadHTMLFile(\KVSun\COMPONENTS . 'install.html');
+	}
+	Core\Listener::load();
+	return $dom;
+}
 
 if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
 	require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
 }
 
-DOM\HTMLElement::$import_path = COMPONENTS;
-if (defined(__NAMESPACE__ . '\CSP')) {
-	$csp = new Core\CSP(CSP);
-	$csp(false);
-	unset($csp);
-}
-
-if (@file_exists(DB_CREDS) or !Core\PDO::load(DB_CREDS)->connected) {
-	$path = get_path();
-	if (!empty($path) and file_exists(\KVSun\PAGES_DIR . "{$path[0]}.php")) {
-		require \KVSun\PAGES_DIR . "{$path[0]}.php";
-		exit();
-	}
-	unset($path);
-	$dom = DOM\HTML::getInstance();
-	// If IE, show update and hide rest of document
-	$dom->body->ifIE(
-		file_get_contents(COMPONENTS . 'update.html')
-		. '<div style="display:none !important;">'
-	);
-
-	$dom->body->class = 'flex row wrap';
-
-	array_map(
-		[$dom->body, 'importHTMLFile'],
-		HTML_TEMPLATES
-	);
-
-	add_main_menu($dom->body);
-	load('head', 'header', 'nav', 'main', 'sidebar', 'footer');
-
-	// Close `</div>` created in [if IE]
-	$dom->body->ifIE('</div>');
-
-} else {
-	require_once COMPONENTS . 'install.html';
-}
-
-Core\Listener::load();
-exit(DOM\HTML::getInstance());
+exit(build_dom(\KVSun\get_path())->saveHTML());
