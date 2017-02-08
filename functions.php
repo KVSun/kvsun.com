@@ -5,6 +5,88 @@ use \shgysk8zer0\Core as Core;
 use \shgysk8zer0\Core_API as API;
 use \shgysk8zer0\DOM as DOM;
 use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as HTTP;
+use \shgysk8zer0\Login\User as User;
+
+/**
+ * Post a comment on an article
+ * @param  String  $url        URL for post
+ * @param  User    $user       User making comment
+ * @param  String  $comment    The comment itself
+ * @param  boolean $approved   Automatically approve the comment?
+ * @param  boolean $allow_html Allow HTML tags in the comment?
+ * @return Bool    Whether or not the comment was added to table
+ */
+function post_comment(
+	String  $url,
+	User    $user,
+	String  $comment,
+	Bool    $approved   = false,
+	Bool    $allow_html = false
+): Bool
+{
+	try {
+		$path = parse_url($url,  PHP_URL_PATH);
+		$path = trim($path, '/');
+		$path = explode('/', $path, 2);
+		$path = array_filter($path);
+		list($category, $post) = array_pad($path, 2, null);
+		$category = get_cat_id($category);
+		$post = get_post_id($post);
+
+		$stm = Core\PDO::load(DB_CREDS)->prepare(
+			'INSERT INTO `post_comments` (
+				`postID`,
+				`catID`,
+				`userID`,
+				`approved`,
+				`text`
+			) VALUES (
+				:post,
+				:cat,
+				:user,
+				:approved,
+				:comment
+			);'
+		);
+		if (!$allow_html) {
+			$comment = strip_tags($comment);
+		} else {
+			$comment = html_entity_decode($comment, ENT_HTML5, 'UTF-8');
+		}
+		Core\Console::info(['comment' => $comment]);
+		$stm->bindParam(':post', $post);
+		$stm->bindParam(':cat', $category);
+		$stm->bindParam(':user', $user->id);
+		$stm->bindParam(':approved', $approved);
+		$stm->bindParam(':comment', $comment);
+		$stm->execute();
+		if (intval($stm->errorCode()) !== 0) {
+			throw new \Exception('SQL Error: '. join(PHP_EOL, $stm->errorInfo()));
+		} else {
+			return true;
+		}
+	} catch (\Throwable $e) {
+		trigger_error($e->getMessage());
+		return false;
+	}
+}
+
+function get_post_id(String $post): Int
+{
+	static $q;
+	if (is_null($q)) {
+		$q = Core\PDO::load(\KVSun\DB_CREDS)->prepare(
+			'SELECT `id` FROM `posts`
+			WHERE `title` = :post
+			OR `url` = :post
+			LIMIT 1;'
+		);
+	}
+	$q->bindParam(':post', $post);
+	$q->execute();
+	$match = $q->fetchObject();
+	return $match->id ?? 0;
+}
 
 /**
  * Gets a category's ID from URL or name
