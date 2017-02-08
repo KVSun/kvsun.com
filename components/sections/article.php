@@ -1,5 +1,7 @@
 <?php
 namespace KVSun\Components\Article;
+
+const DATE_FORMAT = 'D. M j, Y \a\t h:m:s A';
 return function (
 	\shgysk8zer0\DOM\HTML $dom,
 	\shgysk8zer0\Core\PDO $pdo,
@@ -38,7 +40,7 @@ return function (
 			}
 
 			$pub_date = $xpath->query('.//*[@itemprop="datePublished"]', $article)->item(0);
-			$pub_date->textContent = $posted->format('D. M j, Y \a\t h:m a');
+			$pub_date->textContent = $posted->format(DATE_FORMAT);
 			$pub_date->setAttribute('datetime', $posted->format(\DateTime::W3C));
 			$articleBody = $xpath->query('.//*[@itemprop="articleBody"]', $article)->item(0);
 			$articleBody->importHTML($kvs->content);
@@ -70,12 +72,13 @@ function add_comments(\DOMElement $parent, Array $comments): Int
 {
 	$added = 0;
 	foreach ($comments as $comment) {
+		$created = new \DateTime($comment->created);
 		$container = $parent->append('div', null, [
 			'itemprop' => 'comment',
 			'itemtype' => 'http://schema.org/Comment',
 			'itemscope' => '',
 		]);
-		$user = $container->append('div', null,
+		$user = $container->append('span', null,
 		[
 			'itemprop' => 'author',
 			'itemtype' => 'http://schema.org/Person',
@@ -90,9 +93,15 @@ function add_comments(\DOMElement $parent, Array $comments): Int
 		$user->append('b', 'By&nbsp;')->append('u', $comment->name, [
 			'itemprop' => 'name',
 		]);
+		$container->append('span', '&nbsp;on&nbsp;')->append('time', $created->format(DATE_FORMAT), [
+			'itemprop' => 'dateCreated',
+			'datetime' => $created->format(\DateTime::W3C),
+		]);
+		$container->append('br');
 		$container->append('div', $comment->text, [
 			'itemprop' => 'text',
 		]);
+		$container->append('hr');
 		$added++;
 	}
 	return $added;
