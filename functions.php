@@ -368,9 +368,9 @@ function exception_error_handler(
 /**
  * Gets login user from cookie or session
  * @param void
- * @return shgysk8zer0\Login\User [description]
+ * @return shgysk8zer0\Login\User Or stdClass when no Database connection
  */
-function restore_login(): \shgysk8zer0\Login\User
+function restore_login()
 {
 	if (@file_exists(DB_CREDS) and Core\PDO::load(DB_CREDS)->connected) {
 		return \shgysk8zer0\Login\User::restore('user', DB_CREDS, PASSWD);
