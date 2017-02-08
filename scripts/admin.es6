@@ -70,7 +70,7 @@ export function updatePost() {
 		return;
 	}
 	const form = buildArticleForm('article-template');
-	form.name = 'new-post';
+	form.name = 'update-post';
 	form.action = new URL('api.php', location.origin);
 	form.method = 'POST';
 	try {
@@ -80,6 +80,7 @@ export function updatePost() {
 		const category = header.querySelector('[itemprop="articleSection"]').appendChild(document.createElement('input'));
 		const content = form.querySelector('[itemprop="articleBody"]');
 		const submit = form.appendChild(document.createElement('button'));
+		const postURL = form.appendChild(document.createElement('input'));
 		form.querySelector('footer').hidden = true;
 		title.name = `${form.name}[title]`;
 		title.autocomplete = 'off';
@@ -105,6 +106,9 @@ export function updatePost() {
 		title.value = main.querySelector('[itemprop="headline"]').textContent;
 		author.value = main.querySelector('[itemprop="author"]').textContent;
 		content.innerHTML = main.querySelector('[itemprop="articleBody"]').innerHTML;
+		postURL.type = 'hidden';
+		postURL.name = `${form.name}[url]`;
+		postURL.value = location.href;
 	} catch (e) {
 		console.error(e);
 	} finally {
