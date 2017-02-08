@@ -26,13 +26,23 @@ if (defined('KVSun\EXCEPTION_HANDLER')) {
 	set_exception_handler(\KVSun\EXCEPTION_HANDLER);
 }
 
-if (defined('\KVSun\REQUIRED')) {
+if (defined('\KVSun\REQUIRED') and is_array(\KVSun\REQUIRED)) {
 	array_map(
 		function($file)
 		{
 			require_once __DIR__ . DIRECTORY_SEPARATOR .$file;
 		},
 		\KVSun\REQUIRED
+	);
+}
+
+if (defined('\KVSun\INCLUDE') and is_array(\KVSun\INCLUDED)) {
+	array_map(
+		function($file)
+		{
+			include_once __DIR__ . DIRECTORY_SEPARATOR .$file;
+		},
+		\KVSun\INCLUDED
 	);
 }
 

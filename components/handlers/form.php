@@ -5,7 +5,7 @@ use \shgysk8zer0\Core as Core;
 use \shgysk8zer0\DOM as DOM;
 use \shgysk8zer0\Core_API as API;
 use \shgysk8zer0\Authorize as Authorize;
-use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as Status;
+use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as HTTP;
 
 function is_tel($input)
 {
@@ -376,7 +376,7 @@ switch($req->form) {
 
 	case 'new-post':
 		if (! \KVSun\check_role('editor')) {
-			http_response_code(Status::UNAUTHORIZED);
+			http_response_code(HTTP::UNAUTHORIZED);
 			$resp->notify('Error', 'You must be logged in for that.')->send();
 		}
 
@@ -461,7 +461,7 @@ switch($req->form) {
 
 	case 'update-post':
 		if (! \KVSun\check_role('editor')) {
-			http_response_code(Status::UNAUTHORIZED);
+			http_response_code(HTTP::UNAUTHORIZED);
 			$resp->notify('Error', 'You must be logged in for that.')->send();
 		}
 
