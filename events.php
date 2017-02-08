@@ -7,19 +7,7 @@ use \shgysk8zer0\Login\User as User;
 use \shgysk8zer0\Core\Console as Console;
 use \shgysk8zer0\Core\JSON_Response as Resp;
 
-new Core\Listener('error', function(Int $severity, String $message, String $file, Int $line): Bool
-{
-	$err = new \ErrorException($message, 0, $severity, $file, $line);
-	error_log($err . PHP_EOL, 3,ERROR_LOG);
-	return true;
-});
-
-new Core\Listener('exception', function(\Throwable $e)
-{
-	error_log($e . PHP_EOL, 3, ERROR_LOG);
-});
-
-new Core\Listener('login', function(User $user, Bool $remember = true): Resp
+function login_handler(User $user, Bool $remember = true): Resp
 {
 	try {
 		if ($remember) {
@@ -34,6 +22,9 @@ new Core\Listener('login', function(User $user, Bool $remember = true): Resp
 		$resp->enable(join(', ', \KVSun\LOGGED_IN_ONLY));
 		$resp->disable(join(', ', \KVSun\LOGGED_OUT_ONLY));
 		$resp->attributes('#user-avatar', 'src', "$grav");
+		if (\KVSun\check_role('editor')) {
+			$resp->attributes('main', 'contextmenu', 'admin_menu');
+		}
 		//$avatar->data_load_form = 'update-user';
 		$resp->attributes('#user-avatar', 'data-load-form', 'update-user');
 		$resp->attributes('#user-avatar', 'data-show-modal', false);
@@ -42,19 +33,20 @@ new Core\Listener('login', function(User $user, Bool $remember = true): Resp
 	} finally {
 		return $resp;
 	}
-});
+}
 
-new Core\Listener('logout', function(User $user): Resp
+function logout_handler(User $user): Resp
 {
 	try {
 		$user->logout();
 		$resp = Resp::getInstance();
 		$resp->notify('Success', 'You have been logged out.');
 		$resp->close('dialog[open]');
-		$resp->remove('#update-user-dialog');
+		$resp->remove('#update-user-dialog, #admin_menu');
 		$resp->attributes('#user-avatar', 'src', '/images/octicons/lib/svg/sign-in.svg');
 		$resp->attributes('#user-avatar', 'data-load-form', false);
 		$resp->attributes('#user-avatar', 'data-show-modal', '#login-dialog');
+		$resp->attributes('[contextmenu="admin_menu"]', 'contextmenu', false);
 		$resp->enable(join(', ', LOGGED_OUT_ONLY));
 		$resp->disable(join(', ', LOGGED_IN_ONLY));
 		$resp->send();
@@ -63,7 +55,23 @@ new Core\Listener('logout', function(User $user): Resp
 	} finally {
 		return $resp;
 	}
+}
+
+new Core\Listener('error', function(Int $severity, String $message, String $file, Int $line): Bool
+{
+	$err = new \ErrorException($message, 0, $severity, $file, $line);
+	error_log($err . PHP_EOL, 3,ERROR_LOG);
+	return true;
 });
+
+new Core\Listener('exception', function(\Throwable $e)
+{
+	error_log($e . PHP_EOL, 3, ERROR_LOG);
+});
+
+new Core\Listener('login', __NAMESPACE__ . '\login_handler');
+
+new Core\Listener('logout', __NAMESPACE__ . '\logout_handler');
 
 if (check_role('admin') or DEBUG) {
 	$timer = new Core\Timer();

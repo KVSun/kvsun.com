@@ -5,14 +5,19 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
 	$footer = $dom->body->append('footer');
 	$package = json_decode(file_get_contents('package.json'));
 
-	$login = $footer->append('dialog', null, ['id' => 'login-dialog']);
+	$login = $footer->append('dialog', null, [
+		'id'   => 'login-dialog',
+		'role' => 'contentinfo',
+	]);
 
 	$login->append('button', null, [
 		'type' => 'button',
 		'data-close' => "#{$login->id}",
 	]);
 
-	$register = $footer->append('dialog', null, ['id' => 'registration-dialog']);
+	$register = $footer->append('dialog', null, [
+		'id' => 'registration-dialog'
+	]);
 	$register->append('button', null, [
 		'type' => 'button',
 		'data-close' => "#{$register->id}",

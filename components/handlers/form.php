@@ -123,6 +123,9 @@ switch($req->form) {
 						], JSON_PRETTY_PRINT
 					))) {
 						$db->commit();
+						$user_login = \shgysk8zer0\Login\User::load(\KVSun\DB_CREDS);
+						$user_login($user->email, $user->password);
+						Core\Listener::login($user_login);
 						$resp->notify(
 							'Installation successful',
 							'Reloading'
@@ -277,15 +280,7 @@ switch($req->form) {
 				$pdo->commit();
 				$user = \shgysk8zer0\Login\User::load(\KVSun\DB_CREDS);
 				if ($user($req->register->email, $req->register->password)) {
-					$grav = new Core\Gravatar($req->register->email, 64);
-					$user->setSession('user');
-					$user->setCookie('user');
-					$resp->close('#registration-dialog');
-					$resp->clear('register');
-					$resp->notify('Success', "Welcome {$req->register->name}");
-					$resp->attributes('#user-avatar', 'src', "$grav");
-					$resp->attributes('#user-avatar', 'data-load-form', 'update-user');
-					$resp->attributes('#user-avatar', 'data-show-modal', false);
+					Core\Listener::login($user);
 				} else {
 					$resp->notify('Error registering', 'There was an error saving your user info');
 				}
@@ -387,7 +382,7 @@ switch($req->form) {
 
 		$post = new Core\FormData($_POST['new-post']);
 
-		if (! isset($post->author, $post->title, $post->content)) {
+		if (! isset($post->author, $post->title, $post->content, $post->category)) {
 			$resp->notify(
 				'Missing info for post',
 				'Please make sure it has a title, author, and content.'
@@ -422,32 +417,115 @@ switch($req->form) {
 			:keywords,
 			:description
 		);';
-		$stm = $pdo->prepare($sql);
-		$user = \KVSun\restore_login();
-		$stm->title = strip_tags($post->title);
-		$stm->cat = 1;
-		$stm->author = strip_tags($post->author);
-		$stm->content = $post->content;
-		$stm->draft = isset($post->draft);
-		$stm->url = strtolower(str_replace(' ', '-', strip_tags($post->title)));
-		$stm->posted = $user->id;
-		$stm->keywords = isset($post->keywords) ? $post->keywords : null;
-		$stm->description = isset($post->description) ? $post->description: null;
+		try {
+			if (!\KVSun\category_exists($post->category)) {
+				if (!\KVSun\make_category($post->category)) {
+					$resp->notify('Error creating category', 'Try an existing category or contact an admin.');
+				}
+			}
+			$stm = $pdo->prepare($sql);
+			$user = \KVSun\restore_login();
+			$stm->title = strip_tags($post->title);
+			$stm->cat = \KVSun\get_cat_id($post->category);
+			$stm->author = strip_tags($post->author);
+			$stm->content = $post->content;
+			$stm->draft = isset($post->draft);
+			$stm->url = strtolower(str_replace(' ', '-', strip_tags($post->title)));
+			$stm->posted = $user->id;
+			$stm->keywords = $post->keywords ?? null;
+			$stm->description = $post->description ?? null;
 
-		$article_dom = new \DOMDocument();
-		$article_dom->loadHTML($post->content);
-		$imgs = $article_dom->getElementsByTagName('img');
+			$article_dom = new \DOMDocument();
+			$article_dom->loadHTML($post->content);
+			$imgs = $article_dom->getElementsByTagName('img');
 
-		$stm->img = isset($imgs) ? $imgs->item(0)->getAttribute('src') : null;
+			$stm->img = ($imgs = $article_dom->getElementsByTagName('img') and $imgs->length !== 0)
+			? $imgs->item(0)->getAttribute('src') : null;
 
-		unset($article_dom, $imgs);
+			unset($article_dom, $imgs);
+			$errs = $stm->errorInfo();
+			if (intval($stm->errorCode()) !== 0) {
+				throw new \Exception('SQL Error: '. join(PHP_EOL, $stm->errorInfo()));
+			}
+			if ($stm->execute()) {
+				$resp->notify('Received post', $post->title);
+			} else {
+				trigger_error('Error posting article.');
+				$resp->notify('Error', 'There was an error creating the post');
+			}
+		} catch (\Throwable $e) {
+			trigger_error($e->getMessage());
+			$resp->notify('There was an error creating post', $e->getMessage());
+		}
+		break;
+
+	case 'update-post':
+		if (! \KVSun\check_role('editor')) {
+			http_response_code(Status::UNAUTHORIZED);
+			$resp->notify('Error', 'You must be logged in for that.')->send();
+		}
+
+		$post = new Core\FormData($_POST['update-post']);
 		Core\Console::info($post);
 
-		if ($stm->execute()) {
-			$resp->notify('Received post', $post->title)->send();
-		} else {
-			trigger_error('Error posting article.');
-			$resp->notify('Error', 'There was an error creating the post');
+		if (
+			!isset($post->category, $post->title, $post->author, $post->content, $post->url)
+			or !filter_var($post->url, FILTER_VALIDATE_URL, [
+				'flags' => FILTER_FLAG_PATH_REQUIRED,
+			])
+		) {
+			$resp->notify(
+				'Missing info for post',
+				'Please make sure it has a title, author, and content.'
+			)->send();
+		}
+
+		$stm = Core\PDO::load(\KVSun\DB_CREDS)->prepare(
+			'UPDATE `posts` SET
+				`cat-id` = :cat,
+				`title` = :title,
+				`author` = :author,
+				`content` = :content,
+				`draft` = :draft,
+				`img` = :img,
+				`keywords` = :keywords,
+				`description` = :description
+			WHERE `url` = :url
+			LIMIT 1;'
+		);
+
+		try {
+			if (!\KVSun\category_exists($post->category)) {
+				if (!\KVSun\make_category($post->category)) {
+					$resp->notify('Error creating category', 'Try an existing category or contact an admin.');
+				}
+			}
+			$url = explode('/', rtrim($post->url, '/'));
+			$stm->cat = \KVSun\get_cat_id($post->category);
+			$stm->title = strip_tags($post->title);
+			$stm->author = strip_tags($post->author);
+			$stm->content = $post->content;
+			$stm->draft = isset($post->draft);
+			$stm->keywords = strip_tags($post->keywords) ?? null;
+			$stm->description = strip_tags($post->description) ?? null;
+			$stm->url = end($url);
+			$article_dom = new \DOMDocument();
+			$article_dom->loadHTML($post->content);
+			$imgs = $article_dom->getElementsByTagName('img');
+
+			$stm->img = ($imgs = $article_dom->getElementsByTagName('img') and $imgs->length !== 0)
+				? $imgs->item(0)->getAttribute('src') : null;
+
+			unset($article_dom, $imgs);
+			$stm->execute();
+			if (intval($stm->errorCode()) !== 0) {
+				throw new \Exception('SQL Error: '. join(PHP_EOL, $stm->errorInfo()));
+			}
+			$resp->notify('Update submitted', "Updated '{$post->title}'");
+			$resp->reload();
+		} catch (\Throwable $e) {
+			trigger_error($e->getMessage());
+			$resp->notify('Error updating post', $e->getMessage());
 		}
 		break;
 

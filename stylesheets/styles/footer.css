@@ -1,4 +1,4 @@
-footer {
+body > footer {
 	order: 4;
 	background: dimgray;
 	padding: 2em 0;

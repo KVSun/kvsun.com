@@ -5,6 +5,31 @@ const REQUIRED = [
 	'url'
 ];
 
+const Months = [
+	'Jan',
+	'Feb',
+	'March',
+	'April',
+	'May',
+	'June',
+	'July',
+	'Aug',
+	'Sep.',
+	'Oct',
+	'Nov',
+	'Dec'
+];
+
+const Days = [
+	'Sun.',
+	'Mon,',
+	'Tue.',
+	'Wed.',
+	'Thu.',
+	'Fri.',
+	'Sat.'
+];
+
 export default async function getPage(page) {
 	return loadPage(page);
 }
@@ -164,32 +189,30 @@ function makeHome(cats) {
 function makeArticle(post) {
 	const main = document.querySelector('main');
 	const created = new Date(post.posted);
-	const article = getTemplate('article-template');
+	const template = getTemplate('article-template');
+	const breadcrumbs = template.querySelectorAll('[itemprop="breadcrumb"] [itemprop="item"]');
+	const article = template.querySelector('[itemprop="mainEntityOfPage"]');
+	const publisher = template.querySelector('[itemprop="publisher"]');
+	breadcrumbs.item(0).querySelector('[itemprop="url"]').href = location.origin;
+	breadcrumbs.item(1).querySelector('[itemprop="name"]').textContent = post.category.name;
+	breadcrumbs.item(1).querySelector('[itemprop="url"]').href = post.category.url;
+	breadcrumbs.item(2).querySelector('[itemprop="name"]').textContent = post.title;
+	breadcrumbs.item(2).querySelector('[itemprop="url"]').href = location.href;
 	article.querySelector('[itemprop="headline"]').textContent = post.title;
+	article.querySelector('[itemprop="articleSection"]').textContent = post.category.name;
 	article.querySelector('[itemprop="dateModified"]').setAttribute('content', post.updated);
-	article.querySelector('[itemprop="datePublished"]').textContent = created;
+	article.querySelector('[itemprop="datePublished"]').textContent = formatDate(created);
 	article.querySelector('[itemprop="datePublished"]').setAttribute('datetime', created);
 	article.querySelector('[itemprop="author"]').textContent = post.author;
 	article.querySelector('[itemprop="name"]').textContent = 'Kern Valley Sun';
 	article.querySelector('[itemprop="articleBody"]').innerHTML = post.content;
-	article.querySelector('[itemprop="publisher"] [itemprop="url"]').setAttribute('href', location.origin);
-	article.querySelector('[itemprop="logo"]').setAttribute('content', new URL('/images/sun-icons/128.png', location.origin));
+	publisher.querySelector('[itemprop="url"]').setAttribute('href', location.origin);
+	publisher.querySelector('[itemprop="logo"]').setAttribute('content', new URL('/images/sun-icons/128.png', location.origin));
 	article.appendChild(document.createElement('hr'));
-	let tw = document.createElement('button');
-	let fb = document.createElement('button');
-	let gp = document.createElement('button');
-	tw.type = 'button';
-	tw.textContent = 'Share on Twitter';
-	tw.dataset.share = 'twitter';
-	fb.type = 'button';
-	fb.textContent = 'Share on Facebook';
-	fb.dataset.share = 'facebook';
-	gp.type = 'button';
-	gp.textContent = 'Share on Google+';
-	gp.dataset.share = 'g+';
 	Array.from(main.children).forEach(child => child.remove());
-	main.appendChild(document.importNode(article, true));
-	main.appendChild(fb);
-	main.appendChild(tw);
-	main.appendChild(gp);
+	main.appendChild(document.importNode(template, true));
+}
+
+function formatDate(date) {
+	return `${Days[date.getDay()]} ${Months[date.getMonth()]}, ${date.getFullYear()} at ${date.toLocaleTimeString()}`;
 }

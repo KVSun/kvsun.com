@@ -22,11 +22,8 @@ if ($header->accept === 'application/json') {
 
 		if (empty($path)) {
 			// This would be a request for home
-			$page = new \KVSun\KVSAPI\Home(Core\PDO::load(DB_CREDS), "$url", [
-				'news',
-				'sports',
-				'valley-life',
-			]);
+			// $categories = \KVSun\get_categories();
+			$page = new \KVSun\KVSAPI\Home(Core\PDO::load(DB_CREDS), "$url", \KVSun\get_categories('url'));
 		} elseif (count($path) === 1) {
 			$page = new \KVSun\KVSAPI\Category(Core\PDO::load(DB_CREDS), "$url");
 		} else {
@@ -39,6 +36,21 @@ if ($header->accept === 'application/json') {
 		require_once COMPONENTS . 'handlers' . DIRECTORY_SEPARATOR . 'form.php';
 	} elseif (array_key_exists('datalist', $_GET)) {
 		switch($_GET['datalist']) {
+			case 'categories':
+				$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+				$cats = $pdo('SELECT `name` FROM `categories`');
+				Core\Console::table($cats)->sendLogHeader();
+				$doc = new \DOMDocument();
+				$doc->appendChild($doc->createElement('datalist'));
+				$doc->documentElement->setAttribute('id', 'categories');
+				foreach ($cats as $cat) {
+					$item = $doc->documentElement->appendChild($doc->createElement('option'));
+					$item->setAttribute('value', $cat->name);
+				}
+
+				$resp->append('body', $doc->saveHTML($doc->documentElement));
+				break;
+
 			case 'author_list':
 				$pdo = Core\PDO::load(DB_CREDS);
 				$stm = $pdo->prepare('SELECT `name`

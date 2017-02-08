@@ -40,6 +40,7 @@ const CSP          = array(
 		'https://www.gravatar.com',
 		'https://i.imgur.com',
 		'https://kernvalleysun.com',
+		'data:',
 	],
 	'script-src'   => ["'self'"],
 	'style-src'    => ["'self'", "'unsafe-inline'"],

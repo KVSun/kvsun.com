@@ -7,6 +7,151 @@ use \shgysk8zer0\DOM as DOM;
 use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as HTTP;
 
 /**
+ * Gets a category's ID from URL or name
+ * @param  String $cat URL or name of category
+ * @return Int         It's ID
+ */
+function get_cat_id(String $cat): Int
+{
+	static $q;
+	if (is_null($q)) {
+		$q = Core\PDO::load(\KVSun\DB_CREDS)->prepare(
+			'SELECT `id`
+			FROM `categories`
+			WHERE `name` = :cat
+			OR `url-name` = :cat
+			LIMIT 1;'
+		);
+	}
+	$q->bindParam(':cat', $cat);
+	$q->execute();
+	$match = $q->fetchObject();
+	return $match->id ?? 0;
+}
+
+/**
+ * Get an array of categories with their names and URLs
+ * @return Array Array of categories
+ */
+function get_categories(String $mapping = null): Array
+{
+	static $cats;
+	if (!is_array($cats)) {
+		try {
+			$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+			$cats = $pdo(
+				'SELECT
+					`url-name` AS `url`,
+					`name`
+				FROM `categories`
+				ORDER BY `sort` ASC;'
+			);
+		} catch(\Throwable $e) {
+			trigger_error($e->getMessage());
+			$cats = [];
+		}
+	}
+	return isset($mapping) ? array_map(function(\stdClass $cat) use ($mapping): String
+	{
+		return $cat->{$mapping};
+	}, $cats) : $cats;
+}
+
+/**
+ * Create a new category
+ * @param  String  $name   Name of category
+ * @param  integer $sort   Sort order
+ * @param  String  $parent Optional parent category
+ * @return Bool            Whether or not the category was created
+ */
+function make_category(String $name, Int $sort = 12, String $parent = null): Bool
+{
+	$stm = Core\PDO::load(\KVSun\DB_CREDS)->prepare(
+		'INSERT INTO `categories` (
+			`name`,
+			`sort`,
+			`parent`,
+			`url-name`
+		) VALUES (
+			:name,
+			:sort,
+			:parent,
+			:url
+		);'
+	);
+
+	$stm->name = $name;
+	$stm->sort = $sort;
+	$stm->parent = $parent;
+	$stm->url = str_replace(' ', '-', strtolower($name));
+	$stm->execute();
+	if (intval($stm->errorCode()) !== 0) {
+		trigger_error('SQL Error: '. join(PHP_EOL, $stm->errorInfo()));
+		return false;
+	} else {
+		return true;
+	}
+}
+
+/**
+ * Check if a category exists according to its URL
+ * @param  String $query Category URL
+ * @return Bool          Whether or not it exists
+ */
+function category_exists(String $query): Bool
+{
+	$categories = get_categories();
+	$exists     = false;
+	$query      = trim(strtolower($query));
+
+	foreach($categories as $category) {
+		if (
+			trim(strtolower($category->url)) === $query
+			or trim(strtolower($category->name)) === $query
+		) {
+			$exists = true;
+			break;
+		}
+	}
+	return $exists;
+}
+
+/**
+ * Get posts in category
+ * @param  String  $cat   Category URL
+ * @param  integer $limit Max number of results
+ * @return Array          Array of posts. Empty array on failure
+ */
+function get_category(String $cat, Int $limit = 20): Array
+{
+	try {
+		$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+		$stm = $pdo->prepare(
+			"SELECT
+			`posts`.`title`,
+			`posts`.`author`,
+			`posts`.`content`,
+			`posts`.`posted`,
+			`posts`.`updated`,
+			`posts`.`keywords`,
+			`posts`.`description`,
+			`posts`.`url`,
+			`categories`.`name` AS `category`,
+			`categories`.`url-name` AS `catURL`
+			FROM `categories`
+			JOIN `posts` ON `categories`.`id` = `posts`.`cat-id`
+			WHERE `categories`.`url-name` = :cat
+			ORDER BY `updated` DESC
+			LIMIT {$limit};"
+		);
+		$stm->execute(['cat' => $cat]);
+		return $stm->getResults() ?? [];
+	} catch(\Throwable $e) {
+		trigger_error($e->getMessage());
+		return [];
+	}
+}
+/**
  * Create `<dialog>` & `<form>` for updating user data
  * @param  shgysk8zer0\Login\User          $user User data to update from
  * @return shgysk8zer0\DOM\HTMLElement     `<dialog><form>...</dialog>`
@@ -280,16 +425,17 @@ function get_transactions_for(String $user): \stdClass
 }
 
 function setcookie(
-	$name,
-	$value,
-	$httpOnly = true,
-	$path = '/'
-)
+	String $name,
+	String $value,
+	String $expires  = '+1 month',
+	Bool   $httpOnly = true,
+	String $path     = '/'
+): Bool
 {
 	return \setcookie(
 		$name,
 		$value,
-		strtotime('+1 month'),
+		strtotime($expires),
 		$path,
 		$_SERVER['HTTP_HOST'],
 		array_key_exists('HTTPS', $_SERVER),
@@ -465,11 +611,7 @@ function load_file(String $file, String $ext = EXT)
 
 	if (empty($path)) {
 		// This would be a request for home
-		$kvs = new \KVSun\KVSAPI\Home(Core\PDO::load(DB_CREDS), "$url", [
-			'news',
-			'sports',
-			'valley-life',
-		]);
+		$kvs = new \KVSun\KVSAPI\Home(Core\PDO::load(DB_CREDS), "$url", get_categories('url'));
 	} elseif (count($path) === 1) {
 		$kvs = new \KVSun\KVSAPI\Category(Core\PDO::load(DB_CREDS), "$url");
 	} else {
@@ -482,14 +624,19 @@ function load_file(String $file, String $ext = EXT)
 			$kvs
 		);
 	}
-	$ret = require_once(COMPONENTS . $file . $ext);
 
-	if (is_callable($ret)) {
-		return call_user_func_array($ret, $args);
-	} elseif (is_string($ret)) {
-		return $ret;
-	} else {
-		trigger_error("$file did not return a function or string.");
+	try {
+		$ret = require_once(COMPONENTS . $file . $ext);
+
+		if (is_callable($ret)) {
+			return call_user_func_array($ret, $args);
+		} elseif (is_string($ret)) {
+			return $ret;
+		} else {
+			trigger_error("$file did not return a function or string.");
+		}
+	} catch (\Throwable $e) {
+		trigger_error($e->getMessage());
 	}
 }
 
@@ -520,87 +667,6 @@ function get_path(): Array
 		$path = array_filter(explode('/', trim($_SERVER['REQUEST_URI'], '/')));
 	}
 	return $path;
-}
-
-/**
- * Get an array of categories with their names and URLs
- * @return Array Array of categories
- */
-function get_categories(): Array
-{
-	static $cats;
-	if (!is_array($cats)) {
-		try {
-			$pdo = Core\PDO::load(\KVSun\DB_CREDS);
-			$cats = $pdo(
-				'SELECT
-					`url-name` AS `url`,
-					`name`
-				FROM `categories`
-				ORDER BY `sort` ASC;'
-			);
-		} catch(\Throwable $e) {
-			trigger_error($e->getMessage());
-			$cats = [];
-		}
-	}
-	return $cats ?? [];
-}
-
-/**
- * Check if a category exists according to its URL
- * @param  String $query Category URL
- * @return Bool          Whether or not it exists
- */
-function category_exists(String $query): Bool
-{
-	$categories = get_categories();
-	$exists     = false;
-	$query      = trim(strtolower($query));
-
-	foreach($categories as $category) {
-		if (trim(strtolower($category->url)) === $query) {
-			$exists = true;
-			break;
-		}
-	}
-	return $exists;
-}
-
-/**
- * Get posts in category
- * @param  String  $cat   Category URL
- * @param  integer $limit Max number of results
- * @return Array          Array of posts. Empty array on failure
- */
-function get_category(String $cat, Int $limit = 20): Array
-{
-	try {
-		$pdo = Core\PDO::load(\KVSun\DB_CREDS);
-		$stm = $pdo->prepare(
-			"SELECT
-			`posts`.`title`,
-			`posts`.`author`,
-			`posts`.`content`,
-			`posts`.`posted`,
-			`posts`.`updated`,
-			`posts`.`keywords`,
-			`posts`.`description`,
-			`posts`.`url`,
-			`categories`.`name` AS `category`,
-			`categories`.`url-name` AS `catURL`
-			FROM `categories`
-			JOIN `posts` ON `categories`.`id` = `posts`.`cat-id`
-			WHERE `categories`.`url-name` = :cat
-			ORDER BY `updated` DESC
-			LIMIT {$limit};"
-		);
-		$stm->execute(['cat' => $cat]);
-		return $stm->getResults() ?? [];
-	} catch(\Throwable $e) {
-		trigger_error($e->getMessage());
-		return [];
-	}
 }
 
 /**
