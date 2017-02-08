@@ -136,56 +136,73 @@ function getTemplate(templateID) {
 	}
 }
 function add_comments(parent, comments) {
-	let added = 0;
 	comments.forEach(comment => {
-		let container = parent.appendChild(document.createElement('div'));
+		const container = parent.appendChild(document.createElement('div'));
+		const user = container.appendChild(document.createElement('span'));
+		const grav = user.appendChild(document.createElement('img'));
+		const posted = container.appendChild(document.createElement('span'));
+		posted.appendChild(document.createTextNode(' on '));
+		const time = posted.appendChild(document.createElement('time'));
+		container.appendChild(document.createElement('br'));
+		const addedComment = container.appendChild(document.createElement('div'));
+		const byLine = user.appendChild(document.createElement('b'));
+		const commenter = byLine.appendChild(document.createElement('u'));
+		container.appendChild(document.createElement('hr'));
+
 		container.setAttribute('itemprop', 'comment');
 		container.setAttribute('itemtype', 'http://schema.org/Comment');
 		container.setAttribute('itemscope', null);
 
-		let user = container.appendChild(document.createElement('div'));
 		user.setAttribute('itemprop', 'author');
 		user.setAttribute('itemtype', 'http://schema.org/Person');
 		user.setAttribute('itemscope', null);
-		let grav = user.appendChild(document.createElement('img'));
 		grav.src = `https://www.gravatar.com/avatar/${comment.email}`;
 		grav.width = 80;
 		grav.height = 80;
 		grav.setAttribute('itemprop', 'image');
-		let byLine = user.appendChild(document.createElement('b'));
 		byLine.appendChild(document.createTextNode('By '));
-		let commenter = byLine.appendChild(document.createElement('u'));
 		commenter.textContent = comment.name;
 		commenter.setAttribute('itemprop', 'name');
 
-		let addedComment = container.appendChild(document.createElement('div'));
+		time.textContent = formatDate(new Date(comment.created));
+		time.setAttribute('itemprop', 'dateCreated');
+		time.setAttribute('datetime', comment.created);
+
 		addedComment.textContent = comment.text;
 		addedComment.setAttribute('itemprop', 'text');
-
-		/*container = $parent->append('div', null, [
-			'itemprop' => 'comment',
-			'itemtype' => 'http://schema.org/Comment',
-			'itemscope' => '',
-		]);
-		$user = $container->append('div', null,
-		[
-			'itemprop' => 'author',
-			'itemtype' => 'http://schema.org/Person',
-			'itemscope' => '',
-		]);
-		$user->append('img', null, [
-			'src' => "https://www.gravatar.com/avatar/{$comment->email}",
-			'width' => 80,
-			'height' => 80,
-			'itemprop' => 'image',
-		]);
-		$user->append('b', 'By&nbsp;')->append('u', $comment->name);
-		$container->append('div', $comment->text, [
-			'itemprop' => 'text',
-		]);*/
-		added++;
+		/*foreach ($comments as $comment) {
+			$created = new \DateTime($comment->created);
+			$container = $parent->append('div', null, [
+				'itemprop' => 'comment',
+				'itemtype' => 'http://schema.org/Comment',
+				'itemscope' => '',
+			]);
+			$user = $container->append('span', null,
+			[
+				'itemprop' => 'author',
+				'itemtype' => 'http://schema.org/Person',
+				'itemscope' => '',
+			]);
+			$user->append('img', null, [
+				'src' => "https://www.gravatar.com/avatar/{$comment->email}",
+				'width' => 80,
+				'height' => 80,
+				'itemprop' => 'image',
+			]);
+			$user->append('b', 'By&nbsp;')->append('u', $comment->name, [
+				'itemprop' => 'name',
+			]);
+			$container->append('span', '&nbsp;on&nbsp;')->append('time', $created->format(DATE_FORMAT), [
+				'itemprop' => 'dateCreated',
+				'datetime' => $created->format(\DateTime::W3C),
+			]);
+			$container->append('br');
+			$container->append('div', $comment->text, [
+				'itemprop' => 'text',
+			]);
+			$container->append('hr');
+		}*/
 	});
-	return added;
 }
 
 function makeCategory(category) {
@@ -245,6 +262,7 @@ function makeArticle(post) {
 	const breadcrumbs = template.querySelectorAll('[itemprop="breadcrumb"] [itemprop="item"]');
 	const article = template.querySelector('[itemprop="mainEntityOfPage"]');
 	const publisher = template.querySelector('[itemprop="publisher"]');
+	const commentCount = article.appendChild(document.createElement('meta'));
 	breadcrumbs.item(0).querySelector('[itemprop="url"]').href = location.origin;
 	breadcrumbs.item(1).querySelector('[itemprop="name"]').textContent = post.category.name;
 	breadcrumbs.item(1).querySelector('[itemprop="url"]').href = post.category.url;
@@ -261,10 +279,9 @@ function makeArticle(post) {
 	publisher.querySelector('[itemprop="url"]').setAttribute('href', location.origin);
 	publisher.querySelector('[itemprop="logo"]').setAttribute('content', new URL('/images/sun-icons/128.png', location.origin));
 	article.appendChild(document.createElement('hr'));
-	const count = add_comments(article.querySelector('footer'), post.comments);
-	const meta = article.appendChild(document.createElement('meta'));
-	meta.setAttribute('itemprop', 'commentCount');
-	meta.setAttribute('content', count);
+	add_comments(article.querySelector('footer'), post.comments);
+	commentCount.setAttribute('itemprop', 'commentCount');
+	commentCount.setAttribute('content', post.comments.length);
 	Array.from(main.children).forEach(child => child.remove());
 	main.appendChild(document.importNode(template, true));
 }
