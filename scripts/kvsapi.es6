@@ -171,38 +171,6 @@ function add_comments(parent, comments) {
 
 		addedComment.textContent = comment.text;
 		addedComment.setAttribute('itemprop', 'text');
-		/*foreach ($comments as $comment) {
-			$created = new \DateTime($comment->created);
-			$container = $parent->append('div', null, [
-				'itemprop' => 'comment',
-				'itemtype' => 'http://schema.org/Comment',
-				'itemscope' => '',
-			]);
-			$user = $container->append('span', null,
-			[
-				'itemprop' => 'author',
-				'itemtype' => 'http://schema.org/Person',
-				'itemscope' => '',
-			]);
-			$user->append('img', null, [
-				'src' => "https://www.gravatar.com/avatar/{$comment->email}",
-				'width' => 80,
-				'height' => 80,
-				'itemprop' => 'image',
-			]);
-			$user->append('b', 'By&nbsp;')->append('u', $comment->name, [
-				'itemprop' => 'name',
-			]);
-			$container->append('span', '&nbsp;on&nbsp;')->append('time', $created->format(DATE_FORMAT), [
-				'itemprop' => 'dateCreated',
-				'datetime' => $created->format(\DateTime::W3C),
-			]);
-			$container->append('br');
-			$container->append('div', $comment->text, [
-				'itemprop' => 'text',
-			]);
-			$container->append('hr');
-		}*/
 	});
 }
 
