@@ -53,7 +53,6 @@ function post_comment(
 		} else {
 			$comment = html_entity_decode($comment, ENT_HTML5, 'UTF-8');
 		}
-		Core\Console::info(['comment' => $comment]);
 		$stm->bindParam(':post', $post);
 		$stm->bindParam(':cat', $category);
 		$stm->bindParam(':user', $user->id);
