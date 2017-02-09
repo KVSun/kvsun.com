@@ -8,6 +8,44 @@ use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as HTTP;
 use \shgysk8zer0\Login\User as User;
 
 /**
+ * Builds all the things!
+ * @param  Array        $path            URL path as an array
+ * @return DOMDocument                   The resulting document build
+ */
+function build_dom(Array $path = array()): \DOMDocument
+{
+	if (@file_exists(\KVSun\DB_CREDS) and Core\PDO::load(\KVSun\DB_CREDS)->connected) {
+		DOM\HTMLElement::$import_path = \KVSun\COMPONENTS;
+		$dom = DOM\HTML::getInstance();
+		if (!empty($path) and file_exists(\KVSun\PAGES_DIR . "{$path[0]}.php")) {
+			require \KVSun\PAGES_DIR . "{$path[0]}.php";
+			exit();
+		}
+		// If IE, show update and hide rest of document
+		$dom->body->ifIE(
+			file_get_contents(\KVSun\COMPONENTS . 'update.html')
+			. '<div style="display:none !important;">'
+		);
+
+		$dom->body->class = 'flex row wrap';
+
+		array_map([$dom->body, 'importHTMLFile'], \KVSun\HTML_TEMPLATES);
+
+		\KVSun\add_main_menu($dom->body);
+		\KVSun\load(...\KVSun\PAGE_COMPONENTS);
+
+		// Close `</div>` created in [if IE]
+		$dom->body->ifIE('</div>');
+
+	} else {
+		$dom = new \DOMDocument();
+		$dom->loadHTMLFile(\KVSun\COMPONENTS . 'install.html');
+	}
+	Core\Listener::load();
+	return $dom;
+}
+
+/**
  * Post a comment on an article
  * @param  String  $url        URL for post
  * @param  User    $user       User making comment
@@ -48,12 +86,17 @@ function post_comment(
 				:comment
 			);'
 		);
-		if (!$allow_html) {
-			$comment = strip_tags($comment);
-			$comment = nl2br($comment);
-		} else {
-			$comment = html_entity_decode($comment, ENT_HTML5, 'UTF-8');
-		}
+		// $comment = strip_tags($comment);
+		// $comment = nl2br($comment);
+		// if (!$allow_html) {
+		// 	$comment = strip_tags($comment);
+			if (!$allow_html) {
+				$comment = strip_tags($comment);
+			}
+			$comment = preg_replace('/\r|\n|\t/', null, nl2br($comment));
+		// } else {
+		// 	$comment = html_entity_decode($comment, ENT_HTML5, 'UTF-8');
+		// }
 		$stm->bindParam(':post', $post);
 		$stm->bindParam(':cat', $category);
 		$stm->bindParam(':user', $user->id);
