@@ -380,7 +380,8 @@ switch($req->form) {
 			if (!isset($headers->referer)) {
 				$resp->notify(
 					'Cannot post comment',
-					'You seem to have your privacy settings blocking us from knowing which post you are trying to post a comment on.'
+					'You seem to have your privacy settings blocking us from knowing which post you are trying to post a comment on.',
+					'/images/octicons/lib/svg/comment-discussion.svg'
 				)->send();
 			} else {
 				$url = $headers->referer;
@@ -390,12 +391,14 @@ switch($req->form) {
 				])) {
 					$resp->notify(
 						'You cannot post on this page',
-						'You seem to by trying to comment on the home page.'
+						'You seem to by trying to comment on the home page.',
+						'/images/octicons/lib/svg/comment-discussion.svg'
 					)->send();
 				} elseif (!isset($comment->text)) {
 					$resp->notify(
 						'We seem to be missing the comment',
-						'Double check that you\'ve filled out the comment box and try again.'
+						'Double check that you\'ve filled out the comment box and try again.',
+						'/images/octicons/lib/svg/comment-discussion.svg'
 					)->send();
 				}
 				$user = \KVSun\restore_login();
@@ -403,10 +406,14 @@ switch($req->form) {
 					$url,
 					$user,
 					$comment->text,
-					\KVSun\check_role('editor'),
-					true//\KVSun\check_role('editor')
+					\KVSun\check_role('editor')
 				)) {
-					$resp->notify('Comment submitted', 'Check console');
+					$resp->notify(
+						'Comment submitted',
+						'Comments are not displayed until approval by an editor.',
+						'/images/octicons/lib/svg/comment-discussion.svg'
+					);
+					$resp->clear('comments');
 				} else {
 					$resp->notify('There was an error posting your comment.');
 				}
