@@ -82,7 +82,7 @@ if ($header->accept === 'application/json') {
 		} else {
 			$resp->notify('Request for menu', $_GET['load_menu']);
 		}
-	} elseif(array_key_exists('load_form', $_REQUEST)) {
+	} elseif (array_key_exists('load_form', $_REQUEST)) {
 		// All HTML forms in forms/ should be considered publicly available
 		if (@file_exists("./components/forms/{$_REQUEST['load_form']}.html")) {
 			$form = file_get_contents("./components/forms/{$_REQUEST['load_form']}.html");
@@ -143,6 +143,88 @@ if ($header->accept === 'application/json') {
 				$resp->showModal("#{$dialog->id}");
 				break;
 
+			case 'moderate':
+				if (\KVSun\check_role('editor')) {
+					try {
+						$comments = \KVSun\get_comments();
+						$doc = new DOM\HTML;
+						$dialog = $doc->body->append('dialog', null, [
+							'id' => 'comment-moderator',
+						]);
+						$dialog->append('button', null, [
+							'data-delete' => "#{$dialog->id}",
+						]);
+						$dialog->append('hr');
+						$form = $dialog->append('form', null, [
+							'name' => 'comment-moderator-form',
+							'action' => \KVSun\DOMAIN . 'api.php',
+							'method' => 'POST',
+						]);
+						$table = $form->append('table', null, [
+							'border' => 1,
+						]);
+						$form->append('button', 'Update', [
+							'type' => 'submit',
+						]);
+						$thead = $table->append('thead');
+						$tbody = $table->append('tbody');
+						$tfoot = $table->append('tfoot');
+						$tr = $thead->append('tr');
+						foreach ([
+							'User',
+							'Date',
+							'Category',
+							'Article',
+							'Comment',
+							'Approved',
+							'Delete comment'
+						] as $key) {
+							$tr->append('th', $key);
+						}
+						foreach ($comments as $comment) {
+							$tr = $tbody->append('tr', null, [
+								'id' => "moderate-comments-row-{$comment->ID}",
+							]);
+							$tr->append('td')->append('a', $comment->name, [
+								'href' => "mailto:{$comment->email}",
+							]);
+							$tr->append('td', (new \DateTime($comment->created))->format('D, M jS, Y @ g:i:s A'));
+							$tr->append('td', $comment->category);
+							$tr->append('td')->append('a', $comment->Article, [
+								'href' => \KVSun\DOMAIN . "{$comment->catURL}/{$comment->postURL}#comment-{$comment->ID}",
+								'target' => '_blank',
+							]);
+							$tr->append('td')->append('blockquote', $comment->comment);
+							$approved = $tr->append('td');
+							$approved_y = $approved->append('label', 'Yes')->append('input', null, [
+								'type' => 'radio',
+								'name' => "{$form->name}[approved][{$comment->ID}]",
+								'value' => '1',
+							]);
+							$approved_n = $approved->append('label', 'No')->append('input', null, [
+								'type' => 'radio',
+								'name' => "{$form->name}[approved][{$comment->ID}]",
+								'value' => '0',
+							]);
+							$tr->append('td')->append('button', 'X', [
+								'data-request' => "delete-comment={$comment->ID}",
+								'data-confirm' => 'Are you sure you want to delete this comment?',
+							]);
+							if ($comment->approved) {
+								$approved_y->checked = null;
+							} else {
+								$approved_n->checked = null;
+							}
+						}
+						$resp->append('body', "$dialog");
+						$resp->showModal("#{$dialog->id}");
+					} catch (\Throwable $e) {
+						Core\Console::error($e);
+						$resp->notify('There was an error', $e->getMessage());
+					}
+				}
+				break;
+
 			default:
 				trigger_error("Request for unhandled form, {$_REQUEST['load_form']}");
 				$resp->notify(
@@ -173,6 +255,23 @@ if ($header->accept === 'application/json') {
 			case 'logout':
 				Core\Listener::logout(restore_login());
 				break;
+		}
+	} elseif (array_key_exists('delete-comment', $_GET)) {
+		if (!\KVSun\check_role('editor')) {
+			$resp->notify(
+				"I'm afraid I can't let you do that, Dave",
+				'You are not authorized to moderate comments.',
+				'/images/octicons/lib/svg/alert.svg'
+			);
+		} elseif (\KVSun\delete_comments($_GET['delete-comment'])) {
+			$resp->notify('Comment deleted');
+			$resp->remove("#moderate-comments-row-{$_GET['delete-comment']}");
+		} else {
+			$resp->notify(
+				'Unable to delete comment',
+				'Check error log.',
+				'/images/octicons/lib/svg/bug.svg'
+			);
 		}
 	} else {
 		$resp->notify('Invalid request', 'See console for details.', DOMAIN . 'images/sun-icons/128.png');

@@ -1,5 +1,7 @@
 <?php
 namespace KVSun\Components\Article;
+
+const DATE_FORMAT = 'D. M j, Y \a\t h:m:s A';
 return function (
 	\shgysk8zer0\DOM\HTML $dom,
 	\shgysk8zer0\Core\PDO $pdo,
@@ -38,7 +40,7 @@ return function (
 			}
 
 			$pub_date = $xpath->query('.//*[@itemprop="datePublished"]', $article)->item(0);
-			$pub_date->textContent = $posted->format('D. M j, Y \a\t h:m a');
+			$pub_date->textContent = $posted->format(DATE_FORMAT);
 			$pub_date->setAttribute('datetime', $posted->format(\DateTime::W3C));
 			$articleBody = $xpath->query('.//*[@itemprop="articleBody"]', $article)->item(0);
 			$articleBody->importHTML($kvs->content);
@@ -51,6 +53,11 @@ return function (
 				$xpath->query('.//*[@itemprop="logo"]', $pub)->item(0)->setAttribute('content', \KVSun\DOMAIN . 'images/sun-icons/256.png');
 			}
 			set_img_data($articleBody);
+			$count = add_comments($main->getElementsByTagName('footer')->item(0), $kvs->comments);
+			$article->append('meta', null, [
+				'itemprop' => 'commentCount',
+				'content' => count($kvs->comments),
+			]);
 		} catch(\Exception $e) {
 			trigger_error($e);
 		} catch(\Error $e) {
@@ -60,6 +67,44 @@ return function (
 		trigger_error('Invalid page contents given.');
 	}
 };
+
+function add_comments(\DOMElement $parent, Array $comments)
+{
+	foreach ($comments as $comment) {
+		$created = new \DateTime($comment->created);
+		$container = $parent->append('div', null, [
+			'itemprop'  => 'comment',
+			'itemtype'  => 'http://schema.org/Comment',
+			'id'        => "comment-{$comment->commentID}",
+			'itemscope' => '',
+		]);
+		$user = $container->append('span', null,
+		[
+			'itemprop' => 'author',
+			'itemtype' => 'http://schema.org/Person',
+			'itemscope' => '',
+		]);
+		$user->append('img', null, [
+			'src' => "https://www.gravatar.com/avatar/{$comment->email}",
+			'width' => 80,
+			'height' => 80,
+			'itemprop' => 'image',
+			'alt' => "{$comment->username} avatar",
+		]);
+		$user->append('b', 'By&nbsp;')->append('u', $comment->name, [
+			'itemprop' => 'name',
+		]);
+		$container->append('span', '&nbsp;on&nbsp;')->append('time', $created->format(DATE_FORMAT), [
+			'itemprop' => 'dateCreated',
+			'datetime' => $created->format(\DateTime::W3C),
+		]);
+		$container->append('br');
+		$container->append('div', $comment->text, [
+			'itemprop' => 'text',
+		]);
+		$container->append('hr');
+	}
+}
 
 function set_keywords(\DOMElement $container, Array $keywords) {
 	foreach ($keywords as $keyword) {

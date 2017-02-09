@@ -374,6 +374,96 @@ switch($req->form) {
 		}
 		break;
 
+	case 'comments':
+		if (\KVSun\check_role('guest')) {
+			$headers = Core\Headers::getInstance();
+			if (!isset($headers->referer)) {
+				$resp->notify(
+					'Cannot post comment',
+					'You seem to have your privacy settings blocking us from knowing which post you are trying to post a comment on.',
+					'/images/octicons/lib/svg/comment-discussion.svg'
+				)->send();
+			} else {
+				$url = $headers->referer;
+				$comment = new Core\FormData($_POST['comments']);
+				if (!filter_var($url, FILTER_VALIDATE_URL, [
+					'flags' => FILTER_FLAG_PATH_REQUIRED
+				])) {
+					$resp->notify(
+						'You cannot post on this page',
+						'You seem to by trying to comment on the home page.',
+						'/images/octicons/lib/svg/comment-discussion.svg'
+					)->send();
+				} elseif (!isset($comment->text)) {
+					$resp->notify(
+						'We seem to be missing the comment',
+						'Double check that you\'ve filled out the comment box and try again.',
+						'/images/octicons/lib/svg/comment-discussion.svg'
+					)->send();
+				}
+				$user = \KVSun\restore_login();
+				if (\KVSun\post_comment(
+					$url,
+					$user,
+					$comment->text,
+					\KVSun\check_role('editor')
+				)) {
+					$resp->notify(
+						'Comment submitted',
+						'Comments are not displayed until approval by an editor.',
+						'/images/octicons/lib/svg/comment-discussion.svg'
+					);
+					$resp->clear('comments');
+				} else {
+					$resp->notify('There was an error posting your comment.');
+				}
+			}
+		} else {
+			$resp->notify('You must be logged in to comment.');
+			$resp->showModal('#login-dialog');
+		}
+		break;
+
+	case 'comment-moderator-form':
+		if (!\KVSun\check_role('editor')) {
+			$resp->notify(
+				"I'm afraid I can't let you do that, Dave",
+				'You are not authorized to moderate comments.',
+				'/images/octicons/lib/svg/alert.svg'
+			);
+		} else {
+			$comments = new Core\FormData($_POST['comment-moderator-form']);
+			try {
+				$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+				$pdo->beginTransaction();
+				$stm = $pdo->prepare(
+					'UPDATE `post_comments`
+					SET `approved` = :approved
+					WHERE `id` = :id
+					LIMIT 1;'
+				);
+				foreach ($comments->approved as $id => $approved) {
+					$approved = $approved === '1';
+					$stm->bindParam(':id', $id);
+					$stm->bindParam(':approved', $approved);
+					$stm->execute();
+				}
+				$pdo->commit();
+				$resp->notify(
+					'Comments have been updated',
+					'You may now close moderator form or make more changes',
+					'/images/octicons/lib/svg/comment-discussion.svg'
+				);
+			} catch (\Throwable $e) {
+				trigger_error($e->getMessage());
+				$resp->notify(
+					'Error updating comments',
+					"{$e->getMessage()} on {$e->getFile()}:{$e->getLine()}",
+					'/images/octicons/lib/svg/bug.svg'
+				 );
+			}
+		}
+		break;
 	case 'new-post':
 		if (! \KVSun\check_role('editor')) {
 			http_response_code(HTTP::UNAUTHORIZED);
@@ -443,7 +533,7 @@ switch($req->form) {
 			? $imgs->item(0)->getAttribute('src') : null;
 
 			unset($article_dom, $imgs);
-			$errs = $stm->errorInfo();
+
 			if (intval($stm->errorCode()) !== 0) {
 				throw new \Exception('SQL Error: '. join(PHP_EOL, $stm->errorInfo()));
 			}
