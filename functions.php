@@ -50,6 +50,7 @@ function post_comment(
 		);
 		if (!$allow_html) {
 			$comment = strip_tags($comment);
+			$comment = nl2br($comment);
 		} else {
 			$comment = html_entity_decode($comment, ENT_HTML5, 'UTF-8');
 		}
@@ -67,6 +68,63 @@ function post_comment(
 	} catch (\Throwable $e) {
 		trigger_error($e->getMessage());
 		return false;
+	}
+}
+
+/**
+ * Gets all comments with associated user/post/category data
+ * @return Array An Array of comments
+ */
+function get_comments(): Array
+{
+	return (Core\PDO::load(\KVSun\DB_CREDS))(
+		'SELECT
+			`post_comments`.`id` AS `ID`,
+			`post_comments`.`text` AS `comment`,
+			`post_comments`.`created`,
+			`post_comments`.`approved`,
+			`users`.`username`,
+			`users`.`email`,
+			`user_data`.`name`,
+			`posts`.`title` AS `Article`,
+			`posts`.`url` AS `postURL`,
+			`categories`.`url-name` AS `catURL`,
+			`categories`.`name` AS `category`
+		FROM `post_comments`
+		JOIN `users` ON `users`.`id` = `post_comments`.`userID`
+		JOIN `user_data` ON `user_data`.`id` = `post_comments`.`userID`
+		JOIN `posts` ON `posts`.`id` = `post_comments`.`postID`
+		JOIN `categories` ON `categories`.`id` = `post_comments`.`catID`;'
+	);
+}
+
+/**
+ * Delete comments by ID
+ * @param  Int  $ids A list of IDs to delete
+ * @return Bool      Whether or not they were deleted
+ * @example delete_comments(1, 2, ...);
+ * @example delete_comments(...$ids);
+ */
+function delete_comments(Int ...$ids): Bool
+{
+	$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+	$pdo->beginTransaction();
+	$stm = $pdo->prepare('DELETE FROM `post_comments` WHERE `id` = :id;');
+	$result = true;
+	try {
+		foreach ($ids as $id) {
+			$stm->bindParam(':id', $id);
+			$stm->execute();
+			if (intval($stm->errorCode()) !== 0) {
+				throw new \Exception('SQL Error: '. join(PHP_EOL, $stm->errorInfo()));
+			}
+		}
+		$pdo->commit();
+	} catch (\Throwable $e) {
+		trigger_error($e->getMessage());
+		$result = false;
+	} finally {
+		return $result;
 	}
 }
 
