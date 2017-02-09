@@ -146,6 +146,7 @@ function add_comments(parent, comments) {
 		container.appendChild(document.createElement('br'));
 		const addedComment = container.appendChild(document.createElement('div'));
 		const byLine = user.appendChild(document.createElement('b'));
+		byLine.appendChild(document.createTextNode('By '));
 		const commenter = byLine.appendChild(document.createElement('u'));
 		container.appendChild(document.createElement('hr'));
 
@@ -161,7 +162,6 @@ function add_comments(parent, comments) {
 		grav.width = 80;
 		grav.height = 80;
 		grav.setAttribute('itemprop', 'image');
-		byLine.appendChild(document.createTextNode('By '));
 		commenter.textContent = comment.name;
 		commenter.setAttribute('itemprop', 'name');
 
