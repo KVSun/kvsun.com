@@ -424,6 +424,46 @@ switch($req->form) {
 		}
 		break;
 
+	case 'comment-moderator-form':
+		if (!\KVSun\check_role('editor')) {
+			$resp->notify(
+				"I'm afraid I can't let you do that, Dave",
+				'You are not authorized to moderate comments.',
+				'/images/octicons/lib/svg/alert.svg'
+			);
+		} else {
+			$comments = new Core\FormData($_POST['comment-moderator-form']);
+			try {
+				$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+				$pdo->beginTransaction();
+				$stm = $pdo->prepare(
+					'UPDATE `post_comments`
+					SET `approved` = :approved
+					WHERE `id` = :id
+					LIMIT 1;'
+				);
+				foreach ($comments->approved as $id => $approved) {
+					$approved = $approved === '1';
+					$stm->bindParam(':id', $id);
+					$stm->bindParam(':approved', $approved);
+					$stm->execute();
+				}
+				$pdo->commit();
+				$resp->notify(
+					'Comments have been updated',
+					'You may now close moderator form or make more changes',
+					'/images/octicons/lib/svg/comment-discussion.svg'
+				);
+			} catch (\Throwable $e) {
+				trigger_error($e->getMessage());
+				$resp->notify(
+					'Error updating comments',
+					"{$e->getMessage()} on {$e->getFile()}:{$e->getLine()}",
+					'/images/octicons/lib/svg/bug.svg'
+				 );
+			}
+		}
+		break;
 	case 'new-post':
 		if (! \KVSun\check_role('editor')) {
 			http_response_code(HTTP::UNAUTHORIZED);
