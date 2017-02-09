@@ -1,6 +1,8 @@
 <?php
 namespace KVSun\Components\Article;
 
+use \KVSun\KVSAPI\Comments as Comments;
+
 const DATE_FORMAT = 'D. M j, Y \a\t h:m:s A';
 return function (
 	\shgysk8zer0\DOM\HTML $dom,
@@ -68,7 +70,7 @@ return function (
 	}
 };
 
-function add_comments(\DOMElement $parent, Array $comments)
+function add_comments(\DOMElement $parent, Comments $comments)
 {
 	foreach ($comments as $comment) {
 		$created = new \DateTime($comment->created);
