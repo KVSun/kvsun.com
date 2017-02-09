@@ -89,6 +89,7 @@ function add_comments(\DOMElement $parent, Array $comments)
 			'width' => 80,
 			'height' => 80,
 			'itemprop' => 'image',
+			'alt' => "{$comment->username} avatar",
 		]);
 		$user->append('b', 'By&nbsp;')->append('u', $comment->name, [
 			'itemprop' => 'name',

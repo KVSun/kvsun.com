@@ -161,6 +161,7 @@ function add_comments(parent, comments) {
 		grav.src = `https://www.gravatar.com/avatar/${comment.email}`;
 		grav.width = 80;
 		grav.height = 80;
+		grav.alt = `${comment.username} avatar`;
 		grav.setAttribute('itemprop', 'image');
 		commenter.textContent = comment.name;
 		commenter.setAttribute('itemprop', 'name');
