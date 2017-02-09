@@ -158,10 +158,13 @@ if ($header->accept === 'application/json') {
 						$form = $dialog->append('form', null, [
 							'name' => 'comment-moderator-form',
 							'action' => \KVSun\DOMAIN . 'api.php',
-							'method' => 'POST,'
+							'method' => 'POST',
 						]);
 						$table = $form->append('table', null, [
 							'border' => 1,
+						]);
+						$form->append('button', 'Update', [
+							'type' => 'submit',
 						]);
 						$thead = $table->append('thead');
 						$tbody = $table->append('tbody');
@@ -192,16 +195,25 @@ if ($header->accept === 'application/json') {
 								'target' => '_blank',
 							]);
 							$tr->append('td')->append('blockquote', $comment->comment);
-							$approved = $tr->append('td')->append('input', null, [
-								'type' => 'checkbox',
-								'name' => "{$form->name}[approved][{$comment->ID}]"
+							$approved = $tr->append('td');
+							$approved_y = $approved->append('label', 'Yes')->append('input', null, [
+								'type' => 'radio',
+								'name' => "{$form->name}[approved][{$comment->ID}]",
+								'value' => '1',
+							]);
+							$approved_n = $approved->append('label', 'No')->append('input', null, [
+								'type' => 'radio',
+								'name' => "{$form->name}[approved][{$comment->ID}]",
+								'value' => '0',
 							]);
 							$tr->append('td')->append('button', 'X', [
 								'data-request' => "delete-comment={$comment->ID}",
 								'data-confirm' => 'Are you sure you want to delete this comment?',
 							]);
 							if ($comment->approved) {
-								$approved->checked = null;
+								$approved_y->checked = null;
+							} else {
+								$approved_n->checked = null;
 							}
 						}
 						$resp->append('body', "$dialog");
