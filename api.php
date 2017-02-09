@@ -204,7 +204,6 @@ if ($header->accept === 'application/json') {
 								$approved->checked = null;
 							}
 						}
-						$resp->notify('Comments sent to console');
 						$resp->append('body', "$dialog");
 						$resp->showModal("#{$dialog->id}");
 					} catch (\Throwable $e) {
