@@ -46,6 +46,45 @@ function build_dom(Array $path = array()): \DOMDocument
 }
 
 /**
+ * Create a `<picture>` inside of a `<figure>` from an array of sources
+ * @param  Array            $imgs    Image data, as from `Core\Image::responsiveImagesFromUpload`
+ * @param  DOM\HTML\Element $parent  Parent element to append `<picture>` to
+ * @param  String           $by      Who was the photo taken by?
+ * @param  String           $caption Photo cutline
+ * @return DOMHTMLElement            `<figure><picture>...`
+ */
+function make_picture(
+	Array           $imgs,
+	DOM\HTMLElement $parent,
+	String          $by      = null,
+	String          $caption = null
+): DOM\HTMLElement
+{
+	$figure = $parent->append('figure');
+	$picture = $figure->append('picture');
+	if (isset($by)) {
+		$figure->append('cite', $by);
+	}
+	if (isset($caption)) {
+		$cap = $figure->append('figcaption', $caption);
+	}
+	foreach($imgs as $format => $img) {
+		$source = $picture->append('source');
+		$source->type = $format;
+		$source->srcset = join(',', array_map(function(Array $src) use ($img): String
+		{
+			return "{$src['path']} {$src['width']}w";
+		}, $img));
+	}
+	$picture->append('img', null, [
+		'src'    => $imgs['image/jpeg'][0]['path'],
+		'width'  => $imgs['image/jpeg'][0]['width'],
+		'height' => $imgs['image/jpeg'][0]['height']
+	]);
+	return $picture;
+}
+
+/**
  * Post a comment on an article
  * @param  String  $url        URL for post
  * @param  User    $user       User making comment

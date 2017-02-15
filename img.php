@@ -9,37 +9,6 @@ if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
 	require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
 }
 
-function make_picture(
-	Array           $imgs,
-	DOM\HTMLElement $parent,
-	String          $by      = null,
-	String          $caption = null
-): DOM\HTMLElement
-{
-	$figure = $parent->append('figure');
-	$picture = $figure->append('picture');
-	if (isset($by)) {
-		$figure->append('cite', $by);
-	}
-	if (isset($caption)) {
-		$cap = $figure->append('figcaption', $caption);
-	}
-	foreach($imgs as $format => $img) {
-		$source = $picture->append('source');
-		$source->type = $format;
-		$source->srcset = join(',', array_map(function(Array $src) use ($img): String
-		{
-			return "{$src['path']} {$src['width']}w";
-		}, $img));
-	}
-	$picture->append('img', null, [
-		'src'    => $imgs['image/jpeg'][0]['path'],
-		'width'  => $imgs['image/jpeg'][0]['width'],
-		'height' => $imgs['image/jpeg'][0]['height']
-	]);
-	return $picture;
-}
-
 DOM\HTMLElement::$import_path = \KVSun\COMPONENTS;
 $dom = DOM\HTML::getInstance();
 \KVSun\add_main_menu($dom->body);
