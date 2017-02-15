@@ -37,7 +37,7 @@ if (array_key_exists('upload', $_FILES)) {
 		['image/webp', 'image/jpeg']
 	);
 	Core\Console::info($imgs);
-	make_picture($imgs, $main, 'Chris Zuber', 'Testing 1 2 3');
+	\KVSun\make_picture($imgs, $main, 'Chris Zuber', 'Testing 1 2 3');
 }
 $form = $main->append('form', null, [
 	'action'  => $_SERVER['PHP_SELF'],
