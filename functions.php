@@ -55,32 +55,33 @@ function build_dom(Array $path = array()): \DOMDocument
  */
 function make_picture(
 	Array           $imgs,
-	DOM\HTMLElement $parent,
+	\DOMElement $parent,
 	String          $by      = null,
 	String          $caption = null
-): DOM\HTMLElement
+): \DOMElement
 {
-	$figure = $parent->append('figure');
-	$picture = $figure->append('picture');
+	$dom = $parent->ownerDocument;
+	$figure = $parent->appendChild($dom->createElement('figure'));
+	$picture = $figure->appendChild($dom->createElement('picture'));
 	if (isset($by)) {
-		$figure->append('cite', $by);
+		$figure->appendChild($dom->createElement('cite', $by));
 	}
 	if (isset($caption)) {
-		$cap = $figure->append('figcaption', $caption);
+		$cap = $figure->appendChild($dom->createElement('figcaption', $caption));
 	}
 	foreach($imgs as $format => $img) {
-		$source = $picture->append('source');
-		$source->type = $format;
-		$source->srcset = join(',', array_map(function(Array $src) use ($img): String
+		$source = $picture->appendChild($dom->createElement('source'));
+		$source->setAttribute('type', $format);
+		$source->setAttribute('srcset', join(',', array_map(function(Array $src) use ($img): String
 		{
 			return "{$src['path']} {$src['width']}w";
-		}, $img));
+		}, $img)));
 	}
-	$picture->append('img', null, [
-		'src'    => $imgs['image/jpeg'][0]['path'],
-		'width'  => $imgs['image/jpeg'][0]['width'],
-		'height' => $imgs['image/jpeg'][0]['height']
-	]);
+	$img = $picture->appendChild($dom->createElement('img'));
+	$img->setAttribute('src', $imgs['image/jpeg'][0]['path']);
+	$img->setAttribute('width', $imgs['image/jpeg'][0]['width']);
+	$img->setAttribute('height', $imgs['image/jpeg'][0]['height']);
+	$img->setAttribute('alt', '');
 	return $picture;
 }
 
