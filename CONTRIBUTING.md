@@ -22,7 +22,7 @@ request.
 
 All pull requests are tested using Travis-CI before being allowed to merge into
 master. These tests consist of linting PHP and JavaScript code, as well as ensuring
-that JavaScript coding style rules defined in [`.eslintrc`](./eslintrc) are followed.
+that JavaScript coding style rules defined in [`.eslintrc`](./.eslintrc) are followed.
 Additional tests may be added in the future.
 
 **Always pull from `upstream master` prior to sending pull-requests.**
