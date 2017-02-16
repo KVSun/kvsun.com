@@ -201,7 +201,8 @@ this project will use `@import` and CSS variables in favor of SASS or LESS.
 ## Icons
 Wherever possible, all icons are to be created in SVG and minified. PNGs may then be created in whatever size is appropriate. Also, all commonly used icons are to be added to `images/icons.svg` so that they may be used using `<symbol>` and `<use xlink:href/>`. These are automatically generated
 using `npm run build:icons`. To add more icons, simply add them to the
-list located in `images/icons.csv` as `$id,path/to/icon.svg`.
+list located in `images/icons.csv` as `$id,path/to/icon.svg`. They may then be used
+with `<use xlink:href="/images/icons.svg#$id">`.
 
 ## NPM
 Several useful modules are included for Node users, which is strongly recommended for all development aside from PHP. Simply run `npm install` after download to install all Node modules and Git submodules. There are also several NPM scripts configured, which may be run using `npm run $script`.
