@@ -8,8 +8,9 @@
 -   [JavaScript Contributions](#javascript)
 -   [CSS Contributions](#css)
 -   [Icons](#icons)
--   [Git Submodules used](#git-submodules)
--   [NPM Modules / Dev dependencies](#dev-dependencies)
+-   [Git Submodules used](./.gitmodules)
+-   [NPM Modules / Dev dependencies](./package.json)
+-   [Composer requires](./composer.json)
 
 -   -   -
 
@@ -206,24 +207,3 @@ Several useful modules are included for Node users, which is strongly recommende
 -   `update` which updates Git submodules recursively, installing any new ones
 -   `test` which runs any configured tests
 NPM also has a `postinstall` script which will automatically install and update
-
-## Git submodules
--   [shgysk8zer0/core_api](https://github.com/shgysk8zer0/core_api/)
--   [shgysk8zer0/core](https://github.com/shgysk8zer0/core/)
--   [shgysk8zer0/dom](https://github.com/shgysk8zer0/dom/)
--   [shgysk8zer0/phpcrypt](https://github.com/shgysk8zer0/phpcrypt/)
--   [shgysk8zer0/std-js](https://github.com/shgysk8zer0/std-js/)
--   [shgysk8zer0/core-css](https://github.com/shgysk8zer0/core-css/)
--   [shgysk8zer0/fonts](https://github.com/shgysk8zer0/fonts/)
--   [shgysk8zer0/svg-icons](https://github.com/shgysk8zer0/svg-icons/)
--   [shgysk8zer0/logos](https://github.com/shgysk8zer0/logos/)
--   [github/octicons](https://github.com/github/octicons/)
--   [necolas/normalize.css](https://github.com/necolas/normalize.css/)
-
-## Dev dependencies
--   [Myth](http://www.myth.io/)
--   [Babel](https://babeljs.io/)
--   [Webpack](https://webpack.github.io/)
--   [ESLint](http://eslint.org/)
--   [svgo](https://github.com/svg/svgo)
--   [svg-sprite-generator](https://github.com/frexy/svg-sprite-generator)
