@@ -9,7 +9,9 @@
     "authors": [
         {
             "name": "Chris Zuber",
-            "email": "shgysk8zer0@gmail.com"
+            "email": "shgysk8zer0@gmail.com",
+			"homepage": "https://chriszuber.com",
+			"role": "Developer"
         }
     ]
 }

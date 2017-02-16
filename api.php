@@ -1,21 +1,21 @@
 <?php
 namespace KVSun;
 
-use \shgysk8zer0\Core as Core;
-use \shgysk8zer0\DOM as DOM;
-use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as HTTP;
+use \shgysk8zer0\Core\{PDO, JSON_Response as Resp, URL, Headers, Console, UploadFile};
+use \shgysk8zer0\DOM;
+use \shgysk8zer0\Core_API\Abstracts\{HTTPStatusCodes as HTTP};
 
 if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
 	require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
 }
 
-$header  = Core\Headers::getInstance();
+$header  = Headers::getInstance();
 
 if ($header->accept === 'application/json') {
-	$resp = Core\JSON_Response::getInstance();
+	$resp = Resp::getInstance();
 	if (array_key_exists('url', $_GET)) {
 		$header->content_type = 'application/json';
-		$url = new Core\URL($_GET['url']);
+		$url = new URL($_GET['url']);
 		$path = explode('/', trim($url->path));
 		$path = array_filter($path);
 		$path = array_values($path);
@@ -23,23 +23,23 @@ if ($header->accept === 'application/json') {
 		if (empty($path)) {
 			// This would be a request for home
 			// $categories = \KVSun\get_categories();
-			$page = new \KVSun\KVSAPI\Home(Core\PDO::load(DB_CREDS), "$url", \KVSun\get_categories('url'));
+			$page = new \KVSun\KVSAPI\Home(PDO::load(DB_CREDS), "$url", \KVSun\get_categories('url'));
 		} elseif (count($path) === 1) {
-			$page = new \KVSun\KVSAPI\Category(Core\PDO::load(DB_CREDS), "$url");
+			$page = new \KVSun\KVSAPI\Category(PDO::load(DB_CREDS), "$url");
 		} else {
-			$page = new \KVSun\KVSAPI\Article(Core\PDO::load(DB_CREDS), "$url");
+			$page = new \KVSun\KVSAPI\Article(PDO::load(DB_CREDS), "$url");
 		}
 
-		Core\Console::info($path)->sendLogHeader();
+		Console::info($path)->sendLogHeader();
 		exit(json_encode($page));
 	} elseif (array_key_exists('form', $_REQUEST) and is_array($_REQUEST[$_REQUEST['form']])) {
 		require_once COMPONENTS . 'handlers' . DIRECTORY_SEPARATOR . 'form.php';
 	} elseif (array_key_exists('datalist', $_GET)) {
 		switch($_GET['datalist']) {
 			case 'categories':
-				$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+				$pdo = PDO::load(\KVSun\DB_CREDS);
 				$cats = $pdo('SELECT `name` FROM `categories`');
-				Core\Console::table($cats)->sendLogHeader();
+				Console::table($cats)->sendLogHeader();
 				$doc = new \DOMDocument();
 				$doc->appendChild($doc->createElement('datalist'));
 				$doc->documentElement->setAttribute('id', 'categories');
@@ -52,7 +52,7 @@ if ($header->accept === 'application/json') {
 				break;
 
 			case 'author_list':
-				$pdo = Core\PDO::load(DB_CREDS);
+				$pdo = PDO::load(DB_CREDS);
 				$stm = $pdo->prepare('SELECT `name`
 					FROM `user_data`
 					JOIN `subscribers` ON `subscribers`.`id` = `user_data`.`id`
@@ -219,7 +219,7 @@ if ($header->accept === 'application/json') {
 						$resp->append('body', "$dialog");
 						$resp->showModal("#{$dialog->id}");
 					} catch (\Throwable $e) {
-						Core\Console::error($e);
+						Console::error($e);
 						$resp->notify('There was an error', $e->getMessage());
 					}
 				}
@@ -239,7 +239,7 @@ if ($header->accept === 'application/json') {
 			http_response_code(HTTP::UNAUTHORIZED);
 			exit('{}');
 		}
-		$file = new \shgysk8zer0\Core\UploadFile('upload');
+		$file = new UploadFile('upload');
 		if (in_array($file->type, ['image/jpeg', 'image/png', 'image/svg+xml', 'image/gif'])) {
 			if ($file->saveTo('images', 'uploads', date('Y'), date('m'))) {
 				header('Content-Type: application/json');
@@ -253,7 +253,7 @@ if ($header->accept === 'application/json') {
 	} elseif (array_key_exists('action', $_REQUEST)) {
 		switch($_REQUEST['action']) {
 			case 'logout':
-				Core\Listener::logout(restore_login());
+				Listener::logout(restore_login());
 				break;
 		}
 	} elseif (array_key_exists('delete-comment', $_GET)) {
@@ -275,15 +275,15 @@ if ($header->accept === 'application/json') {
 		}
 	} else {
 		$resp->notify('Invalid request', 'See console for details.', DOMAIN . 'images/sun-icons/128.png');
-		Core\Console::info($_REQUEST);
+		Console::info($_REQUEST);
 	}
 	if (check_role('admin') or DEBUG) {
-		Core\Console::getInstance()->sendLogHeader();
+		Console::getInstance()->sendLogHeader();
 	}
 	$resp->send();
 	exit();
 }  elseif(array_key_exists('url', $_GET)) {
-	$url = new Core\URL($_GET['url']);
+	$url = new URL($_GET['url']);
 	if ($url->host === $_SERVER['SERVER_NAME']) {
 		$header->location = "{$url}";
 		http_response_code(HTTP::SEE_OTHER);

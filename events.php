@@ -1,11 +1,9 @@
 <?php
 namespace KVSun;
 
-use \shgysk8zer0\Core as Core;
-use \shgysk8zer0\DOM as DOM;
-use \shgysk8zer0\Login\User as User;
-use \shgysk8zer0\Core\Console as Console;
-use \shgysk8zer0\Core\JSON_Response as Resp;
+use \shgysk8zer0\Core\{Console, Listener, Gravatar, Timer, JSON_Response as Resp};
+use \shgysk8zer0\DOM;
+use \shgysk8zer0\Login\User;
 
 function login_handler(User $user, Bool $remember = true): Resp
 {
@@ -14,7 +12,7 @@ function login_handler(User $user, Bool $remember = true): Resp
 			$user->setCookie('user', \KVSun\PASSWD);
 		}
 		$resp = Resp::getInstance();
-		$grav = new Core\Gravatar($user->email, 64);
+		$grav = new Gravatar($user->email, 64);
 		$user->setSession('user');
 		$resp->notify('Login Successful', "Welcome back, {$user->name}", "{$grav}");
 		$resp->close('#login-dialog');
@@ -57,27 +55,27 @@ function logout_handler(User $user): Resp
 	}
 }
 
-new Core\Listener('error', function(Int $severity, String $message, String $file, Int $line): Bool
+new Listener('error', function(Int $severity, String $message, String $file, Int $line): Bool
 {
 	$err = new \ErrorException($message, 0, $severity, $file, $line);
 	error_log($err . PHP_EOL, 3,ERROR_LOG);
 	return true;
 });
 
-new Core\Listener('exception', function(\Throwable $e)
+new Listener('exception', function(\Throwable $e)
 {
 	error_log($e . PHP_EOL, 3, ERROR_LOG);
 });
 
-new Core\Listener('login', __NAMESPACE__ . '\login_handler');
+new Listener('login', __NAMESPACE__ . '\login_handler');
 
-new Core\Listener('logout', __NAMESPACE__ . '\logout_handler');
+new Listener('logout', __NAMESPACE__ . '\logout_handler');
 
 if (check_role('admin') or DEBUG) {
-	$timer = new Core\Timer();
-	new Core\Listener('error', function(Int $severity, String $message, String $file, Int $line): Bool
+	$timer = new Timer();
+	new Listener('error', function(Int $severity, String $message, String $file, Int $line): Bool
 	{
-		Core\Console::error([
+		Console::error([
 			'message' => $message,
 			'file'    => $file,
 			'line'    => $line,
@@ -86,9 +84,9 @@ if (check_role('admin') or DEBUG) {
 		return true;
 	});
 
-	new Core\Console('exception', function(\Throwable $e)
+	new Console('exception', function(\Throwable $e)
 	{
-		Core\Console::error([
+		Console::error([
 			'message' => $e->getMessage(),
 			'file'    => $e->getFile(),
 			'line'    => $e->getLine(),
@@ -96,10 +94,10 @@ if (check_role('admin') or DEBUG) {
 		]);
 	});
 
-	new Core\Listener('load', function() use ($timer)
+	new Listener('load', function() use ($timer)
 	{
-		Core\Console::log(get_included_files());
-		Core\Console::info("Loaded in $timer seconds.")->sendLogHeader();
+		Console::log(get_included_files());
+		Console::info("Loaded in $timer seconds.")->sendLogHeader();
 	});
 	unset($timer);
 }

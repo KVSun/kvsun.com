@@ -1,11 +1,11 @@
 <?php
 namespace KVSun;
 
-use \shgysk8zer0\Core as Core;
+use \shgysk8zer0\Core;
 use \shgysk8zer0\Core_API as API;
-use \shgysk8zer0\DOM as DOM;
+use \shgysk8zer0\DOM;
 use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as HTTP;
-use \shgysk8zer0\Login\User as User;
+use \shgysk8zer0\Login\User;
 
 /**
  * Builds all the things!
