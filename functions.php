@@ -47,17 +47,17 @@ function build_dom(Array $path = array()): \DOMDocument
 
 /**
  * Create a `<picture>` inside of a `<figure>` from an array of sources
- * @param  Array            $imgs    Image data, as from `Core\Image::responsiveImagesFromUpload`
- * @param  DOM\HTML\Element $parent  Parent element to append `<picture>` to
- * @param  String           $by      Who was the photo taken by?
- * @param  String           $caption Photo cutline
+ * @param  Array      $imgs    Image data, as from `Core\Image::responsiveImagesFromUpload`
+ * @param  DOMElement $parent  Parent element to append `<picture>` to
+ * @param  String     $by      Who was the photo taken by?
+ * @param  String     $caption Photo cutline
  * @return DOMHTMLElement            `<figure><picture>...`
  */
 function make_picture(
-	Array           $imgs,
+	Array       $imgs,
 	\DOMElement $parent,
-	String          $by      = null,
-	String          $caption = null
+	String      $by      = null,
+	String      $caption = null
 ): \DOMElement
 {
 	$dom = $parent->ownerDocument;
@@ -70,9 +70,13 @@ function make_picture(
 		$cap = $figure->appendChild($dom->createElement('figcaption', $caption));
 	}
 	foreach($imgs as $format => $img) {
+		usort($img, function(Array $src1, Array $src2): Int
+		{
+			return $src2['width'] <=> $src1['width'];
+		});
 		$source = $picture->appendChild($dom->createElement('source'));
 		$source->setAttribute('type', $format);
-		$source->setAttribute('srcset', join(',', array_map(function(Array $src) use ($img): String
+		$source->setAttribute('srcset', join(',', array_map(function(Array $src): String
 		{
 			return "{$src['path']} {$src['width']}w";
 		}, $img)));
