@@ -152,10 +152,15 @@ import MyClass from './module.es6';
 import {foo as bar} from './path/to/module.es6';
 
 // Import module exports by name
-import {$, MyClass, MY_CONST} from './module.es6';
+import {$, MY_CONST} from './module.es6';
 
 // Import all the things!
 import * as stuff from './another/module.es6';
+
+// Using imported modules
+const testClass = new MyClass();
+bar(MY_CONST);
+stuff.exportedFunction(stuff.exportedVar);
 ```
 
 ## CSS
