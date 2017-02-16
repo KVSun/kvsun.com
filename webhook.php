@@ -1,6 +1,6 @@
 <?php
 namespace WebHook;
-
+use \shgysk8zer0\Core\{GitHubWebhook, Email};
 const CONFIG = 'config/github.json';
 error_reporting(0);
 if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
@@ -23,8 +23,8 @@ set_exception_handler(__NAMESPACE__ . '\handler_exception');
 
 echo 'Connection successful.' . PHP_EOL;
 try {
-	$webhook = new \shgysk8zer0\Core\GitHubWebhook(CONFIG);
-	$email = new \shgysk8zer0\Core\Email(
+	$webhook = new GitHubWebhook(CONFIG);
+	$email = new Email(
 		$_SERVER['SERVER_ADMIN'],
 		sprintf('%s event on %s', $webhook->event, $_SERVER['SERVER_NAME'])
 	);
