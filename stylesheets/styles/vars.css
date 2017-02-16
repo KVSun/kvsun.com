@@ -1,13 +1,13 @@
 :root {
 	--main-width: 70%;
 	/*================= Set color vars here =================*/
-	--default-color: rgb(252, 252, 252);
-	--alt-color: rgb(41, 41, 41);
+	--default-color: #FCFCFC;
+	--alt-color: #292929;
 	--primary-color: #EA5708;
 	--highlight-color: #EA5708;
-	--link-color: hsl(209, 62%, 45%);
+	--link-color: #2B75BA;
 	--visited-color: #551A8B;
-	--border-color: rgb(45, 45, 45);
+	--border-color: #2D2D2D;
 	--default-cursor: auto;
 	--pointer: pointer;
 	
