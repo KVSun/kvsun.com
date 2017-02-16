@@ -67,3 +67,6 @@
 [submodule "classes/shgysk8zer0/phpcrypt"]
 	path = classes/shgysk8zer0/phpcrypt
 	url = git://github.com/shgysk8zer0/phpcrypt.git
+[submodule "images/kvs-icons"]
+	path = images/kvs-icons
+	url = git://github.com/KVSun/kvs-icons.git

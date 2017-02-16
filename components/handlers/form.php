@@ -1,10 +1,11 @@
 <?php
 namespace KVSun\Components\Handlers\Form;
 
-use \shgysk8zer0\Core as Core;
-use \shgysk8zer0\DOM as DOM;
+use \shgysk8zer0\Core\{PDO, JSON_Response as Resp, Console, FormData, Listener, Headers};
+use \shgysk8zer0\DOM;
 use \shgysk8zer0\Core_API as API;
-use \shgysk8zer0\Authorize as Authorize;
+use \shgysk8zer0\Authorize;
+use \shgysk8zer0\Login\User;
 use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as HTTP;
 
 function is_tel($input)
@@ -12,13 +13,13 @@ function is_tel($input)
 	return preg_match('/^\d\\-\d{3}-\d{3}\-\d{4}$/', $input) ? $input : null;
 }
 
-$resp = Core\JSON_Response::getInstance();
+$resp = Resp::getInstance();
 if (
 	array_key_exists('form', $_REQUEST) and is_string($_REQUEST['form'])
 	and array_key_exists($_REQUEST['form'], $_REQUEST)
 	and is_array($_REQUEST[$_REQUEST['form']])
 ) {
-	$req = new Core\FormData($_REQUEST);
+	$req = new FormData($_REQUEST);
 } else {
 	$resp->notify(
 		'Error submitting form',
@@ -30,7 +31,7 @@ switch($req->form) {
 	case 'install':
 		$install = $req->install;
 		try {
-			$db = new Core\PDO([
+			$db = new PDO([
 				'user'     => $install->db->user,
 				'password' => $install->db->pass,
 				'host'     => $install->db->host,
@@ -123,9 +124,9 @@ switch($req->form) {
 						], JSON_PRETTY_PRINT
 					))) {
 						$db->commit();
-						$user_login = \shgysk8zer0\Login\User::load(\KVSun\DB_CREDS);
+						$user_login = User::load(\KVSun\DB_CREDS);
 						$user_login($user->email, $user->password);
-						Core\Listener::login($user_login);
+						Listener::login($user_login);
 						$resp->notify(
 							'Installation successful',
 							'Reloading'
@@ -157,14 +158,14 @@ switch($req->form) {
 				)->focus('#install-db-user');
 			}
 		} catch(\Exception $e) {
-			Core\Console::error([
+			Console::error([
 				'message' => $e->getMessage(),
 				'file'    => $e->getFile(),
 				'line'    => $e->getLine(),
 				'trace'   => $e->getTrace(),
 			]);
 		} finally {
-			Core\Console::getInstance()->sendLogHeader();
+			Console::getInstance()->sendLogHeader();
 			$resp->send();
 		}
 		exit;
@@ -181,14 +182,14 @@ switch($req->form) {
 			$resp->notify('SQL file not found', 'Please restore "default.sql" using Git.');
 		} else {
 			$installer = $_POST['install-form'];
-			Core\Console::log($installer['db']);
+			Console::log($installer['db']);
 			if (array_key_exists('db', $installer) and is_array($installer['db'])) {
 				try {
 					file_put_contents(
 						\KVSun\DB_CREDS,
 						json_encode($installer['db'], JSON_PRETTY_PRINT)
 					);
-					$pdo = new Core\PDO();
+					$pdo = new PDO();
 					if ($pdo->connected) {
 						if (empty($pdo->showTables())) {
 							$pdo->restore(\KVSun\DB_INSTALLER);
@@ -220,10 +221,10 @@ switch($req->form) {
 		break;
 
 	case 'login':
-		$user = \shgysk8zer0\Login\User::load(\KVSun\DB_CREDS);
+		$user = User::load(\KVSun\DB_CREDS);
 		$user::$check_wp_pass = true;
 		if ($user($req->login->email, $req->login->password)) {
-			Core\Listener::login($user, isset($req->login->remember));
+			Listener::login($user, isset($req->login->remember));
 		} else {
 			$resp->notify('Login Rejected');
 			$resp->focus('#login-email');
@@ -242,7 +243,7 @@ switch($req->form) {
 			and filter_var($req->register->email, \FILTER_VALIDATE_EMAIL)
 		) {
 			try {
-				$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+				$pdo = PDO::load(\KVSun\DB_CREDS);
 				$pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 				$pdo->beginTransaction();
 				$users = $pdo->prepare('INSERT INTO `users` (
@@ -278,15 +279,15 @@ switch($req->form) {
 				$user_data->execute(['name' => $req->register->name]);
 				$subscribers->execute(['status' => array_search('guest', \KVSun\USER_ROLES)]);
 				$pdo->commit();
-				$user = \shgysk8zer0\Login\User::load(\KVSun\DB_CREDS);
+				$user = User::load(\KVSun\DB_CREDS);
 				if ($user($req->register->email, $req->register->password)) {
-					Core\Listener::login($user);
+					Listener::login($user);
 				} else {
 					$resp->notify('Error registering', 'There was an error saving your user info');
 				}
 				$resp->send();
 			} catch(\Exception $e) {
-				Core\Console::error($e);
+				Console::error($e);
 			}
 		} else {
 			$resp->notify('Invalid registration entered', 'Please check your inputs');
@@ -298,7 +299,7 @@ switch($req->form) {
 
 	case 'user-update':
 		$resp->notify('Form received', 'Check console.');
-		// $data = new Core\FormData($_POST['user-update']);
+		// $data = new FormData($_POST['user-update']);
 		$data = filter_var_array(
 			$_POST['user-update'],
 			[
@@ -321,9 +322,9 @@ switch($req->form) {
 				],
 			], true
 		);
-		$data = new Core\FormData($data);
+		$data = new FormData($data);
 
-		$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+		$pdo = PDO::load(\KVSun\DB_CREDS);
 
 		$pdo->beginTransaction();
 		$user = \KVSun\restore_login();
@@ -356,27 +357,27 @@ switch($req->form) {
 			$resp->notify('Failed', 'Failed to update user data');
 		}
 
-		Core\Console::info($data);
+		Console::info($data);
 		$resp->send();
 		break;
 
 	case 'search':
 		$resp->notify('Search results', 'Check console for more info');
-		$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+		$pdo = PDO::load(\KVSun\DB_CREDS);
 		try {
 			$stm = $pdo->prepare('SELECT * FROM `posts` WHERE `title` LIKE :query');
 			// $stm->query = "%{$_REQUEST['search']['query']}%";
 			$stm->query = str_replace(' ', '%', "%{$req->query}%");
 			$results = $stm->execute()->getResults();
-			Core\Console::table($results);
+			Console::table($results);
 		} catch (\Exception $e) {
-			Core\Console::error($e);
+			Console::error($e);
 		}
 		break;
 
 	case 'comments':
 		if (\KVSun\check_role('guest')) {
-			$headers = Core\Headers::getInstance();
+			$headers = Headers::getInstance();
 			if (!isset($headers->referer)) {
 				$resp->notify(
 					'Cannot post comment',
@@ -385,7 +386,7 @@ switch($req->form) {
 				)->send();
 			} else {
 				$url = $headers->referer;
-				$comment = new Core\FormData($_POST['comments']);
+				$comment = new FormData($_POST['comments']);
 				if (!filter_var($url, FILTER_VALIDATE_URL, [
 					'flags' => FILTER_FLAG_PATH_REQUIRED
 				])) {
@@ -432,9 +433,9 @@ switch($req->form) {
 				'/images/octicons/lib/svg/alert.svg'
 			);
 		} else {
-			$comments = new Core\FormData($_POST['comment-moderator-form']);
+			$comments = new FormData($_POST['comment-moderator-form']);
 			try {
-				$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+				$pdo = PDO::load(\KVSun\DB_CREDS);
 				$pdo->beginTransaction();
 				$stm = $pdo->prepare(
 					'UPDATE `post_comments`
@@ -470,7 +471,7 @@ switch($req->form) {
 			$resp->notify('Error', 'You must be logged in for that.')->send();
 		}
 
-		$post = new Core\FormData($_POST['new-post']);
+		$post = new FormData($_POST['new-post']);
 
 		if (! isset($post->author, $post->title, $post->content, $post->category)) {
 			$resp->notify(
@@ -479,7 +480,7 @@ switch($req->form) {
 			)->send();
 		}
 
-		$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+		$pdo = PDO::load(\KVSun\DB_CREDS);
 		$sql = 'INSERT INTO `posts` (
 			`cat-id`,
 			`title`,
@@ -555,8 +556,8 @@ switch($req->form) {
 			$resp->notify('Error', 'You must be logged in for that.')->send();
 		}
 
-		$post = new Core\FormData($_POST['update-post']);
-		Core\Console::info($post);
+		$post = new FormData($_POST['update-post']);
+		Console::info($post);
 
 		if (
 			!isset($post->category, $post->title, $post->author, $post->content, $post->url)
@@ -570,7 +571,7 @@ switch($req->form) {
 			)->send();
 		}
 
-		$stm = Core\PDO::load(\KVSun\DB_CREDS)->prepare(
+		$stm = PDO::load(\KVSun\DB_CREDS)->prepare(
 			'UPDATE `posts` SET
 				`cat-id` = :cat,
 				`title` = :title,
@@ -630,7 +631,7 @@ switch($req->form) {
 				'/images/octicons/lib/svg/credit-card.svg'
 			)->focus('#ccform-billing-first-name')->send();
 		}
-		$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+		$pdo = PDO::load(\KVSun\DB_CREDS);
 
 		$stm = $pdo->prepare('SELECT
 				`id`,
@@ -769,7 +770,7 @@ switch($req->form) {
 					and $item->media === 'online'
 				) {
 					$expires = new \DateTime("+ {$item->length}");
-					Core\Console::info($expires);
+					Console::info($expires);
 					$subscribe->id = $user->id;
 					$subscribe->status = array_search('subscriber', \KVSun\USER_ROLES);
 					$subscribe->expires = $expires->format('Y-m-d H:i:s');
@@ -783,7 +784,7 @@ switch($req->form) {
 				'/images/octicons/lib/svg/credit-card.svg'
 			);
 			if (\KVSun\DEBUG) {
-				Core\Console::log([
+				Console::log([
 					'respCode'      => $response->code,
 					'authCode'      => $response->authCode,
 					'transactionID' => $response->transactionID,
@@ -801,7 +802,7 @@ switch($req->form) {
 			);
 
 			if (\KVSun\DEBUG) {
-				Core\Console::log([
+				Console::log([
 					'respCode'      => $response->code,
 					'authCode'      => $response->authCode,
 					'transactionID' => $response->transactionID,
@@ -816,7 +817,7 @@ switch($req->form) {
 		trigger_error('Unhandled form submission.');
 		header('Content-Type: application/json');
 		if (\KVSun\DEBUG) {
-			Core\Console::info($req);
+			Console::info($req);
 		}
 		exit('{}');
 }
