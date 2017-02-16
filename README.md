@@ -1,9 +1,15 @@
 # kvsun.com
 [Kern Valley Sun website](https://kernvalleysun.com)
-![screenshot](./screenshot.png)
+
+[![screenshot](./screenshot.png)](https://kernvalleysun.com)
 
 [![Build Status](https://travis-ci.org/KVSun/kvsun.com.svg?branch=master)](https://travis-ci.org/KVSun/kvsun.com)
+[![Latest Stable Version](https://poser.pugx.org/kvsun/kvsun.com/v/stable)](https://packagist.org/packages/kvsun/kvsun.com)
+[![Total Downloads](https://poser.pugx.org/kvsun/kvsun.com/downloads)](https://packagist.org/packages/kvsun/kvsun.com)
+[![License](https://poser.pugx.org/kvsun/kvsun.com/license)](https://packagist.org/packages/kvsun/kvsun.com)
+[![composer.lock](https://poser.pugx.org/kvsun/kvsun.com/composerlock)](https://packagist.org/packages/kvsun/kvsun.com)
 [![Gitter](https://badges.gitter.im/KernValleySun/kvsun.com.svg)](https://gitter.im/KernValleySun/kvsun.com?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+- - -
 
 ## Quick Nav
 -   [Requirements](#requirements)
