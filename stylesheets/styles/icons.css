@@ -1,0 +1,36 @@
+@namespace svg url(http://www.w3.org/2000/svg);
+@namespace xlink url(http://www.w3.org/1999/xlink);
+svg.icon, .icon svg {
+  overflow: visible !important;
+  fill: currentColor;
+}
+svg.icon svg|use[xlink|href] {
+  fill: currentColor;
+  transform-origin: center;
+  transition: transform 400ms, fill 400ms;
+}
+svg.icon:hover svg|use[xlink|href] {
+  transform: scale(2) rotate(360deg);
+}
+svg.icon svg|use[xlink|href] * {
+  fill: inherit;
+  color: inherit;
+}
+svg:hover > svg|use[xlink|href$="#weather-clear"] {
+  transform: scale(2) rotate(360deg);
+  fill: yellow;
+}
+svg:hover > svg|use[xlink|href$="#home"] {
+  fill: orange;
+}
+svg:hover > svg|use[xlink|href$="#section-news"] {
+  fill: black;
+}
+[data-label]:hover::after {
+  font-family: inherit;
+  margin-top: -.5em;
+  display: block;
+  height: 1.5rem;
+  content: attr(data-label);
+  text-align: center;
+}
