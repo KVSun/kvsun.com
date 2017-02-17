@@ -188,7 +188,7 @@ function makeCategory(category) {
 	category.articles.forEach(article => {
 		let div = container.appendChild(document.createElement('div'));
 		let a = div.appendChild(document.createElement('a'));
-		a.href = `${location.origin}/${article.catURL}/${article.url}`;
+		a.href = `${location.origin}${article.url}`;
 		a.textContent = article.title;
 		a.className = 'currentColor';
 	});
@@ -199,24 +199,24 @@ function makeCategory(category) {
 
 function makeHome(cats) {
 	const main = document.querySelector('main');
-	const sections = cats.sections;
+	const sections = cats.categories;
 	Array.from(main.children).forEach(child => child.remove());
 	Object.keys(sections).forEach(section => {
-		if (sections[section].length) {
+		if (sections[section]) {
 			let template = getTemplate('section-template');
 			let container = template.firstElementChild;
 			let title = template.querySelector('h2');
 			let link = title.appendChild(document.createElement('a'));
 			title.className = 'center';
 
-			container.id = section;
+			container.id = sections[section].catURL;
 			container.className = 'category';
-			link.href = `${location.origin}/${section}`;
-			link.textContent = sections[section][0].category;
-			sections[section].forEach(article => {
+			link.href = `${location.origin}/${sections[section].catURL}`;
+			link.textContent = section;
+			sections[section].posts.forEach(article => {
 				let div = container.appendChild(document.createElement('div'));
 				let a = div.appendChild(document.createElement('a'));
-				a.href = `${location.origin}/${article.catURL}/${article.url}`;
+				a.href = `${location.origin}/${article.url}`;
 				a.textContent = article.title;
 				a.className = 'currentColor';
 			});
