@@ -22,4 +22,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>
   <color name="link" value="#2B75BA"/>
   <color name="border" value="#2D2D2D"/>
   <color name="shadow" value="#141414"/>
+  <color name="news-theme" value="#476262"/>
+  <color name="sports-theme" value="#DDDDDD"/>
+  <color name="kv-life-theme" value="#FFFFFF"/>
+  <color name="obit-theme" value="#000000"/>
 </palette>
