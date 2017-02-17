@@ -21,10 +21,10 @@ svg:hover > svg|use[xlink|href$="#weather-clear"] {
   fill: yellow;
 }
 svg:hover > svg|use[xlink|href$="#home"] {
-  fill: orange;
+  fill: var(--home-theme);
 }
 svg:hover > svg|use[xlink|href$="#section-news"] {
-  fill: black;
+  fill: var(--news-theme);
 }
 [data-label]:hover::after {
   font-family: inherit;
