@@ -53,6 +53,7 @@ const CSP          = array(
 	'script-src'   => ["'self'"],
 	'style-src'    => ["'self'", "'unsafe-inline'"],
 	'media-src'    => ["'self'"],
+	'report-uri'   => '/csp.php',
 );
 
 const HTML_TEMPLATES = [
