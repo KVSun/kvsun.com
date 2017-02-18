@@ -46,6 +46,50 @@ function build_dom(Array $path = array()): \DOMDocument
 }
 
 /**
+ * Create a `<picture>` inside of a `<figure>` from an array of sources
+ * @param  Array      $imgs    Image data, as from `Core\Image::responsiveImagesFromUpload`
+ * @param  DOMElement $parent  Parent element to append `<picture>` to
+ * @param  String     $by      Who was the photo taken by?
+ * @param  String     $caption Photo cutline
+ * @return DOMHTMLElement            `<figure><picture>...`
+ */
+function make_picture(
+	Array       $imgs,
+	\DOMElement $parent,
+	String      $by      = null,
+	String      $caption = null
+): \DOMElement
+{
+	$dom = $parent->ownerDocument;
+	$figure = $parent->appendChild($dom->createElement('figure'));
+	$picture = $figure->appendChild($dom->createElement('picture'));
+	if (isset($by)) {
+		$figure->appendChild($dom->createElement('cite', $by));
+	}
+	if (isset($caption)) {
+		$cap = $figure->appendChild($dom->createElement('figcaption', $caption));
+	}
+	foreach($imgs as $format => $img) {
+		usort($img, function(Array $src1, Array $src2): Int
+		{
+			return $src2['width'] <=> $src1['width'];
+		});
+		$source = $picture->appendChild($dom->createElement('source'));
+		$source->setAttribute('type', $format);
+		$source->setAttribute('srcset', join(',', array_map(function(Array $src): String
+		{
+			return "{$src['path']} {$src['width']}w";
+		}, $img)));
+	}
+	$img = $picture->appendChild($dom->createElement('img'));
+	$img->setAttribute('src', $imgs['image/jpeg'][0]['path']);
+	$img->setAttribute('width', $imgs['image/jpeg'][0]['width']);
+	$img->setAttribute('height', $imgs['image/jpeg'][0]['height']);
+	$img->setAttribute('alt', '');
+	return $picture;
+}
+
+/**
  * Post a comment on an article
  * @param  String  $url        URL for post
  * @param  User    $user       User making comment

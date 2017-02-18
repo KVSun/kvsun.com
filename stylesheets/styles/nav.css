@@ -1,14 +1,18 @@
 body > nav {
 	order: 1;
 	padding: var(--nav-padding) 0;
-	background: var(--primary-color);
 	top: 0;
-	justify-content: space-around;
 }
-body > nav > * {
-	display: inline-block;
+body > nav > :not(#user-avatar) {
 	height: var(--nav-height);
-	width: auto;
+	border-radius: 0 1rem 0 0;
+	flex-grow: 1;
+	text-align: center;
+	background: var(--primary-color);
+}
+#user-avatar {
+	width: var(--nav-height);
+	height: var(--nav-height);
 }
 [itemprop="breadcrumb"] [itemprop="itemListElement"] {
 	padding: 0.3em;

@@ -3,17 +3,31 @@ main {
 	flex-basis: var(--main-width);
 	min-height: 100vh;
 }
-section {
+main > section {
 	height: 100vh;
 	background-size: cover;
 	background-repeat: no-repeat;
 }
 section.category {
-	border-radius: 1rem;
+	border-radius: 0.3rem;
 	border: 0.1em inset #222;
 	box-shadow: 0.2rem 0.2rem 0.2rem #444;
-	background-color: #fefefe;
-	margin: 1rem;
+	background-color: #eee;
 	padding: 0.7rem;
 	height: 90vh;
+	height: calc(100vh - var(--nav-height) - 2 * var(--nav-padding));
+	background-size: cover;
+	background-repeat: no-repeat;
+}
+#news {
+	font-family: GNUTypewriter;
+}
+#kv-life {
+	font-family: Acme;
+}
+#sports {
+	font-family: PressStart;
+}
+#obituaries {
+	font-family: Alice;
 }

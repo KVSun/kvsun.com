@@ -1,6 +1,6 @@
 <?php
 namespace KVSun\Components\Category;
-
+use function \KVSun\use_icon;
 return function (
 	\shgysk8zer0\DOM\HTML $dom,
 	\shgysk8zer0\Core\PDO $pdo,
@@ -29,11 +29,14 @@ return function (
 	$title = $xpath->query('.//h2', $container)->item(0);
 	$title->class = 'center';
 	$title->textContent = $kvs->title;
+	if (isset($kvs->icon)) {
+		use_icon($kvs->icon, $title);
+	}
 
 	foreach ($kvs->articles as $article) {
 		$div = $container->appendChild($dom->createElement('div'));
 		$a = $div->appendChild($dom->createElement('a'));
-		$a->href = \KVSun\DOMAIN . "{$article->catURL}/{$article->url}";
+		$a->href = \KVSun\DOMAIN . $article->url;
 		$a->textContent = $article->title;
 		$a->class = 'currentColor';
 	}
