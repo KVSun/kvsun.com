@@ -11,8 +11,8 @@ body > nav > :not(#user-avatar) {
 	background: var(--primary-color);
 }
 #user-avatar {
-	width: var(--nav-width);
-	height: var(--nav-width);
+	width: var(--nav-height);
+	height: var(--nav-height);
 }
 [itemprop="breadcrumb"] [itemprop="itemListElement"] {
 	padding: 0.3em;
