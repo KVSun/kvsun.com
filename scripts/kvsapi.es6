@@ -188,7 +188,7 @@ function makeCategory(category) {
 	category.articles.forEach(article => {
 		let div = container.appendChild(document.createElement('div'));
 		let a = div.appendChild(document.createElement('a'));
-		a.href = `${location.origin}${article.url}`;
+		a.href = `${location.origin}/${article.url}`;
 		a.textContent = article.title;
 		a.className = 'currentColor';
 	});
