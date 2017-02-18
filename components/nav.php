@@ -18,19 +18,25 @@ return function (
 	]);
 	$nav->class = 'flex sticky';
 	$home = $nav->append('a', null, array_merge(ATTRS, [
-		'href' => \KVSun\DOMAIN,
-		'rel'  => 'bookmark',
+		'href'  => \KVSun\DOMAIN,
+		'rel'   => 'bookmark',
+		'title' => 'Home'
 	]));
 	use_icon('home', $home, [
 		'class' => 'icon'
 	]);
 
-	$pages = $pdo('SELECT `name`, `url` FROM `pages`');
+	$pages = $pdo('SELECT `name`, `url`, `icon` FROM `pages`');
 	$categories = $pdo('SELECT `name`, `icon`, `url-name` AS `url` FROM `categories`');
 	foreach(array_merge($categories, $pages) as $cat) {
 		if (isset($cat->icon)) {
-			$add = $nav->append('a', null, array_merge(ATTRS, ['href' => \KVSun\DOMAIN . $cat->url]));
-			use_icon($cat->icon, $add, ['class' => 'icon', 'data-label' => $cat->name]);
+			$add = $nav->append('a', null, array_merge(ATTRS, [
+				'href'  => \KVSun\DOMAIN . $cat->url,
+				'title' => $cat->name,
+			]));
+			use_icon($cat->icon, $add, [
+				'class' => 'icon',
+			]);
 		} else {
 			$nav->append('a', $cat->name, array_merge(ATTRS, ['href' => \KVSun\DOMAIN . $cat->url]));
 		}
