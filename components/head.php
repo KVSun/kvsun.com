@@ -79,32 +79,10 @@ return function (
 	}
 	if (@file_exists('manifest.json')) {
 		$manifest = json_decode(file_get_contents('manifest.json'));
-		$head->append('meta', null, [
-			'name' => 'mobile-web-app-capable',
-			'content' => 'yes'
+		$head->append('link', null, [
+			'rel' => 'manifest',
+			'href' => \KVSun\DOMAIN . '/manifest.json'
 		]);
-		$head->append('meta', null, [
-			'name' => 'theme-color',
-			'content' => $manifest->theme_color
-		]);
-
-		foreach ($manifest->icons as $icon) {
-			$head->append('link', null, [
-				'rel' => 'icon',
-				'href' => \KVSun\DOMAIN . trim($icon->src, '/'),
-				'sizes' => $icon->sizes,
-				'type' => $icon->type
-			]);
-			$head->append('link', null, [
-				'rel' => 'apple-touch-icon',
-				'href' => \KVSun\DOMAIN . trim($icon->src, '/'),
-				'sizes' => $icon->sizes,
-				'type' => $icon->type
-			]);
-		}
-	}
-	if (@file_exists('manifest.json')) {
-		$manifest = json_decode(file_get_contents('manifest.json'));
 		$head->append('meta', null, [
 			'name' => 'mobile-web-app-capable',
 			'content' => 'yes'
