@@ -1,6 +1,7 @@
 <?php
 namespace KVSun\Components\Nav;
 
+use function \KVSun\use_icon;
 const ATTRS = array(
 	'class' => 'cat-link',
 	'role' => 'button',
@@ -16,15 +17,23 @@ return function (
 		'role' => 'navigation',
 	]);
 	$nav->class = 'flex sticky';
-	$nav->append('a', 'Home', array_merge(ATTRS, [
+	$home = $nav->append('a', null, array_merge(ATTRS, [
 		'href' => \KVSun\DOMAIN,
 		'rel'  => 'bookmark',
 	]));
+	use_icon('home', $home, [
+		'class' => 'icon'
+	]);
 
 	$pages = $pdo('SELECT `name`, `url` FROM `pages`');
-	$categories = $pdo('SELECT `name`, `url-name` AS `url` FROM `categories`');
+	$categories = $pdo('SELECT `name`, `icon`, `url-name` AS `url` FROM `categories`');
 	foreach(array_merge($categories, $pages) as $cat) {
-		$nav->append('a', $cat->name, array_merge(ATTRS, ['href' => \KVSun\DOMAIN . $cat->url]));
+		if (isset($cat->icon)) {
+			$add = $nav->append('a', null, array_merge(ATTRS, ['href' => \KVSun\DOMAIN . $cat->url]));
+			use_icon($cat->icon, $add, ['class' => 'icon', 'data-label' => $cat->name]);
+		} else {
+			$nav->append('a', $cat->name, array_merge(ATTRS, ['href' => \KVSun\DOMAIN . $cat->url]));
+		}
 	}
 	$avatar = $nav->append('img', null, [
 		'id' => 'user-avatar',
