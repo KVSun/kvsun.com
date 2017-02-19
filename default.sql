@@ -1,8 +1,8 @@
--- MySQL dump 10.16  Distrib 10.1.20-MariaDB, for Linux (x86_64)
+-- MySQL dump 10.16  Distrib 10.1.21-MariaDB, for Linux (x86_64)
 --
 -- Host: localhost    Database: localhost
 -- ------------------------------------------------------
--- Server version	10.1.20-MariaDB
+-- Server version	10.1.21-MariaDB
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -16,6 +16,26 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `addresses`
+--
+
+DROP TABLE IF EXISTS `addresses`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `addresses` (
+  `id` int(5) NOT NULL COMMENT 'user.id',
+  `street` varchar(80) NOT NULL COMMENT 'Street Address',
+  `unit` varchar(5) DEFAULT NULL COMMENT 'Apt or unit #',
+  `POBox` int(5) DEFAULT NULL,
+  `zip` int(5) NOT NULL,
+  `state` varchar(20) NOT NULL,
+  `country` varchar(20) NOT NULL DEFAULT 'United States',
+  `birthday` date DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `categories`
 --
 
@@ -25,13 +45,14 @@ DROP TABLE IF EXISTS `categories`;
 CREATE TABLE `categories` (
   `id` int(3) NOT NULL AUTO_INCREMENT,
   `name` varchar(20) NOT NULL,
+  `icon` varchar(30) DEFAULT NULL,
   `sort` int(2) NOT NULL,
   `parent` varchar(20) DEFAULT NULL,
   `url-name` varchar(20) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `order` (`sort`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -50,6 +71,54 @@ CREATE TABLE `head` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `images`
+--
+
+DROP TABLE IF EXISTS `images`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `images` (
+  `id` int(5) NOT NULL AUTO_INCREMENT,
+  `path` varchar(80) NOT NULL,
+  `fileFormat` varchar(12) NOT NULL DEFAULT 'image/jpeg',
+  `contentSize` int(12) NOT NULL,
+  `uploadDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `height` int(4) DEFAULT NULL,
+  `width` int(4) DEFAULT NULL,
+  `creator` varchar(60) DEFAULT NULL COMMENT 'Photographer',
+  `caption` mediumtext,
+  `alt` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `imgPath` (`path`)
+) ENGINE=InnoDB AUTO_INCREMENT=25 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `imgs`
+--
+
+DROP TABLE IF EXISTS `imgs`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `imgs` (
+  `id` int(10) NOT NULL AUTO_INCREMENT,
+  `sha` varchar(128) NOT NULL COMMENT 'Hash',
+  `path` varchar(100) NOT NULL,
+  `photographer` varchar(60) DEFAULT NULL,
+  `caption` text,
+  `width` int(4) NOT NULL,
+  `height` int(4) NOT NULL,
+  `filesize` int(6) NOT NULL,
+  `format` varchar(15) NOT NULL DEFAULT 'image/jpeg',
+  `uploaded` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `uploadedBy` int(13) NOT NULL COMMENT 'userID',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `imgPath` (`path`),
+  UNIQUE KEY `Hash` (`sha`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `pages`
 --
 
@@ -59,9 +128,29 @@ DROP TABLE IF EXISTS `pages`;
 CREATE TABLE `pages` (
   `name` varchar(30) NOT NULL,
   `url` varchar(255) NOT NULL,
+  `icon` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`name`),
   UNIQUE KEY `url` (`url`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `post_comments`
+--
+
+DROP TABLE IF EXISTS `post_comments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `post_comments` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `postID` int(11) NOT NULL,
+  `catID` int(3) NOT NULL,
+  `userID` int(11) NOT NULL,
+  `created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `approved` tinyint(1) NOT NULL DEFAULT '0',
+  `text` longtext NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -80,6 +169,7 @@ CREATE TABLE `posts` (
   `posted` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `draft` tinyint(1) NOT NULL DEFAULT '0',
+  `isFree` tinyint(1) NOT NULL DEFAULT '1',
   `url` varchar(120) NOT NULL,
   `img` varchar(80) DEFAULT NULL,
   `posted_by` int(3) NOT NULL COMMENT 'User ID',
@@ -87,7 +177,40 @@ CREATE TABLE `posts` (
   `description` varchar(160) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `url` (`url`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `publisher`
+--
+
+DROP TABLE IF EXISTS `publisher`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `publisher` (
+  `name` varchar(20) NOT NULL,
+  `value` varchar(255) NOT NULL,
+  PRIMARY KEY (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `srcset`
+--
+
+DROP TABLE IF EXISTS `srcset`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `srcset` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `parentId` int(10) NOT NULL,
+  `path` varchar(100) NOT NULL,
+  `width` int(4) NOT NULL,
+  `height` int(4) NOT NULL,
+  `format` varchar(15) NOT NULL DEFAULT 'image/jpeg',
+  `filesize` int(6) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -117,14 +240,12 @@ CREATE TABLE `subscription_rates` (
   `id` int(2) NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
   `description` varchar(255) NOT NULL,
-  `length` enum('2 year','1 year','6 month','3 month','1 month','1 week','1 day') NOT NULL,
   `media` enum('online','e-edition','print') NOT NULL DEFAULT 'online',
   `price` decimal(5,2) NOT NULL,
-  `isLocal` tinyint(1) NOT NULL,
-  `includes` varchar(5) DEFAULT NULL,
+  `isLocal` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `length` (`length`,`media`,`isLocal`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=latin1;
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -177,7 +298,7 @@ CREATE TABLE `users` (
   `username` varchar(50) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `user` (`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=latin1 ROW_FORMAT=COMPACT;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1 ROW_FORMAT=COMPACT;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -189,4 +310,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-01-16 19:18:28
+-- Dump completed on 2017-02-18 16:16:26

@@ -3,6 +3,7 @@
     "description": "Website for kernvalleysun.com",
     "type": "project",
     "require": {
+		"php": ">=7.0.0",
         "authorizenet/authorizenet": "^1.9"
     },
     "license": "GPL-v3",

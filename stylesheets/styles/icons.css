@@ -26,6 +26,15 @@ svg:hover > svg|use[xlink|href$="#home"] {
 svg:hover > svg|use[xlink|href$="#section-news"] {
   fill: var(--news-theme);
 }
+svg:hover > svg|use[xlink|href$="#section-kvlife"] {
+  fill: var(--kv-life-theme);
+}
+svg:hover > svg|use[xlink|href$="#section-sports"] {
+  fill: var(--sports-theme);
+}
+svg:hover > svg|use[xlink|href$="#section-obit"] {
+  fill: var(--obits-theme);
+}
 [data-label]:hover::after {
   font-family: inherit;
   margin-top: -.5em;
