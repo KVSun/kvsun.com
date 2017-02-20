@@ -144,7 +144,7 @@ if ($header->accept === 'application/json') {
 				break;
 
 			case 'moderate':
-				if (\KVSun\check_role('editor')) {
+				if (\KVSun\user_can('moderateComments')) {
 					try {
 						$comments = \KVSun\get_comments();
 						$doc = new DOM\HTML;
@@ -234,7 +234,7 @@ if ($header->accept === 'application/json') {
 				$resp->send();
 		}
 	} elseif(array_key_exists('upload', $_FILES)) {
-		if (! check_role('editor')) {
+		if (! \KVSun\user_can('uploadMedia')) {
 			trigger_error('Unauthorized upload attempted');
 			http_response_code(HTTP::UNAUTHORIZED);
 			exit('{}');
@@ -257,7 +257,7 @@ if ($header->accept === 'application/json') {
 				break;
 		}
 	} elseif (array_key_exists('delete-comment', $_GET)) {
-		if (!\KVSun\check_role('editor')) {
+		if (!\KVSun\user_can('moderateComments')) {
 			$resp->notify(
 				"I'm afraid I can't let you do that, Dave",
 				'You are not authorized to moderate comments.',
@@ -277,7 +277,7 @@ if ($header->accept === 'application/json') {
 		$resp->notify('Invalid request', 'See console for details.', DOMAIN . 'images/sun-icons/128.png');
 		Console::info($_REQUEST);
 	}
-	if (check_role('admin') or DEBUG) {
+	if (\KVSun\user_can('debug') or DEBUG) {
 		Console::getInstance()->sendLogHeader();
 	}
 	$resp->send();
