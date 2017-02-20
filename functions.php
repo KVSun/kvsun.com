@@ -617,6 +617,17 @@ function check_role(String $role = 'admin'): Bool
 }
 
 /**
+ * Provides quick access to `\shgysk8zer0\Login\User::hasPermission`
+ * @param  String $action Permission to check
+ * @return Bool           Whether or not it is allowed
+ */
+function user_can(String $action): Bool
+{
+	$user = restore_login();
+	return $user->hasPermission($action);
+}
+
+/**
  * Get transactions for a user by name, email, or username
  * @param  String $user Name, email, or username of user
  * @return Array        Matching transactions + user & subscription info
