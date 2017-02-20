@@ -135,6 +135,32 @@ CREATE TABLE `pages` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `permissions`
+--
+
+DROP TABLE IF EXISTS `permissions`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `permissions` (
+  `id` int(13) NOT NULL AUTO_INCREMENT,
+  `roleName` varchar(20) NOT NULL,
+  `comment` tinyint(1) NOT NULL DEFAULT '1',
+  `paidArticles` tinyint(1) NOT NULL DEFAULT '0',
+  `eEdition` tinyint(1) NOT NULL DEFAULT '0',
+  `createPosts` tinyint(1) NOT NULL DEFAULT '0',
+  `editPosts` tinyint(1) NOT NULL DEFAULT '0',
+  `deletePosts` tinyint(1) NOT NULL DEFAULT '0',
+  `moderateComments` tinyint(1) NOT NULL DEFAULT '0',
+  `uploadMedia` tinyint(1) NOT NULL DEFAULT '0',
+  `alterUsers` tinyint(1) NOT NULL DEFAULT '0',
+  `skipApproval` tinyint(1) NOT NULL DEFAULT '0',
+  `debug` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `roleName` (`roleName`)
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `post_comments`
 --
 
@@ -150,7 +176,7 @@ CREATE TABLE `post_comments` (
   `approved` tinyint(1) NOT NULL DEFAULT '0',
   `text` longtext NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -310,4 +336,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-02-18 16:16:26
+-- Dump completed on 2017-02-20 10:41:44
