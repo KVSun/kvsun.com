@@ -1,15 +1,18 @@
 <?php
-namespace KVSun;
+namespace KVSun\Events;
 
 use \shgysk8zer0\Core\{Console, Listener, Gravatar, Timer, JSON_Response as Resp};
-use \shgysk8zer0\DOM;
 use \shgysk8zer0\Login\User;
+
+use const \KVSun\{PASSWD, LOGGED_IN_ONLY, LOGGED_OUT_ONLY, DEBUG};
+
+use function \KVSun\{user_can};
 
 function login_handler(User $user, Bool $remember = true): Resp
 {
 	try {
 		if ($remember) {
-			$user->setCookie('user', \KVSun\PASSWD);
+			$user->setCookie('user', PASSWD);
 		}
 		$resp = Resp::getInstance();
 		$grav = new Gravatar($user->email, 64);
@@ -17,10 +20,10 @@ function login_handler(User $user, Bool $remember = true): Resp
 		$resp->notify('Login Successful', "Welcome back, {$user->name}", "{$grav}");
 		$resp->close('#login-dialog');
 		$resp->clear('login');
-		$resp->enable(join(', ', \KVSun\LOGGED_IN_ONLY));
-		$resp->disable(join(', ', \KVSun\LOGGED_OUT_ONLY));
+		$resp->enable(join(', ', LOGGED_IN_ONLY));
+		$resp->disable(join(', ', LOGGED_OUT_ONLY));
 		$resp->attributes('#user-avatar', 'src', "$grav");
-		if (\KVSun\user_can('createPosts', 'editPosts')) {
+		if (user_can('createPosts', 'editPosts')) {
 			$resp->attributes('main', 'contextmenu', 'admin_menu');
 		}
 		//$avatar->data_load_form = 'update-user';
@@ -71,7 +74,7 @@ new Listener('login', __NAMESPACE__ . '\login_handler');
 
 new Listener('logout', __NAMESPACE__ . '\logout_handler');
 
-if (user_can('debug') or DEBUG) {
+if (user_can('debug')) {
 	$timer = new Timer();
 	new Listener('error', function(Int $severity, String $message, String $file, Int $line): Bool
 	{
@@ -96,7 +99,6 @@ if (user_can('debug') or DEBUG) {
 
 	new Listener('load', function() use ($timer)
 	{
-		Console::log(get_included_files());
 		Console::info("Loaded in $timer seconds.")->sendLogHeader();
 	});
 	unset($timer);

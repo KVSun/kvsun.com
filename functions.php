@@ -1,11 +1,21 @@
 <?php
 namespace KVSun;
 
-use \shgysk8zer0\Core;
-use \shgysk8zer0\Core_API as API;
-use \shgysk8zer0\DOM;
-use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as HTTP;
-use \shgysk8zer0\Login\User;
+use \shgysk8zer0\Core\{PDO, Console, Listener, Gravatar, URL, Headers};
+use \shgysk8zer0\DOM\{HTML, HTMLElement, RSS};
+use \KVSun\KVSAPI\{Home, Category, Article};
+use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
+use \shgysk8zer0\Login\{User};
+
+use const \KVSun\{
+	DEBUG,
+	DB_CREDS,
+	PASSWD,
+	COMPONENTS,
+	PAGES_DIR,
+	PAGE_COMPONENTS,
+	HTML_TEMPLATES
+};
 
 /**
  * Builds all the things!
@@ -14,34 +24,34 @@ use \shgysk8zer0\Login\User;
  */
 function build_dom(Array $path = array()): \DOMDocument
 {
-	if (@file_exists(\KVSun\DB_CREDS) and Core\PDO::load(\KVSun\DB_CREDS)->connected) {
-		DOM\HTMLElement::$import_path = \KVSun\COMPONENTS;
-		$dom = DOM\HTML::getInstance();
-		if (!empty($path) and file_exists(\KVSun\PAGES_DIR . "{$path[0]}.php")) {
-			require \KVSun\PAGES_DIR . "{$path[0]}.php";
+	if (@file_exists(DB_CREDS) and PDO::load(DB_CREDS)->connected) {
+		HTMLElement::$import_path = COMPONENTS;
+		$dom = HTML::getInstance();
+		if (!empty($path) and file_exists(PAGES_DIR . "{$path[0]}.php")) {
+			require PAGES_DIR . "{$path[0]}.php";
 			exit();
 		}
 		// If IE, show update and hide rest of document
 		$dom->body->ifIE(
-			file_get_contents(\KVSun\COMPONENTS . 'update.html')
+			file_get_contents(COMPONENTS . 'update.html')
 			. '<div style="display:none !important;">'
 		);
 
 		$dom->body->class = 'flex row wrap';
 
-		array_map([$dom->body, 'importHTMLFile'], \KVSun\HTML_TEMPLATES);
+		array_map([$dom->body, 'importHTMLFile'], HTML_TEMPLATES);
 
-		\KVSun\add_main_menu($dom->body);
-		\KVSun\load(...\KVSun\PAGE_COMPONENTS);
+		add_main_menu($dom->body);
+		load(...PAGE_COMPONENTS);
 
 		// Close `</div>` created in [if IE]
 		$dom->body->ifIE('</div>');
 
 	} else {
 		$dom = new \DOMDocument();
-		$dom->loadHTMLFile(\KVSun\COMPONENTS . 'install.html');
+		$dom->loadHTMLFile(COMPONENTS . 'install.html');
 	}
-	Core\Listener::load();
+	Listener::load();
 	return $dom;
 }
 
@@ -115,7 +125,7 @@ function post_comment(
 		$category = get_cat_id($category);
 		$post = get_post_id($post);
 
-		$stm = Core\PDO::load(DB_CREDS)->prepare(
+		$stm = PDO::load(DB_CREDS)->prepare(
 			'INSERT INTO `post_comments` (
 				`postID`,
 				`catID`,
@@ -164,7 +174,7 @@ function post_comment(
  */
 function get_comments(): Array
 {
-	return (Core\PDO::load(\KVSun\DB_CREDS))(
+	return (PDO::load(DB_CREDS))(
 		'SELECT
 			`post_comments`.`id` AS `ID`,
 			`post_comments`.`text` AS `comment`,
@@ -194,7 +204,7 @@ function get_comments(): Array
  */
 function delete_comments(Int ...$ids): Bool
 {
-	$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+	$pdo = PDO::load(DB_CREDS);
 	$pdo->beginTransaction();
 	$stm = $pdo->prepare('DELETE FROM `post_comments` WHERE `id` = :id;');
 	$result = true;
@@ -219,7 +229,7 @@ function get_post_id(String $post): Int
 {
 	static $q;
 	if (is_null($q)) {
-		$q = Core\PDO::load(\KVSun\DB_CREDS)->prepare(
+		$q = PDO::load(DB_CREDS)->prepare(
 			'SELECT `id` FROM `posts`
 			WHERE `title` = :post
 			OR `url` = :post
@@ -241,7 +251,7 @@ function get_cat_id(String $cat): Int
 {
 	static $q;
 	if (is_null($q)) {
-		$q = Core\PDO::load(\KVSun\DB_CREDS)->prepare(
+		$q = PDO::load(DB_CREDS)->prepare(
 			'SELECT `id`
 			FROM `categories`
 			WHERE `name` = :cat
@@ -264,7 +274,7 @@ function get_categories(String $mapping = null): Array
 	static $cats;
 	if (!is_array($cats)) {
 		try {
-			$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+			$pdo = PDO::load(DB_CREDS);
 			$cats = $pdo(
 				'SELECT
 					`url-name` AS `url`,
@@ -292,7 +302,7 @@ function get_categories(String $mapping = null): Array
  */
 function make_category(String $name, Int $sort = 12, String $parent = null): Bool
 {
-	$stm = Core\PDO::load(\KVSun\DB_CREDS)->prepare(
+	$stm = PDO::load(DB_CREDS)->prepare(
 		'INSERT INTO `categories` (
 			`name`,
 			`sort`,
@@ -351,7 +361,7 @@ function category_exists(String $query): Bool
 function get_category(String $cat, Int $limit = 20): Array
 {
 	try {
-		$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+		$pdo = PDO::load(DB_CREDS);
 		$stm = $pdo->prepare(
 			"SELECT
 			`posts`.`title`,
@@ -382,9 +392,9 @@ function get_category(String $cat, Int $limit = 20): Array
  * @param  shgysk8zer0\Login\User          $user User data to update from
  * @return shgysk8zer0\DOM\HTMLElement     `<dialog><form>...</dialog>`
  */
-function user_update_form(\shgysk8zer0\Login\User $user): \DOMElement
+function user_update_form(User $user): \DOMElement
 {
-	$dom = new DOM\HTML();
+	$dom = new HTML();
 	$dialog = $dom->body->append('dialog', null, [
 		'id' => 'update-user-dialog',
 	]);
@@ -411,7 +421,7 @@ function user_update_form(\shgysk8zer0\Login\User $user): \DOMElement
 		'href' => 'https://gravatar.com/',
 		'target' => '_blank',
 	])->append('img', null, [
-		'src' => new Core\Gravatar($user->email, 128),
+		'src' => new Gravatar($user->email, 128),
 		'height' => 128,
 		'width' => 128,
 		'alt' => 'Update user image on Gravatar',
@@ -487,10 +497,10 @@ function user_update_form(\shgysk8zer0\Login\User $user): \DOMElement
 	return $dialog;
 }
 
-function make_cc_form(DOM\HTMLElement $parent = null, String $name = 'ccform'): \DOMElement
+function make_cc_form(HTMLElement $parent = null, String $name = 'ccform'): \DOMElement
 {
 	if (is_null($parent)) {
-		$dom = new DOM\HTML();
+		$dom = new HTML();
 		$parent = $dom->body;
 	}
 
@@ -513,7 +523,7 @@ function make_cc_form(DOM\HTMLElement $parent = null, String $name = 'ccform'): 
 	$e_edition = $input->append('optgroup', null, ['label' => 'E-Edition subscriptions']);
 	$print_oov = $input->append('optgroup', null, ['label' => 'Out of Valley print subscriptions']);
 
-	$pdo = Core\PDO::load(\KVSun\DB_CREDS);
+	$pdo = PDO::load(DB_CREDS);
 	try {
 		$subs = $pdo(
 			'SELECT
@@ -581,7 +591,7 @@ function exception_error_handler(
 ): Bool
 {
 	$e = new \ErrorException($message, 0, $severity, $file, $line);
-	Core\Console::getInstance()->error(['error' => [
+	Console::getInstance()->error(['error' => [
 		'message' => $e->getMessage(),
 		'file'    => $e->getFile(),
 		'line'    => $e->getLine(),
@@ -598,7 +608,7 @@ function exception_error_handler(
  */
 function restore_login()
 {
-	if (@file_exists(DB_CREDS) and Core\PDO::load(DB_CREDS)->connected) {
+	if (@file_exists(DB_CREDS) and PDO::load(DB_CREDS)->connected) {
 		return User::restore('user', DB_CREDS, PASSWD);
 	} else {
 		$user = new \stdClass();
@@ -632,7 +642,7 @@ function user_can(String ...$actions): Bool
  */
 function get_transactions_for(String $user): \stdClass
 {
-	$transaction = Core\PDO::load(\KVSun\DB_CREDS)->prepare(
+	$transaction = PDO::load(DB_CREDS)->prepare(
 		'SELECT
 			`user_data`.`name`,
 			`users`.`username`,
@@ -700,7 +710,7 @@ function make_datalist(String $name, Array $items, Bool $return_string = true)
  */
 function use_icon(
 	String          $icon,
-	DOM\HTMLElement $parent,
+	HTMLElement $parent,
 	Array           $attrs = array()
 ): \DOMElement
 {
@@ -840,23 +850,23 @@ function load(String ...$files): Array
 function load_file(String $file, String $ext = EXT)
 {
 	static $args = null;
-	$url = Core\URL::getInstance();
+	$url = URL::getInstance();
 	$path = explode('/', trim($url->path));
 	$path = array_filter($path);
 	$path = array_values($path);
 
 	if (empty($path)) {
 		// This would be a request for home
-		$kvs = new \KVSun\KVSAPI\Home(Core\PDO::load(DB_CREDS), "$url", get_categories('url'));
+		$kvs = new Home(PDO::load(DB_CREDS), "$url", get_categories('url'));
 	} elseif (count($path) === 1) {
-		$kvs = new \KVSun\KVSAPI\Category(Core\PDO::load(DB_CREDS), "$url");
+		$kvs = new Category(PDO::load(DB_CREDS), "$url");
 	} else {
-		$kvs = new \KVSun\KVSAPI\Article(Core\PDO::load(DB_CREDS), "$url");
+		$kvs = new Article(PDO::load(DB_CREDS), "$url");
 	}
 	if (is_null($args)) {
 		$args = array(
-			DOM\HTML::getInstance(),
-			Core\PDO::load(DB_CREDS),
+			HTML::getInstance(),
+			PDO::load(DB_CREDS),
 			$kvs
 		);
 	}
@@ -882,7 +892,7 @@ function load_file(String $file, String $ext = EXT)
  * @param  DOM\HTML\Element  $el    [description]
  * @return DOM\HTML\Element         [description]
  */
-function append_to_dom(String $fname, DOM\HTMLElement $el)
+function append_to_dom(String $fname, HTMLElement $el)
 {
 	$ext = pathinfo($fname, PATHINFO_EXTENSION);
 	if (empty($ext)) {
@@ -913,7 +923,7 @@ function get_path(): Array
 function build_rss(String $category): DOM\RSS
 {
 	try {
-		$head        = Core\PDO::load(\KVSun\DB_CREDS)->nameValue('head');
+		$head        = PDO::load(DB_CREDS)->nameValue('head');
 		$img         = new \stdClass;
 		$img->url    = 'images/sun-icons/256.png';
 		$img->height = 256;
@@ -924,10 +934,10 @@ function build_rss(String $category): DOM\RSS
 			$head->description ?? ucwords("RSS feed for {$head->title}"),
 			'Newspaper',
 			$img,
-			\KVSun\DOMAIN,
+			DOMAIN,
 			$_SERVER['SERVER_ADMIN'],
 			'editor@kvsun.com',
-			DOM\RSS::LANGUAGE,
+			RSS::LANGUAGE,
 			sprintf('Copyright %d, %s', date('Y'), $head->title)
 		);
 
