@@ -1,4 +1,5 @@
 <?php
+namespace KVSun\CSP;
 use \shgysk8zer0\Core\{Headers, Console};
 $headers = new Headers();
 if (in_array($headers->content_type, ['application/json', 'application/csp-report'])) {
