@@ -1,8 +1,20 @@
 <?php
 namespace KVSun\AutoLoader;
+use \shgysk8zer0\PHPCrypt\{KeyPair};
 
-error_reporting(defined('\KVSun\ERROR_REPORTING') ? \KVSun\ERROR_REPORTING : 0);
-ob_start();
+use const \KVSun\{
+	ERROR_REPORTING,
+	INCLUDE_PATH,
+	ERROR_HANDLER,
+	EXCEPTION_HANDLER,
+	REQUIRED,
+	INCLUDED,
+	PUBLIC_KEY,
+	PRIVATE_KEY,
+	PASSWD
+};
+
+use function \KVSun\{defined};
 
 if (array_key_exists('MIN_PHP_VERSION', $_SERVER)) {
 	if (version_compare(\PHP_VERSION, $_SERVER['MIN_PHP_VERSION'], '<')) {
@@ -11,45 +23,49 @@ if (array_key_exists('MIN_PHP_VERSION', $_SERVER)) {
 	}
 }
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'consts.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'functions.php';
+
+ob_start();
+error_reporting(defined('ERROR_REPORTING') ? ERROR_REPORTING : 0);
 
 spl_autoload_register('spl_autoload');
 
-if (defined('\KVSun\INCLUDE_PATH')) {
-	set_path(\KVSun\INCLUDE_PATH);
+if (defined('INCLUDE_PATH')) {
+	set_path(INCLUDE_PATH);
 }
 
-if (defined('\KVSun\ERROR_HANDLER')) {
-	set_error_handler(\KVSun\ERROR_HANDLER);
+if (defined('ERROR_HANDLER')) {
+	set_error_handler(ERROR_HANDLER);
 }
 
-if (defined('KVSun\EXCEPTION_HANDLER')) {
-	set_exception_handler(\KVSun\EXCEPTION_HANDLER);
+if (defined('EXCEPTION_HANDLER')) {
+	set_exception_handler(EXCEPTION_HANDLER);
 }
 
-if (defined('\KVSun\REQUIRED') and is_array(\KVSun\REQUIRED)) {
+if (defined('REQUIRED') and is_array(REQUIRED)) {
 	array_map(
 		function($file)
 		{
 			require_once __DIR__ . DIRECTORY_SEPARATOR .$file;
 		},
-		\KVSun\REQUIRED
+		REQUIRED
 	);
 }
 
-if (defined('\KVSun\INCLUDE') and is_array(\KVSun\INCLUDED)) {
+if (defined('INCLUDE') and is_array(INCLUDED)) {
 	array_map(
 		function($file)
 		{
 			include_once __DIR__ . DIRECTORY_SEPARATOR .$file;
 		},
-		\KVSun\INCLUDED
+		INCLUDED
 	);
 }
 
-if (!@file_exists(\KVSun\PUBLIC_KEY) or !@file_exists(\KVSun\PRIVATE_KEY)) {
-	$keys = \shgysk8zer0\PHPCrypt\KeyPair::generateKeyPair(\KVSun\PASSWD);
-	$keys->public->exportToFile(\KVSun\PUBLIC_KEY);
-	$keys->private->exportToFile(\KVSun\PRIVATE_KEY, \KVSun\PASSWD);
+if (!@file_exists(PUBLIC_KEY) or !@file_exists(PRIVATE_KEY)) {
+	$keys = KeyPair::generateKeyPair(PASSWD);
+	$keys->public->exportToFile(PUBLIC_KEY);
+	$keys->private->exportToFile(PRIVATE_KEY, PASSWD);
 	unset($keys);
 }
 
