@@ -4,7 +4,7 @@ namespace KVSun\Events;
 use \shgysk8zer0\Core\{Console, Listener, Gravatar, Timer, JSON_Response as Resp};
 use \shgysk8zer0\Login\User;
 
-use const \KVSun\{PASSWD, LOGGED_IN_ONLY, LOGGED_OUT_ONLY, DEBUG};
+use const \KVSun\{PASSWD, LOGGED_IN_ONLY, LOGGED_OUT_ONLY, DEBUG, ERROR_LOG};
 
 use function \KVSun\{user_can};
 
