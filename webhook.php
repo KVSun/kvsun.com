@@ -1,5 +1,5 @@
 <?php
-namespace WebHook;
+namespace KVSun\WebHook;
 use \shgysk8zer0\Core\{GitHubWebhook, Email};
 const CONFIG = 'config/github.json';
 error_reporting(0);
