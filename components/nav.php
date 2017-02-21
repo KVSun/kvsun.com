@@ -1,7 +1,7 @@
 <?php
 namespace KVSun\Components\Nav;
 
-use function \KVSun\{use_icon, restore_login};
+use function \KVSun\Functions\{use_icon, restore_login};
 
 use const \KVSun\Consts\{DOMAIN};
 

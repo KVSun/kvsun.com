@@ -1,6 +1,6 @@
 <?php
 namespace KVSun\Components\Main;
-use function \KVSun\{load, user_can};
+use function \KVSun\Functions\{load, user_can};
 
 use \shgysk8zer0\DOM\{HTML};
 use \shgysk8zer0\Core\{PDO};

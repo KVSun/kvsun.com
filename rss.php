@@ -3,7 +3,7 @@ namespace KVSun\RSS;
 use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as HTTP;
 use \shgysk8zer0\DOM\RSS;
 
-use function \KVSun\{category_exists, build_rss};
+use function \KVSun\Functions\{category_exists, build_rss};
 
 if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
 	require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';

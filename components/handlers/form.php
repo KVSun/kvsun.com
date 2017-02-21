@@ -23,7 +23,7 @@ use \shgysk8zer0\Authorize\{
 use \shgysk8zer0\Login\{User};
 use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
 
-use function \KVSun\{
+use function \KVSun\Functions\{
 	restore_login,
 	user_can,
 	post_comment,

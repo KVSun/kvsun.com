@@ -15,7 +15,7 @@ use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
 use \KVSun\KVSAPI\{Home, Category, Article};
 use \shgysk8zer0\Login\{User};
 
-use function \KVSun\{
+use function \KVSun\Functions\{
 	user_can,
 	restore_login,
 	get_categories,

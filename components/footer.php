@@ -2,7 +2,7 @@
 namespace KVSun\Components\Footer;
 
 use const \KVSun\Consts\{DOMAIN, DEBUG};
-use function \KVSun\use_icon;
+use function \KVSun\Functions\{use_icon};
 
 use \shgysk8zer0\DOM\HTML;
 use \shgysk8zer0\Core\PDO;

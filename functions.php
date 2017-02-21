@@ -1,5 +1,5 @@
 <?php
-namespace KVSun;
+namespace KVSun\Functions;
 
 use \shgysk8zer0\Core\{PDO, Console, Listener, Gravatar, URL, Headers};
 use \shgysk8zer0\DOM\{HTML, HTMLElement, RSS};
@@ -923,7 +923,7 @@ function get_path(): Array
  * @param  String $category Category URL
  * @return RSS             An RSS/XML document
  */
-function build_rss(String $category): DOM\RSS
+function build_rss(String $category): RSS
 {
 	try {
 		$head        = PDO::load(DB_CREDS)->nameValue('head');
@@ -932,7 +932,7 @@ function build_rss(String $category): DOM\RSS
 		$img->height = 256;
 		$img->width  = 256;
 
-		$rss = new DOM\RSS(
+		$rss = new RSS(
 			ucwords("{$head->title} | {$category} Feed"),
 			$head->description ?? ucwords("RSS feed for {$head->title}"),
 			'Newspaper',

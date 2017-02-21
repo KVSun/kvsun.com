@@ -8,7 +8,7 @@ use \shgysk8zer0\Login\{User};
 
 use const \KVSun\Consts\{COMPONENTS, DEV_STYLE, DB_CREDS, DOMAIN};
 
-use function \KVSun\{load, add_main_menu, make_picture};
+use function \KVSun\Functions\{load, add_main_menu, make_picture};
 
 if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
 	require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';

@@ -6,7 +6,7 @@ use \shgysk8zer0\Login\{User};
 
 use const \KVSun\Consts\{PASSWD, LOGGED_IN_ONLY, LOGGED_OUT_ONLY, DEBUG, ERROR_LOG};
 
-use function \KVSun\{user_can};
+use function \KVSun\Functions\{user_can};
 
 /**
  * Responds to login events

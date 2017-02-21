@@ -2,7 +2,7 @@
 
 namespace KVSun\Components\Home;
 
-use function \KVSun\{use_icon};
+use function \KVSun\Functions\{use_icon};
 
 use const \KVSun\Consts\{DOMAIN};
 
