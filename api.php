@@ -1,10 +1,38 @@
 <?php
-namespace KVSun;
+namespace KVSun\API;
 
-use \shgysk8zer0\Core\{PDO, JSON_Response as Resp, URL, Headers, Console, UploadFile};
-use \shgysk8zer0\DOM;
-use \shgysk8zer0\Core_API\Abstracts\{HTTPStatusCodes as HTTP};
-use \shgysk8zer0\Login\User;
+use \shgysk8zer0\Core\{
+	PDO,
+	JSON_Response as Resp,
+	URL,
+	Headers,
+	Console,
+	UploadFile,
+	Listener
+};
+use \shgysk8zer0\DOM\{HTML, HTMLElement, RSS};
+use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
+use \KVSun\KVSAPI\{Home, Category, Article};
+use \shgysk8zer0\Login\{User};
+
+use function \KVSun\Functions\{
+	user_can,
+	restore_login,
+	get_categories,
+	delete_comments,
+	user_update_form,
+	make_cc_form
+};
+
+use const \KVSun\Consts\{
+	DEBUG,
+	DOMAIN,
+	DB_CREDS,
+	COMPONENTS,
+	LOGO,
+	LOGO_VECTOR,
+	LOGO_SIZE
+};
 
 if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
 	require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
@@ -24,11 +52,11 @@ if ($header->accept === 'application/json') {
 		if (empty($path)) {
 			// This would be a request for home
 			// $categories = \KVSun\get_categories();
-			$page = new \KVSun\KVSAPI\Home(PDO::load(DB_CREDS), "$url", \KVSun\get_categories('url'));
+			$page = new Home(PDO::load(DB_CREDS), "$url", get_categories('url'));
 		} elseif (count($path) === 1) {
-			$page = new \KVSun\KVSAPI\Category(PDO::load(DB_CREDS), "$url");
+			$page = new Category(PDO::load(DB_CREDS), "$url");
 		} else {
-			$page = new \KVSun\KVSAPI\Article(PDO::load(DB_CREDS), "$url");
+			$page = new Article(PDO::load(DB_CREDS), "$url");
 		}
 
 		Console::info($path)->sendLogHeader();
@@ -38,7 +66,7 @@ if ($header->accept === 'application/json') {
 	} elseif (array_key_exists('datalist', $_GET)) {
 		switch($_GET['datalist']) {
 			case 'categories':
-				$pdo = PDO::load(\KVSun\DB_CREDS);
+				$pdo = PDO::load(DB_CREDS);
 				$cats = $pdo('SELECT `name` FROM `categories`');
 				Console::table($cats)->sendLogHeader();
 				$doc = new \DOMDocument();
@@ -86,7 +114,7 @@ if ($header->accept === 'application/json') {
 	} elseif (array_key_exists('load_form', $_REQUEST)) {
 		switch($_REQUEST['load_form']) {
 			case 'update-user':
-				$user = User::load(\KVSun\DB_CREDS);
+				$user = User::load(DB_CREDS);
 				if (!isset($user->status)) {
 					$resp->notify('You must login for that', 'Cannot update data before logging in.');
 					$resp->showModal('#login-dialog');
@@ -99,7 +127,7 @@ if ($header->accept === 'application/json') {
 				break;
 
 			case 'ccform':
-				$user = User::load(\KVSun\DB_CREDS);
+				$user = User::load(DB_CREDS);
 				if (!isset($user->status)) {
 					$resp->notify(
 						'You must be logged in for that',
@@ -115,7 +143,7 @@ if ($header->accept === 'application/json') {
 					)->send();
 				}
 
-				$dom = new \shgysk8zer0\DOM\HTML();
+				$dom = new HTML();
 				$dialog = $dom->body->append('dialog', null, [
 					'id' => 'ccform-dialog'
 				]);
@@ -123,16 +151,16 @@ if ($header->accept === 'application/json') {
 					'type' => 'button',
 					'data-delete' => "#{$dialog->id}",
 				]);
-				\KVSun\make_cc_form($dialog);
+				make_cc_form($dialog);
 				$resp->append('body', $dialog);
 				$resp->showModal("#{$dialog->id}");
 				break;
 
 			case 'moderate':
-				if (\KVSun\user_can('moderateComments')) {
+				if (user_can('moderateComments')) {
 					try {
-						$comments = \KVSun\get_comments();
-						$doc = new DOM\HTML;
+						$comments = get_comments();
+						$doc = new HTML;
 						$dialog = $doc->body->append('dialog', null, [
 							'id' => 'comment-moderator',
 						]);
@@ -142,7 +170,7 @@ if ($header->accept === 'application/json') {
 						$dialog->append('hr');
 						$form = $dialog->append('form', null, [
 							'name' => 'comment-moderator-form',
-							'action' => \KVSun\DOMAIN . 'api.php',
+							'action' => DOMAIN . 'api.php',
 							'method' => 'POST',
 						]);
 						$table = $form->append('table', null, [
@@ -176,7 +204,7 @@ if ($header->accept === 'application/json') {
 							$tr->append('td', (new \DateTime($comment->created))->format('D, M jS, Y @ g:i:s A'));
 							$tr->append('td', $comment->category);
 							$tr->append('td')->append('a', $comment->Article, [
-								'href' => \KVSun\DOMAIN . "{$comment->catURL}/{$comment->postURL}#comment-{$comment->ID}",
+								'href' => DOMAIN . "{$comment->catURL}/{$comment->postURL}#comment-{$comment->ID}",
 								'target' => '_blank',
 							]);
 							$tr->append('td')->append('blockquote', $comment->comment);
@@ -214,7 +242,7 @@ if ($header->accept === 'application/json') {
 			// All HTML forms in forms/ should be considered publicly available
 				if (@file_exists("./components/forms/{$_REQUEST['load_form']}.html")) {
 					$form = file_get_contents("./components/forms/{$_REQUEST['load_form']}.html");
-					$dom = new DOM\HTML();
+					$dom = new HTML();
 					$dialog = $dom->body->append('dialog', null, [
 						'id' => "{$_REQUEST['load_form']}-dialog",
 					]);
@@ -232,7 +260,7 @@ if ($header->accept === 'application/json') {
 				}
 		}
 	} elseif(array_key_exists('upload', $_FILES)) {
-		if (! \KVSun\user_can('uploadMedia')) {
+		if (! user_can('uploadMedia')) {
 			trigger_error('Unauthorized upload attempted');
 			http_response_code(HTTP::UNAUTHORIZED);
 			exit('{}');
@@ -255,13 +283,13 @@ if ($header->accept === 'application/json') {
 				break;
 		}
 	} elseif (array_key_exists('delete-comment', $_GET)) {
-		if (!\KVSun\user_can('moderateComments')) {
+		if (! user_can('moderateComments')) {
 			$resp->notify(
 				"I'm afraid I can't let you do that, Dave",
 				'You are not authorized to moderate comments.',
 				'/images/octicons/lib/svg/alert.svg'
 			);
-		} elseif (\KVSun\delete_comments($_GET['delete-comment'])) {
+		} elseif (delete_comments($_GET['delete-comment'])) {
 			$resp->notify('Comment deleted');
 			$resp->remove("#moderate-comments-row-{$_GET['delete-comment']}");
 		} else {
@@ -272,10 +300,10 @@ if ($header->accept === 'application/json') {
 			);
 		}
 	} else {
-		$resp->notify('Invalid request', 'See console for details.', DOMAIN . 'images/sun-icons/128.png');
+		$resp->notify('Invalid request', 'See console for details.', DOMAIN . LOGO);
 		Console::info($_REQUEST);
 	}
-	if (\KVSun\user_can('debug') or DEBUG) {
+	if (user_can('debug') or DEBUG) {
 		Console::getInstance()->sendLogHeader();
 	}
 	$resp->send();

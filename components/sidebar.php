@@ -1,16 +1,26 @@
 <?php
 namespace KVSun\Components\Sidebar;
-return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
+
+use function \KVSun\Functions\{use_icon};
+
+use const \KVSun\Consts\{DOMAIN};
+
+use \shgysk8zer0\DOM\{HTML};
+use \shgysk8zer0\Core\{PDO};
+
+return function (HTML $dom, PDO $pdo)
 {
 	$sidebar = $dom->body->append('aside', null, [
 		'role' => 'sidebar',
 	]);
+
 	$search = $sidebar->append('form', null, [
 		'name'   => 'search',
-		'action' => \KVSun\DOMAIN . 'api.php',
+		'action' => DOMAIN . 'api.php',
 		'role'   => 'search',
 		'method' => 'post',
 	]);
+
 	$search->append('input', null, [
 		'type' => 'search',
 		'name' => 'search[query]',
@@ -20,20 +30,29 @@ return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
 		'required' => '',
 	]);
 
-	make_rail($sidebar->append('div', null, ['class' => 'center']), $pdo);
+	make_rail($sidebar->append('div', null, ['class' => 'center']), $pdo, 7);
 
-	$submit = $search->append('button', null, ['type' => 'submit', 'class' => 'icon']);
-	\KVSun\use_icon('search', $submit, ['class' => 'icon']);
+	$submit = $search->append('button', null, [
+		'type' => 'submit',
+		'class' => 'icon',
+	]);
+
+	use_icon('search', $submit, [
+		'class' => 'icon',
+	]);
+
 	$list = $sidebar->append('ul');
 	foreach($pdo('SELECT `name`, `url-name` AS `url` FROM `categories`') as $category) {
-		$list->append('li')->append('a', $category->name, ['href' => $category->url]);
+		$list->append('li')->append('a', $category->name, [
+			'href' => $category->url,
+		]);
 	}
 };
 
-function make_rail(\DOMElement $parent, \shgysk8zer0\Core\PDO $pdo)
+function make_rail(\DOMElement $parent, PDO $pdo, Int $limit = 7, Int $size = 256)
 {
 	foreach($pdo(
-		'SELECT
+		"SELECT
 			`categories`.`name` AS `category`,
 			`categories`.`url-name` as `catURL`,
 			`posts`.`title`,
@@ -43,15 +62,15 @@ function make_rail(\DOMElement $parent, \shgysk8zer0\Core\PDO $pdo)
 		JOIN `categories` on `categories`.`id` = `posts`.`cat-id`
 		WHERE `posts`.`img` IS NOT NULL
 		ORDER BY `posts`.`posted` DESC
-		LIMIT 7;'
+		LIMIT $limit;"
 	) as $post) {
 		$link = $parent->append('a', null, [
-			'href' => \KVSun\DOMAIN . "{$post->catURL}/{$post->url}",
+			'href' => DOMAIN . "{$post->catURL}/{$post->url}",
 		]);
 		$link->append('img', null, [
-			'src' => $post->img,
-			'width' => 256,
-			'height' => 256,
+			'src'    => $post->img,
+			'width'  => $size,
+			'height' => $size,
 		]);
 		$link->append('p', "{$post->category} &raquo; {$post->title}");
 		$parent->append('hr');

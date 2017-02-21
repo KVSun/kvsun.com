@@ -1,14 +1,48 @@
 <?php
 namespace KVSun\Components\Handlers\Form;
 
-use \shgysk8zer0\Core\{PDO, JSON_Response as Resp, Console, FormData, Listener, Headers};
-use \shgysk8zer0\DOM;
+use \shgysk8zer0\Core\{
+	PDO,
+	JSON_Response as Resp,
+	Console,
+	FormData,
+	Listener,
+	Headers
+};
+use \shgysk8zer0\DOM\{HTML};
 use \shgysk8zer0\Core_API as API;
-use \shgysk8zer0\Authorize;
-use \shgysk8zer0\Login\User;
-use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as HTTP;
+use \shgysk8zer0\Authorize\{
+	Item,
+	Items,
+	BillingAddress,
+	ShippingAddress,
+	Credentials,
+	CreditCard,
+	ChargeCard
+};
+use \shgysk8zer0\Login\{User};
+use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
 
-function is_tel($input)
+use function \KVSun\Functions\{
+	restore_login,
+	user_can,
+	post_comment,
+	category_exists,
+	make_category,
+	get_cat_id
+};
+
+use const \KVSun\Consts\{
+	DEBUG,
+	DOMAIN,
+	DB_INSTALLER,
+	DB_CREDS,
+	CONFIG,
+	AUTHORIZE,
+	LOCAL_ZIPS
+};
+
+function is_tel(String $input)
 {
 	return preg_match('/^\d\\-\d{3}-\d{3}\-\d{4}$/', $input) ? $input : null;
 }
@@ -38,7 +72,7 @@ switch($req->form) {
 			]);
 			if ($db->connected) {
 				$db->beginTransaction();
-				$db(file_get_contents(\KVSun\DB_INSTALLER));
+				$db(file_get_contents(DB_INSTALLER));
 				$user = $db->prepare(
 					'INSERT INTO `users` (
 						`email`,
@@ -89,7 +123,7 @@ switch($req->form) {
 				$user_data->name = $install->user->name;
 				$user_data->execute();
 
-				$subscribers->status = array_search('god', \KVSun\USER_ROLES);
+				$subscribers->status = array_search('god', \KVSun\Consts\USER_ROLES);
 				$subscribers->execute();
 
 				$head->execute([
@@ -116,7 +150,7 @@ switch($req->form) {
 					and $head->allSuccessful()
 				) {
 					if (file_put_contents(
-						\KVSun\DB_CREDS,
+						DB_CREDS,
 						json_encode([
 							'user'     => $install->db->user,
 							'password' => $install->db->pass,
@@ -124,7 +158,7 @@ switch($req->form) {
 						], JSON_PRETTY_PRINT
 					))) {
 						$db->commit();
-						$user_login = User::load(\KVSun\DB_CREDS);
+						$user_login = User::load(DB_CREDS);
 						$user_login($user->email, $user->password);
 						Listener::login($user_login);
 						$resp->notify(
@@ -172,13 +206,13 @@ switch($req->form) {
 		break;
 
 	case 'install-form':
-		if (!is_dir(\KVSun\CONFIG)) {
-			$resp->notify('Config dir does not exist', \KVSun\CONFIG);
-		} elseif (! is_writable(\KVSun\CONFIG)) {
-			$resp->notify('Cannot write to config directory', \KVSun\CONFIG);
-		} elseif (file_exists(\KVSun\DB_CREDS)) {
+		if (!is_dir(CONFIG)) {
+			$resp->notify('Config dir does not exist', CONFIG);
+		} elseif (! is_writable(CONFIG)) {
+			$resp->notify('Cannot write to config directory', CONFIG);
+		} elseif (file_exists(DB_CREDS)) {
 			$resp->notify('Already installed', 'Database config file exists.');
-		} elseif (! file_exists(\KVSun\DB_INSTALLER)) {
+		} elseif (! file_exists(DB_INSTALLER)) {
 			$resp->notify('SQL file not found', 'Please restore "default.sql" using Git.');
 		} else {
 			$installer = $_POST['install-form'];
@@ -186,20 +220,20 @@ switch($req->form) {
 			if (array_key_exists('db', $installer) and is_array($installer['db'])) {
 				try {
 					file_put_contents(
-						\KVSun\DB_CREDS,
+						DB_CREDS,
 						json_encode($installer['db'], JSON_PRETTY_PRINT)
 					);
 					$pdo = new PDO();
 					if ($pdo->connected) {
 						if (empty($pdo->showTables())) {
-							$pdo->restore(\KVSun\DB_INSTALLER);
+							$pdo->restore(DB_INSTALLER);
 							if (! $pdo->showTables()) {
 								$resp->notify('Error', 'Could not restore database.');
 							} else {
 								$resp->notify('Installed', 'Created new default database.');
 								//$resp->reload();
 								$resp->remove('form');
-								$dom = DOM\HTML::getInstance();
+								$dom = HTML::getInstance();
 								$form = load('registration-form');
 								$resp->append(['body' => "{$form[0]}"]);
 							}
@@ -209,7 +243,7 @@ switch($req->form) {
 						}
 					} else {
 						$resp->notify('Error', 'Could not connect to database using given credentials.');
-						unlink(\KVSun\DB_CREDS);
+						unlink(DB_CREDS);
 					}
 				} catch(\Exception $e) {
 					$resp->notify('Error', $e->getMessage());
@@ -221,7 +255,7 @@ switch($req->form) {
 		break;
 
 	case 'login':
-		$user = User::load(\KVSun\DB_CREDS);
+		$user = User::load(DB_CREDS);
 		$user::$check_wp_pass = true;
 		if ($user($req->login->email, $req->login->password)) {
 			Listener::login($user, isset($req->login->remember));
@@ -243,7 +277,7 @@ switch($req->form) {
 			and filter_var($req->register->email, \FILTER_VALIDATE_EMAIL)
 		) {
 			try {
-				$pdo = PDO::load(\KVSun\DB_CREDS);
+				$pdo = PDO::load(DB_CREDS);
 				$pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 				$pdo->beginTransaction();
 				$users = $pdo->prepare('INSERT INTO `users` (
@@ -277,9 +311,9 @@ switch($req->form) {
 					'password' => password_hash($req->register->password, \PASSWORD_DEFAULT)
 				]);
 				$user_data->execute(['name' => $req->register->name]);
-				$subscribers->execute(['status' => array_search('guest', \KVSun\USER_ROLES)]);
+				$subscribers->execute(['status' => array_search('guest', \KVSun\Consts\USER_ROLES)]);
 				$pdo->commit();
-				$user = User::load(\KVSun\DB_CREDS);
+				$user = User::load(DB_CREDS);
 				if ($user($req->register->email, $req->register->password)) {
 					Listener::login($user);
 				} else {
@@ -324,10 +358,10 @@ switch($req->form) {
 		);
 		$data = new FormData($data);
 
-		$pdo = PDO::load(\KVSun\DB_CREDS);
+		$pdo = PDO::load(DB_CREDS);
 
 		$pdo->beginTransaction();
-		$user = \KVSun\restore_login();
+		$user = restore_login();
 		$user_stm = $pdo->prepare('UPDATE `users`
 			SET `email` = :email
 			WHERE `id` = :id
@@ -363,7 +397,7 @@ switch($req->form) {
 
 	case 'search':
 		$resp->notify('Search results', 'Check console for more info');
-		$pdo = PDO::load(\KVSun\DB_CREDS);
+		$pdo = PDO::load(DB_CREDS);
 		try {
 			$stm = $pdo->prepare('SELECT * FROM `posts` WHERE `title` LIKE :query');
 			// $stm->query = "%{$_REQUEST['search']['query']}%";
@@ -376,7 +410,7 @@ switch($req->form) {
 		break;
 
 	case 'comments':
-		if (\KVSun\user_can('comment')) {
+		if (user_can('comment')) {
 			$headers = Headers::getInstance();
 			if (!isset($headers->referer)) {
 				$resp->notify(
@@ -402,12 +436,12 @@ switch($req->form) {
 						'/images/octicons/lib/svg/comment-discussion.svg'
 					)->send();
 				}
-				$user = \KVSun\restore_login();
-				if (\KVSun\post_comment(
+				$user = restore_login();
+				if (post_comment(
 					$url,
 					$user,
 					$comment->text,
-					\KVSun\user_can('skipApproval')
+					user_can('skipApproval')
 				)) {
 					$resp->notify(
 						'Comment submitted',
@@ -426,7 +460,7 @@ switch($req->form) {
 		break;
 
 	case 'comment-moderator-form':
-		if (!\KVSun\user_can('moderateComments')) {
+		if (! user_can('moderateComments')) {
 			$resp->notify(
 				"I'm afraid I can't let you do that, Dave",
 				'You are not authorized to moderate comments.',
@@ -435,7 +469,7 @@ switch($req->form) {
 		} else {
 			$comments = new FormData($_POST['comment-moderator-form']);
 			try {
-				$pdo = PDO::load(\KVSun\DB_CREDS);
+				$pdo = PDO::load(DB_CREDS);
 				$pdo->beginTransaction();
 				$stm = $pdo->prepare(
 					'UPDATE `post_comments`
@@ -466,7 +500,7 @@ switch($req->form) {
 		}
 		break;
 	case 'new-post':
-		if (! \KVSun\user_can('createPosts')) {
+		if (! user_can('createPosts')) {
 			http_response_code(HTTP::UNAUTHORIZED);
 			$resp->notify('Error', 'You must be logged in for that.')->send();
 		}
@@ -480,7 +514,7 @@ switch($req->form) {
 			)->send();
 		}
 
-		$pdo = PDO::load(\KVSun\DB_CREDS);
+		$pdo = PDO::load(DB_CREDS);
 		$sql = 'INSERT INTO `posts` (
 			`cat-id`,
 			`title`,
@@ -509,15 +543,15 @@ switch($req->form) {
 			:description
 		);';
 		try {
-			if (!\KVSun\category_exists($post->category)) {
-				if (!\KVSun\make_category($post->category)) {
+			if (! category_exists($post->category)) {
+				if (! make_category($post->category)) {
 					$resp->notify('Error creating category', 'Try an existing category or contact an admin.');
 				}
 			}
 			$stm = $pdo->prepare($sql);
-			$user = \KVSun\restore_login();
+			$user = restore_login();
 			$stm->title = strip_tags($post->title);
-			$stm->cat = \KVSun\get_cat_id($post->category);
+			$stm->cat = get_cat_id($post->category);
 			$stm->author = strip_tags($post->author);
 			$stm->content = $post->content;
 			$stm->draft = isset($post->draft);
@@ -551,7 +585,7 @@ switch($req->form) {
 		break;
 
 	case 'update-post':
-		if (! \KVSun\user_can('editPosts')) {
+		if (! user_can('editPosts')) {
 			http_response_code(HTTP::UNAUTHORIZED);
 			$resp->notify('Error', 'You must be logged in for that.')->send();
 		}
@@ -571,7 +605,7 @@ switch($req->form) {
 			)->send();
 		}
 
-		$stm = PDO::load(\KVSun\DB_CREDS)->prepare(
+		$stm = PDO::load(DB_CREDS)->prepare(
 			'UPDATE `posts` SET
 				`cat-id` = :cat,
 				`title` = :title,
@@ -586,13 +620,13 @@ switch($req->form) {
 		);
 
 		try {
-			if (!\KVSun\category_exists($post->category)) {
-				if (!\KVSun\make_category($post->category)) {
+			if (! category_exists($post->category)) {
+				if (! make_category($post->category)) {
 					$resp->notify('Error creating category', 'Try an existing category or contact an admin.');
 				}
 			}
 			$url = explode('/', rtrim($post->url, '/'));
-			$stm->cat = \KVSun\get_cat_id($post->category);
+			$stm->cat = get_cat_id($post->category);
 			$stm->title = strip_tags($post->title);
 			$stm->author = strip_tags($post->author);
 			$stm->content = $post->content;
@@ -621,8 +655,8 @@ switch($req->form) {
 		break;
 
 	case 'ccform':
-		$user = \KVSun\restore_login();
-		$billing = new Authorize\BillingAddress($req->ccform->billing->getArrayCopy());
+		$user = restore_login();
+		$billing = new BillingAddress($req->ccform->billing->getArrayCopy());
 
 		if (!$billing->validate()) {
 			$resp->notify(
@@ -631,7 +665,7 @@ switch($req->form) {
 				'/images/octicons/lib/svg/credit-card.svg'
 			)->focus('#ccform-billing-first-name')->send();
 		}
-		$pdo = PDO::load(\KVSun\DB_CREDS);
+		$pdo = PDO::load(DB_CREDS);
 
 		$stm = $pdo->prepare('SELECT
 				`id`,
@@ -654,7 +688,7 @@ switch($req->form) {
 		if (
 			$sub->media === 'print'
 			and $sub->isLocal
-			and ! in_array(intval($req->ccform->billing->zip), \KVSun\LOCAL_ZIPS)
+			and ! in_array(intval($req->ccform->billing->zip), LOCAL_ZIPS)
 		) {
 			$resp->notify(
 				'You do not qualify for this subscription',
@@ -664,7 +698,7 @@ switch($req->form) {
 		} elseif (
 			$sub->media === 'print'
 			and !$sub->isLocal
-			and in_array(intval($req->ccform->billing->zip), \KVSun\LOCAL_ZIPS)
+			and in_array(intval($req->ccform->billing->zip), LOCAL_ZIPS)
 		) {
 			$resp->notify(
 				'You do not qualify for this subscription',
@@ -673,26 +707,26 @@ switch($req->form) {
 			)->focus('#ccform-subscription')->send();
 		}
 
-		$creds = Authorize\Credentials::loadFromIniFile(\KVSun\AUTHORIZE, \KVSun\DEBUG);
+		$creds = Credentials::loadFromIniFile(AUTHORIZE, DEBUG);
 		$expires = new \DateTime(
 			"{$req->ccform->card->expires->year}-{$req->ccform->card->expires->month}"
 		);
 
-		$card = new Authorize\CreditCard(
+		$card = new CreditCard(
 			$req->ccform->card->name,
 			$req->ccform->card->num,
 			$expires,
 			$req->ccform->card->csc
 		);
 
-		$request = new Authorize\ChargeCard($creds, $card);
+		$request = new ChargeCard($creds, $card);
 		$request->setInvoice(rand(pow(10, 7), pow(10, 15) - 1));
-		$shipping = new Authorize\ShippingAddress();
+		$shipping = new ShippingAddress();
 		$shipping->fromAddress($billing);
 		$request->setShippingAddress($shipping);
 		$request->setBillingAddress($billing);
 
-		$item = new Authorize\Item(get_object_vars($sub));
+		$item = new Item(get_object_vars($sub));
 		if (! $item->validate()) {
 			$resp->notify(
 				'Something went wrong',
@@ -701,7 +735,7 @@ switch($req->form) {
 				'/images/octicons/lib/svg/credit-card.svg'
 			)->send();
 		}
-		$items = new Authorize\Items();
+		$items = new Items();
 		$items->addItem($item);
 
 		try {
@@ -716,7 +750,7 @@ switch($req->form) {
 						$stm->execute();
 						$included = $stm->fetchObject();
 						$included->price = 0;
-						$item = new Authorize\Item(get_object_vars($included));
+						$item = new Item(get_object_vars($included));
 						$items->addItem($item);
 					}
 				}
@@ -746,9 +780,9 @@ switch($req->form) {
 
 			$record->execute([
 				'transactionID' => $response->transactionID,
-				'authCode' => $response->authCode,
-				'userID' => $user->id,
-				'subscription' => $sub->id,
+				'authCode'      => $response->authCode,
+				'userID'        => $user->id,
+				'subscription'  => $sub->id,
 			]);
 
 			$subscribe = $pdo->prepare(
@@ -772,7 +806,7 @@ switch($req->form) {
 					$expires = new \DateTime("+ {$item->length}");
 					Console::info($expires);
 					$subscribe->id = $user->id;
-					$subscribe->status = array_search('subscriber', \KVSun\USER_ROLES);
+					$subscribe->status = array_search('subscriber', \KVSun\Consts\USER_ROLES);
 					$subscribe->expires = $expires->format('Y-m-d H:i:s');
 					$subscribe->execute();
 				}
@@ -783,7 +817,7 @@ switch($req->form) {
 				$response,
 				'/images/octicons/lib/svg/credit-card.svg'
 			);
-			if (\KVSun\DEBUG) {
+			if (DEBUG) {
 				Console::log([
 					'respCode'      => $response->code,
 					'authCode'      => $response->authCode,
@@ -801,7 +835,7 @@ switch($req->form) {
 				'/images/octicons/lib/svg/credit-card.svg'
 			);
 
-			if (\KVSun\DEBUG) {
+			if (DEBUG) {
 				Console::log([
 					'respCode'      => $response->code,
 					'authCode'      => $response->authCode,
@@ -816,7 +850,7 @@ switch($req->form) {
 	default:
 		trigger_error('Unhandled form submission.');
 		header('Content-Type: application/json');
-		if (\KVSun\DEBUG) {
+		if (DEBUG) {
 			Console::info($req);
 		}
 		exit('{}');

@@ -1,10 +1,16 @@
 <?php
 namespace KVSun\Components\RegistrationForm;
-return function(\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
+
+use \shgysk8zer0\DOM\{HTML};
+use \shgysk8zer0\Core\{PDO};
+
+return function(HTML $dom, PDO $pdo)
 {
 	$user_creds = $form->append('fieldset');
 	$user_creds->append('legend', 'User Credentials');
-	$user_creds->append('label', 'Login username', ['for' => "{$form->name}-login-user"]);
+	$user_creds->append('label', 'Login username', [
+		'for' => "{$form->name}-login-user",
+	]);
 	$user_creds->append('input', null, [
 		'type'        => 'text',
 		'name'        => "{$form->name}[login][user]",
@@ -13,7 +19,9 @@ return function(\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
 		'required'    => '',
 	]);
 	$user_creds->append('br');
-	$user_creds->append('label', 'Email', ['for' => "{$form->name}-login-email"]);
+	$user_creds->append('label', 'Email', [
+		'for' => "{$form->name}-login-email",
+	]);
 	$user_creds->append('input', null, [
 		'type'        => 'email',
 		'name'        => "{$form->name}[login][email]",
@@ -22,7 +30,9 @@ return function(\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
 		'required'    => '',
 	]);
 	$user_creds->append('br');
-	$user_creds->append('label', 'Login password', ['for' => "{$form->name}-login-pass"]);
+	$user_creds->append('label', 'Login password', [
+		'for' => "{$form->name}-login-pass",
+	]);
 	$user_creds->append('input', null, [
 		'type'        => 'password',
 		'name'        => "{$form->name}[login][pass]",

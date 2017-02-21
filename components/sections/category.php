@@ -1,17 +1,20 @@
 <?php
-namespace KVSun\Components\Category;
-use function \KVSun\use_icon;
-return function (
-	\shgysk8zer0\DOM\HTML $dom,
-	\shgysk8zer0\Core\PDO $pdo,
-	\KVSun\KVSAPI\Abstracts\Content $kvs
-)
+namespace KVSun\Components\Sections\Category;
+
+use function \KVSun\Functions\{use_icon};
+
+use const \KVSun\Consts\{DOMAIN, DATETIME_FORMAT};
+
+use \shgysk8zer0\DOM\{HTML};
+use \shgysk8zer0\Core\{PDO, DateTime};
+use \KVSun\KVSAPI\{Abstracts\Content as KVSAPI};
+
+return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 {
 	$section_template = $dom->getElementById('section-template');
 	$main = $dom->getElementsByTagName('main')->item(0);
-	$date = new \shgysk8zer0\Core\DateTime('last week');
-	$date->format = 'Y-m-d H:j:s';
-	$console = \shgysk8zer0\Core\Console::getInstance();
+	$date = new DateTime('last week');
+	$date->format = DATETIME_FORMAT;
 
 	$xpath = new \DOMXPath($dom);
 
@@ -36,7 +39,7 @@ return function (
 	foreach ($kvs->articles as $article) {
 		$div = $container->appendChild($dom->createElement('div'));
 		$a = $div->appendChild($dom->createElement('a'));
-		$a->href = \KVSun\DOMAIN . $article->url;
+		$a->href = DOMAIN . $article->url;
 		$a->textContent = $article->title;
 		$a->class = 'currentColor';
 	}
