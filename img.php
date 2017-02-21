@@ -4,6 +4,7 @@ namespace KVSun\ImageTest;
 
 use \shgysk8zer0\Core as Core;
 use \shgysk8zer0\DOM as DOM;
+use \shgysk8zer0\Login\User;
 
 if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
 	require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
@@ -24,7 +25,7 @@ $dom->head->append('link', null, [
 $main = $dom->body->append('main', null, [
 	'role' => 'main',
 ]);
-if (\KVSun\check_role('editor')) {
+if (User::load(\KVSun\DB_CREDS)->hasPermission('uploadMedia')) {
 	$main->contextmenu = 'admin_menu';
 }
 \KVSun\load('sidebar', 'footer');

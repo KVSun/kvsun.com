@@ -376,7 +376,7 @@ switch($req->form) {
 		break;
 
 	case 'comments':
-		if (\KVSun\check_role('guest')) {
+		if (\KVSun\user_can('comment')) {
 			$headers = Headers::getInstance();
 			if (!isset($headers->referer)) {
 				$resp->notify(
@@ -407,7 +407,7 @@ switch($req->form) {
 					$url,
 					$user,
 					$comment->text,
-					\KVSun\check_role('editor')
+					\KVSun\user_can('skipApproval')
 				)) {
 					$resp->notify(
 						'Comment submitted',
@@ -426,7 +426,7 @@ switch($req->form) {
 		break;
 
 	case 'comment-moderator-form':
-		if (!\KVSun\check_role('editor')) {
+		if (!\KVSun\user_can('moderateComments')) {
 			$resp->notify(
 				"I'm afraid I can't let you do that, Dave",
 				'You are not authorized to moderate comments.',
@@ -466,7 +466,7 @@ switch($req->form) {
 		}
 		break;
 	case 'new-post':
-		if (! \KVSun\check_role('editor')) {
+		if (! \KVSun\user_can('createPosts')) {
 			http_response_code(HTTP::UNAUTHORIZED);
 			$resp->notify('Error', 'You must be logged in for that.')->send();
 		}
@@ -551,7 +551,7 @@ switch($req->form) {
 		break;
 
 	case 'update-post':
-		if (! \KVSun\check_role('editor')) {
+		if (! \KVSun\user_can('editPosts')) {
 			http_response_code(HTTP::UNAUTHORIZED);
 			$resp->notify('Error', 'You must be logged in for that.')->send();
 		}
