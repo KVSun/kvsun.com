@@ -1,6 +1,6 @@
 <?php
 
-namespace KVSun\Components\Home;
+namespace KVSun\Components\Sections\Home;
 
 use function \KVSun\Functions\{use_icon};
 

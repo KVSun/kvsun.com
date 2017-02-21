@@ -1,5 +1,5 @@
 <?php
-namespace KVSun\Components\Article;
+namespace KVSun\Components\Sections\Article;
 
 use \shgysk8zer0\DOM\{HTML};
 use \shgysk8zer0\Core\{PDO};

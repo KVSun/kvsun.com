@@ -1,5 +1,5 @@
 <?php
-namespace KVSun\Components\Category;
+namespace KVSun\Components\Sections\Category;
 
 use function \KVSun\Functions\{use_icon};
 
