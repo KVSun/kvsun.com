@@ -117,7 +117,9 @@ return function (
 	$head->append('link', null, [
 		'rel' => 'stylesheet',
 		'type' => 'text/css',
-		'href' => \KVSun\DOMAIN . \KVSun\DEV_STYLE,
+		'href' => \KVSun\DEBUG
+			? \KVSun\DOMAIN . \KVSun\DEV_STYLE
+			: \KVSun\DOMAIN . \KVSun\STYLE,
 	]);
 
 	foreach(\KVSun\SCRIPTS as $script) {
