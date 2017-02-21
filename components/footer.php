@@ -1,7 +1,7 @@
 <?php
 namespace KVSun\Components\Footer;
 
-use const \KVSun\{DOMAIN, DEBUG};
+use const \KVSun\Consts\{DOMAIN, DEBUG};
 use function \KVSun\use_icon;
 
 use \shgysk8zer0\DOM\HTML;

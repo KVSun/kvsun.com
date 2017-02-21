@@ -1,5 +1,5 @@
 <?php
-namespace KVSun;
+namespace KVSun\Consts;
 const REQUIRED = [
 	'functions.php',
 	'events.php',
@@ -19,7 +19,7 @@ const PAGE_COMPONENTS = [
 	'sidebar',
 	'footer',
 ];
-const ERROR_REPORTING = 0;
+const ERROR_REPORTING = E_ALL;
 const EXCEPTION_HANDLER = '\shgysk8zer0\Core\Listener::exception';
 const ERROR_HANDLER = '\shgysk8zer0\Core\Listener::error';
 const ERROR_LOG = 'errors.log';

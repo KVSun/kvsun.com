@@ -9,7 +9,7 @@ use \shgysk8zer0\Core\{
 	Listener,
 	Headers
 };
-use \shgysk8zer0\DOM\HTML;
+use \shgysk8zer0\DOM\{HTML};
 use \shgysk8zer0\Core_API as API;
 use \shgysk8zer0\Authorize\{
 	Item,
@@ -20,8 +20,8 @@ use \shgysk8zer0\Authorize\{
 	CreditCard,
 	ChargeCard
 };
-use \shgysk8zer0\Login\User;
-use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as HTTP;
+use \shgysk8zer0\Login\{User};
+use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
 
 use function \KVSun\{
 	restore_login,
@@ -32,7 +32,7 @@ use function \KVSun\{
 	get_cat_id
 };
 
-use const \KVSun\{
+use const \KVSun\Consts\{
 	DEBUG,
 	DOMAIN,
 	DB_INSTALLER,
@@ -123,7 +123,7 @@ switch($req->form) {
 				$user_data->name = $install->user->name;
 				$user_data->execute();
 
-				$subscribers->status = array_search('god', \KVSun\USER_ROLES);
+				$subscribers->status = array_search('god', \KVSun\Consts\USER_ROLES);
 				$subscribers->execute();
 
 				$head->execute([
@@ -311,7 +311,7 @@ switch($req->form) {
 					'password' => password_hash($req->register->password, \PASSWORD_DEFAULT)
 				]);
 				$user_data->execute(['name' => $req->register->name]);
-				$subscribers->execute(['status' => array_search('guest', \KVSun\USER_ROLES)]);
+				$subscribers->execute(['status' => array_search('guest', \KVSun\Consts\USER_ROLES)]);
 				$pdo->commit();
 				$user = User::load(DB_CREDS);
 				if ($user($req->register->email, $req->register->password)) {
@@ -806,7 +806,7 @@ switch($req->form) {
 					$expires = new \DateTime("+ {$item->length}");
 					Console::info($expires);
 					$subscribe->id = $user->id;
-					$subscribe->status = array_search('subscriber', \KVSun\USER_ROLES);
+					$subscribe->status = array_search('subscriber', \KVSun\Consts\USER_ROLES);
 					$subscribe->expires = $expires->format('Y-m-d H:i:s');
 					$subscribe->execute();
 				}

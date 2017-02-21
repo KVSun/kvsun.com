@@ -1,12 +1,14 @@
 <?php
 namespace KVSun\Components\InstallForm;
 
-use \shgysk8zer0\Core as Core;
-use \shgysk8zer0\Core_API\Abstracts\HTTPStatusCodes as Status;
-use \shgysk8zer0\DOM as DOM;
+use \shgysk8zer0\{Core};
+use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as Status};
+use \shgysk8zer0\{DOM};
+
+use const \KVSun\Consts\{DOMAIN, DEBUG, DB_CREDS, STYLE, DEV_STYLE, SCRIPTS_DIR, SCRIPTS};
 
 $dom = DOM\HTML::getInstance();
-if (@file_exists(\KVSun\DB_CREDS)) {
+if (@file_exists(DB_CREDS)) {
 	http_response_code(Status::FORBIDDEN);
 	exit('Already installed.');
 }
@@ -15,11 +17,11 @@ $dom->head->append('title', "Installer for {$_SERVER['SERVER_NAME']}");
 $dom->head->append('link', null, [
 	'rel' => 'stylesheet',
 	'type' => 'text/css',
-	'href' => \KVSun\DEBUG ? \KVSun\DOMAIN . \KVSun\DEV_STYLE : \KVSun\DOMAIN . \KVSun\STYLE,
+	'href' => DEBUG ? DOMAIN . DEV_STYLE : DOMAIN . STYLE,
 ]);
-foreach(\KVSun\SCRIPTS as $script) {
+foreach(SCRIPTS as $script) {
 	$dom->head->append('script', null, [
-		'src' => \KVSun\DOMAIN . \KVSun\SCRIPTS_DIR . $script,
+		'src' => DOMAIN . SCRIPTS_DIR . $script,
 		'async' => '',
 		'type' => 'application/javascript',
 	]);
@@ -27,7 +29,7 @@ foreach(\KVSun\SCRIPTS as $script) {
 }
 $form = $dom->body->append('form', null, [
 	'name' =>   basename(__FILE__, '.php'),
-	'action' => \KVSun\DOMAIN . 'api.php',
+	'action' => DOMAIN . 'api.php',
 	'method' => 'POST',
 ]);
 $db_creds = $form->append('fieldset');

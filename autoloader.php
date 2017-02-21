@@ -2,7 +2,7 @@
 namespace KVSun\AutoLoader;
 use \shgysk8zer0\PHPCrypt\{KeyPair};
 
-use const \KVSun\{
+use const \KVSun\Consts\{
 	ERROR_REPORTING,
 	INCLUDE_PATH,
 	ERROR_HANDLER,
@@ -14,7 +14,7 @@ use const \KVSun\{
 	PASSWD
 };
 
-use function \KVSun\{defined};
+use function \KVSun\Consts\{defined};
 
 if (array_key_exists('MIN_PHP_VERSION', $_SERVER)) {
 	if (version_compare(\PHP_VERSION, $_SERVER['MIN_PHP_VERSION'], '<')) {
@@ -25,7 +25,7 @@ if (array_key_exists('MIN_PHP_VERSION', $_SERVER)) {
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'consts.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'functions.php';
 
-ob_start();
+// ob_start();
 error_reporting(defined('ERROR_REPORTING') ? ERROR_REPORTING : 0);
 
 spl_autoload_register('spl_autoload');

@@ -2,9 +2,9 @@
 namespace KVSun\Components\Main;
 use function \KVSun\{load, user_can};
 
-use \shgysk8zer0\DOM\HTML;
-use \shgysk8zer0\Core\PDO;
-use \KVsun\KVSAPI\Abstracts\Content as KVSAPI;
+use \shgysk8zer0\DOM\{HTML};
+use \shgysk8zer0\Core\{PDO};
+use \KVsun\KVSAPI\{Abstracts\Content as KVSAPI};
 
 return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 {

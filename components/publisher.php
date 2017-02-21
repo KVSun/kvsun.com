@@ -1,10 +1,10 @@
 <?php
 namespace KVSun\Components\Publisher;
 
-use const \KVSun\DOMAIN;
+use const \KVSun\Consts\{DOMAIN};
 
-use \shgysk8zer0\DOM\HTML;
-use \shgysk8zer0\Core\PDO;
+use \shgysk8zer0\DOM\{HTML};
+use \shgysk8zer0\Core\{PDO};
 
 return function (HTML $dom, PDO $pdo)
 {

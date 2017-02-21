@@ -1,11 +1,11 @@
 <?php
 namespace KVSun\Components\Head;
 
-use const \KVSun\{DOMAIN, DEBUG, STYLE, DEV_STYLE, SCRIPTS, SCRIPTS_DIR};
+use const \KVSun\Consts\{DOMAIN, DEBUG, STYLE, DEV_STYLE, SCRIPTS, SCRIPTS_DIR};
 
-use \shgysk8zer0\DOM\HTML;
-use \shgysk8zer0\Core\PDO;
-use \KVsun\KVSAPI\Abstracts\Content as KVSAPI;
+use \shgysk8zer0\DOM\{HTML};
+use \shgysk8zer0\Core\{PDO};
+use \KVsun\KVSAPI\{Abstracts\Content as KVSAPI};
 
 return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 {
@@ -28,7 +28,7 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 		$head->append('base', null, ['href' => DOMAIN]);
 		$head->append('link', null, [
 			'rel' => 'canonical',
-			'href' => \KVSun\DOMAIN . ltrim($_SERVER['REQUEST_URI'], '/'),
+			'href' =>DOMAIN . ltrim($_SERVER['REQUEST_URI'], '/'),
 			'itemprop' => 'url',
 		]);
 		$head->append('meta', null, [

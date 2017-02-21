@@ -3,11 +3,11 @@ namespace KVSun\Components\Nav;
 
 use function \KVSun\{use_icon, restore_login};
 
-use const \KVSun\DOMAIN;
+use const \KVSun\Consts\{DOMAIN};
 
-use \shgysk8zer0\DOM\HTML;
+use \shgysk8zer0\DOM\{HTML};
 use \shgysk8zer0\Core\{PDO, Gravatar};
-use \KVsun\KVSAPI\Abstracts\Content as KVSAPI;
+use \KVsun\KVSAPI\{Abstracts\Content as KVSAPI};
 
 const ATTRS = array(
 	'class' => 'cat-link',

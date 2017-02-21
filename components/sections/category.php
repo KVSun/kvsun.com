@@ -1,13 +1,13 @@
 <?php
 namespace KVSun\Components\Category;
 
-use function \KVSun\use_icon;
+use function \KVSun\{use_icon};
 
-use const \KVSun\DOMAIN;
+use const \KVSun\Consts\{DOMAIN};
 
-use \shgysk8zer0\DOM\HTML;
+use \shgysk8zer0\DOM\{HTML};
 use \shgysk8zer0\Core\{PDO, DateTime};
-use \KVSun\KVSAPI\Abstracts\Content as KVSAPI;
+use \KVSun\KVSAPI\{Abstracts\Content as KVSAPI};
 
 return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 {

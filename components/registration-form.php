@@ -1,8 +1,8 @@
 <?php
 namespace KVSun\Components\RegistrationForm;
 
-use \shgysk8zer0\DOM\HTML;
-use \shgysk8zer0\Core\PDO;
+use \shgysk8zer0\DOM\{HTML};
+use \shgysk8zer0\Core\{PDO};
 
 return function(HTML $dom, PDO $pdo)
 {

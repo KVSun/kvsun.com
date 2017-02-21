@@ -6,7 +6,7 @@ use \shgysk8zer0\Core\{Console, Image};
 use \shgysk8zer0\DOM\{HTML, HTMLElement};
 use \shgysk8zer0\Login\{User};
 
-use const \KVSun\{COMPONENTS, DEV_STYLE, DB_CREDS, DOMAIN};
+use const \KVSun\Consts\{COMPONENTS, DEV_STYLE, DB_CREDS, DOMAIN};
 
 use function \KVSun\{load, add_main_menu, make_picture};
 

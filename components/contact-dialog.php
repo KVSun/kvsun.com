@@ -1,7 +1,7 @@
 <?php
 namespace KVSun\Components\ContactDialog;
 
-use \shgysk8zer0\DOM\HTML;
+use \shgysk8zer0\DOM\{HTML};
 use \shgysk8zer0\Core\{PDO, Gravatar};
 
 return function (HTML $dom, PDO $pdo)

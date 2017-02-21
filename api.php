@@ -24,7 +24,7 @@ use function \KVSun\{
 	make_cc_form
 };
 
-use const \KVSun\{DEBUG, DOMAIN, DB_CREDS, COMPONENTS};
+use const \KVSun\Consts\{DEBUG, DOMAIN, DB_CREDS, COMPONENTS};
 
 if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
 	require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';

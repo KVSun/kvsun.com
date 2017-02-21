@@ -1,11 +1,11 @@
 <?php
 namespace KVSun\Components\Article;
 
-use \shgysk8zer0\DOM\HTML;
-use \shgysk8zer0\Core\PDO;
+use \shgysk8zer0\DOM\{HTML};
+use \shgysk8zer0\Core\{PDO};
 use \KVSun\KVSAPI\{Comments, Abstracts\Content as KVSAPI};
 
-use const \KVSun\DOMAIN;
+use const \KVSun\Consts\{DOMAIN};
 
 const DATE_FORMAT = 'D. M j, Y \a\t h:m:s A';
 return function (HTML $dom, PDO $pdo, KVSAPI $kvs)

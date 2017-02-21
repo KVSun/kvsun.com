@@ -7,14 +7,17 @@ use \KVSun\KVSAPI\{Home, Category, Article};
 use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
 use \shgysk8zer0\Login\{User};
 
-use const \KVSun\{
+use const \KVSun\Consts\{
 	DEBUG,
 	DB_CREDS,
 	PASSWD,
+	DOMAIN,
 	COMPONENTS,
+	EXT,
 	PAGES_DIR,
 	PAGE_COMPONENTS,
-	HTML_TEMPLATES
+	HTML_TEMPLATES,
+	SPRITES
 };
 
 /**
