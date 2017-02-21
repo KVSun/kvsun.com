@@ -11,7 +11,7 @@
 /pages/e-edition
 /images/uploads/*
 *.sql
-*.js.map
+*.map
 *.rss
 /tags
 /my-httpd.pp
