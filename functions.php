@@ -599,7 +599,7 @@ function exception_error_handler(
 function restore_login()
 {
 	if (@file_exists(DB_CREDS) and Core\PDO::load(DB_CREDS)->connected) {
-		return \shgysk8zer0\Login\User::restore('user', DB_CREDS, PASSWD);
+		return User::restore('user', DB_CREDS, PASSWD);
 	} else {
 		$user = new \stdClass();
 		$user->status = array_search('guest', USER_ROLES);
@@ -607,24 +607,22 @@ function restore_login()
 	}
 }
 
-function check_role(String $role = 'admin'): Bool
-{
-	$user = restore_login();
-	if (! in_array($role, USER_ROLES)) {
-		throw new \InvalidArgumentException("$role is not a valid user role.");
-	}
-	return isset($user->status) and array_search($role, USER_ROLES) >= $user->status;
-}
-
 /**
  * Provides quick access to `\shgysk8zer0\Login\User::hasPermission`
- * @param  String $action Permission to check
- * @return Bool           Whether or not it is allowed
+ * @param  String $actions Permissions to check
+ * @return Bool            Whether or not it is allowed
  */
-function user_can(String $action): Bool
+function user_can(String ...$actions): Bool
 {
 	$user = restore_login();
-	return $user->hasPermission($action);
+	$allowed = true;
+	foreach ($actions as $action) {
+		if (! $user->hasPermission($action)) {
+			$allowed = false;
+			break;
+		}
+	}
+	return $allowed;
 }
 
 /**
@@ -749,7 +747,8 @@ function add_main_menu(\DOMElement $parent): \DOMElement
 		'data-confirm' => 'Are you sure you want to logout?'
 	]);
 
-	if (check_role('guest')) {
+	$user = User::load(DB_CREDS);
+	if (isset($user->status)) {
 		$login->disabled = '';
 		$register->disabled = '';
 	} else {

@@ -20,7 +20,7 @@ function login_handler(User $user, Bool $remember = true): Resp
 		$resp->enable(join(', ', \KVSun\LOGGED_IN_ONLY));
 		$resp->disable(join(', ', \KVSun\LOGGED_OUT_ONLY));
 		$resp->attributes('#user-avatar', 'src', "$grav");
-		if (\KVSun\check_role('editor')) {
+		if (\KVSun\user_can('createPosts', 'editPosts')) {
 			$resp->attributes('main', 'contextmenu', 'admin_menu');
 		}
 		//$avatar->data_load_form = 'update-user';
@@ -71,7 +71,7 @@ new Listener('login', __NAMESPACE__ . '\login_handler');
 
 new Listener('logout', __NAMESPACE__ . '\logout_handler');
 
-if (check_role('admin') or DEBUG) {
+if (user_can('debug') or DEBUG) {
 	$timer = new Timer();
 	new Listener('error', function(Int $severity, String $message, String $file, Int $line): Bool
 	{

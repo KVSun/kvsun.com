@@ -4,6 +4,7 @@ namespace KVSun;
 use \shgysk8zer0\Core\{PDO, JSON_Response as Resp, URL, Headers, Console, UploadFile};
 use \shgysk8zer0\DOM;
 use \shgysk8zer0\Core_API\Abstracts\{HTTPStatusCodes as HTTP};
+use \shgysk8zer0\Login\User;
 
 if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
 	require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
@@ -83,38 +84,22 @@ if ($header->accept === 'application/json') {
 			$resp->notify('Request for menu', $_GET['load_menu']);
 		}
 	} elseif (array_key_exists('load_form', $_REQUEST)) {
-		// All HTML forms in forms/ should be considered publicly available
-		if (@file_exists("./components/forms/{$_REQUEST['load_form']}.html")) {
-			$form = file_get_contents("./components/forms/{$_REQUEST['load_form']}.html");
-			$dom = new DOM\HTML();
-			$dialog = $dom->body->append('dialog', null, [
-				'id' => "{$_REQUEST['load_form']}-dialog",
-			]);
-			$dialog->append('button', null, [
-				'type'        => 'button',
-				'data-delete' => "#{$dialog->id}",
-			]);
-			$dialog->append('br');
-			$dialog->importHTML($form);
-			$resp->append('body', "{$dialog}");
-			$resp->showModal("#{$dialog->id}");
-			$resp->send();
-		}
 		switch($_REQUEST['load_form']) {
 			case 'update-user':
-				if (!\KVSUn\check_role('guest')) {
+				$user = User::load(\KVSun\DB_CREDS);
+				if (!isset($user->status)) {
 					$resp->notify('You must login for that', 'Cannot update data before logging in.');
 					$resp->showModal('#login-dialog');
 					$resp->send();
 				}
-				$dialog = user_update_form(restore_login());
+				$dialog = user_update_form($user);
 				$resp->append('body', "$dialog");
 				$resp->showModal("#{$dialog->id}");
 				$resp->send();
 				break;
 
 			case 'ccform':
-				$user = restore_login();
+				$user = User::load(\KVSun\DB_CREDS);
 				if (!isset($user->status)) {
 					$resp->notify(
 						'You must be logged in for that',
@@ -123,7 +108,7 @@ if ($header->accept === 'application/json') {
 
 					$resp->showModal('#login-dialog');
 					$resp->send();
-				} elseif (check_role('subscriber') and ! DEBUG) {
+				} elseif ($user->hasPermission('paidArticles') or true) {
 					$resp->notify(
 						'You do not need to subscribe',
 						"Your subscription has not yet expired"
@@ -226,12 +211,25 @@ if ($header->accept === 'application/json') {
 				break;
 
 			default:
-				trigger_error("Request for unhandled form, {$_REQUEST['load_form']}");
-				$resp->notify(
-					'Request for unknown form',
-					'Please contact us to report this problem.'
-				);
-				$resp->send();
+			// All HTML forms in forms/ should be considered publicly available
+				if (@file_exists("./components/forms/{$_REQUEST['load_form']}.html")) {
+					$form = file_get_contents("./components/forms/{$_REQUEST['load_form']}.html");
+					$dom = new DOM\HTML();
+					$dialog = $dom->body->append('dialog', null, [
+						'id' => "{$_REQUEST['load_form']}-dialog",
+					]);
+					$dialog->append('button', null, [
+						'type'        => 'button',
+						'data-delete' => "#{$dialog->id}",
+					]);
+					$dialog->append('br');
+					$dialog->importHTML($form);
+					$resp->append('body', "{$dialog}");
+					$resp->showModal("#{$dialog->id}");
+					$resp->send();
+				} else {
+					$resp->notify('An error occured', "Request made for unknown form.");
+				}
 		}
 	} elseif(array_key_exists('upload', $_FILES)) {
 		if (! \KVSun\user_can('uploadMedia')) {

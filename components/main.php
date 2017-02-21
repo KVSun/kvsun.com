@@ -9,7 +9,7 @@ return function (
 	$main = $dom->body->append('main', null, [
 		'role' => 'main',
 	]);
-	if (\KVSun\check_role('editor')) {
+	if (\KVSun\user_can('createPosts', 'editPosts')) {
 		$main->contextmenu = 'admin_menu';
 	}
 	\KVSun\load('sections' . DIRECTORY_SEPARATOR . $kvs::TYPE);
