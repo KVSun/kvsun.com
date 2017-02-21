@@ -24,7 +24,15 @@ use function \KVSun\Functions\{
 	make_cc_form
 };
 
-use const \KVSun\Consts\{DEBUG, DOMAIN, DB_CREDS, COMPONENTS};
+use const \KVSun\Consts\{
+	DEBUG,
+	DOMAIN,
+	DB_CREDS,
+	COMPONENTS,
+	LOGO,
+	LOGO_VECTOR,
+	LOGO_SIZE
+};
 
 if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
 	require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
@@ -292,7 +300,7 @@ if ($header->accept === 'application/json') {
 			);
 		}
 	} else {
-		$resp->notify('Invalid request', 'See console for details.', DOMAIN . 'images/sun-icons/128.png');
+		$resp->notify('Invalid request', 'See console for details.', DOMAIN . LOGO);
 		Console::info($_REQUEST);
 	}
 	if (user_can('debug') or DEBUG) {

@@ -17,7 +17,9 @@ use const \KVSun\Consts\{
 	PAGES_DIR,
 	PAGE_COMPONENTS,
 	HTML_TEMPLATES,
-	SPRITES
+	SPRITES,
+	LOGO,
+	LOGO_SIZE
 };
 
 /**
@@ -928,9 +930,9 @@ function build_rss(String $category): RSS
 	try {
 		$head        = PDO::load(DB_CREDS)->nameValue('head');
 		$img         = new \stdClass;
-		$img->url    = 'images/sun-icons/256.png';
-		$img->height = 256;
-		$img->width  = 256;
+		$img->url    = LOGO;
+		$img->height = LOGO_SIZE;
+		$img->width  = LOGO_SIZE;
 
 		$rss = new RSS(
 			ucwords("{$head->title} | {$category} Feed"),

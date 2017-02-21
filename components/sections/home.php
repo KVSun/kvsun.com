@@ -4,7 +4,7 @@ namespace KVSun\Components\Sections\Home;
 
 use function \KVSun\Functions\{use_icon};
 
-use const \KVSun\Consts\{DOMAIN};
+use const \KVSun\Consts\{DOMAIN, DATE_FORMAT};
 
 use \shgysk8zer0\DOM\{HTML};
 use \shgysk8zer0\Core\{PDO, DateTime};
@@ -15,7 +15,7 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 	$section_template = $dom->getElementById('section-template');
 	$main = $dom->getElementsByTagName('main')->item(0);
 	$date = new DateTime('last week');
-	$date->format = 'Y-m-d H:j:s';
+	$date->format = DATETIME_FORMAT;
 
 	$xpath = new \DOMXPath($dom);
 	foreach (get_object_vars($kvs->categories) as $name => $section) {

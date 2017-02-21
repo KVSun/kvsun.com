@@ -25,6 +25,13 @@ const ERROR_HANDLER = '\shgysk8zer0\Core\Listener::error';
 const ERROR_LOG = 'errors.log';
 const EXCEPTION_LOG = 'exceptions.log';
 
+const DATE_FORMAT = 'D. M j, Y \a\t h:m:s A';
+const DATETIME_FORMAT = \DATETIME::W3C;
+
+const LOGO = 'images/sun-icons/256.png';
+const LOGO_SIZE = 256;
+const LOGO_VECTOR = 'images/sun-icons/any.svg';
+
 const COMPONENTS   = __DIR__ . DIRECTORY_SEPARATOR . 'components' . DIRECTORY_SEPARATOR;
 const TEMPLATE_DIR = COMPONENTS . DIRECTORY_SEPARATOR . 'kvs-templates' . DIRECTORY_SEPARATOR;
 const CONFIG       = __DIR__ . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR;

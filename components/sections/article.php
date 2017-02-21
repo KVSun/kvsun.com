@@ -5,9 +5,8 @@ use \shgysk8zer0\DOM\{HTML};
 use \shgysk8zer0\Core\{PDO};
 use \KVSun\KVSAPI\{Comments, Abstracts\Content as KVSAPI};
 
-use const \KVSun\Consts\{DOMAIN};
+use const \KVSun\Consts\{DOMAIN, DATE_FORMAT, DATETIME_FORMAT, LOGO};
 
-const DATE_FORMAT = 'D. M j, Y \a\t h:m:s A';
 return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 {
 	if (isset($kvs, $kvs->content, $kvs->posted, $kvs->title, $kvs->category)) {
@@ -35,7 +34,7 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 			$xpath->query('.//*[@itemprop="headline"]', $article)->item(0)->textContent = $kvs->title;
 			$xpath->query('.//*[@itemprop="articleSection"]', $article)->item(0)->textContent = $kvs->category->name;
 			$xpath->query('.//*[@itemprop="author"]', $article)->item(0)->textContent = $kvs->author;
-			$xpath->query('.//*[@itemprop="dateModified"]', $article)->item(0)->setAttribute('content', $updated->format(\DateTime::W3C));
+			$xpath->query('.//*[@itemprop="dateModified"]', $article)->item(0)->setAttribute('content', $updated->format(DATETIME_FORMAT));
 			$keywords = $xpath->query('.//*[@itemprop="keywords"]', $article);
 			if ($keywords = $xpath->query('.//*[@itemprop="keywords"]', $article)) {
 				set_keywords($keywords->item(0), $kvs->keywords);
@@ -43,7 +42,7 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 
 			$pub_date = $xpath->query('.//*[@itemprop="datePublished"]', $article)->item(0);
 			$pub_date->textContent = $posted->format(DATE_FORMAT);
-			$pub_date->setAttribute('datetime', $posted->format(\DateTime::W3C));
+			$pub_date->setAttribute('datetime', $posted->format(DATETIME_FORMAT));
 			$articleBody = $xpath->query('.//*[@itemprop="articleBody"]', $article)->item(0);
 			$articleBody->importHTML($kvs->content);
 
@@ -52,7 +51,7 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 				$pub = $pub->item(0);
 				$xpath->query('.//*[@itemprop="url"]', $pub)->item(0)->setAttribute('href', DOMAIN);
 				$xpath->query('.//*[@itemprop="name"]', $pub)->item(0)->textContent = 'Kern Valley Sun';
-				$xpath->query('.//*[@itemprop="logo"]', $pub)->item(0)->setAttribute('content', DOMAIN . 'images/sun-icons/256.png');
+				$xpath->query('.//*[@itemprop="logo"]', $pub)->item(0)->setAttribute('content', DOMAIN . LOGO);
 			}
 			set_img_data($articleBody);
 			$count = add_comments($main->getElementsByTagName('footer')->item(0), $kvs->comments);
@@ -98,7 +97,7 @@ function add_comments(\DOMElement $parent, Comments $comments)
 		]);
 		$container->append('span', '&nbsp;on&nbsp;')->append('time', $created->format(DATE_FORMAT), [
 			'itemprop' => 'dateCreated',
-			'datetime' => $created->format(\DateTime::W3C),
+			'datetime' => $created->format(DATETIME_FORMAT),
 		]);
 		$container->append('br');
 		$container->append('div', $comment->text, [
@@ -132,7 +131,7 @@ function set_img_data(\DOMElement $container)
 	} else {
 		$container->append('meta', null, [
 			'itemprop' => 'image',
-			'content' => DOMAIN . 'images/sun-icons/256.png',
+			'content' => DOMAIN . LOGO,
 		]);
 	}
 }

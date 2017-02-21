@@ -111,7 +111,7 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 	} else {
 		$head->append('link', null, [
 			'rel' => 'icon',
-			'href' => DOMAIN . 'images/sun-icons/any.svg',
+			'href' => DOMAIN . LOGO_VECTOR,
 			'type' => 'image/svg+xml',
 			'sizes' => 'any',
 		]);
