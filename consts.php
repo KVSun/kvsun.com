@@ -94,12 +94,24 @@ if (! array_key_exists('SERVER_NAME', $_SERVER)) {
 	$_SERVER['REQUEST_SCHEME'] = 'http';
 }
 
-define(__NAMESPACE__ . '\DEBUG', $_SERVER['SERVER_ADDR'] === $_SERVER['REMOTE_ADDR']);
-define(__NAMESPACE__ . '\DOMAIN', "{$_SERVER['REQUEST_SCHEME']}://{$_SERVER['HTTP_HOST']}/");
+function defined(String $const): Bool
+{
+	$const = strtoupper(trim($const, '\\'));
+	return \defined(__NAMESPACE__ . "\\{$const}");
+}
+
+function define(String $const, $value): Bool
+{
+	$const = strtoupper(trim($const, '\\'));
+	return \define(__NAMESPACE__ . "\\{$const}", $value);
+}
+
+define('DEBUG', $_SERVER['SERVER_ADDR'] === $_SERVER['REMOTE_ADDR']);
+define('DOMAIN', "{$_SERVER['REQUEST_SCHEME']}://{$_SERVER['HTTP_HOST']}/");
 
 if (@file_exists('./config/.passwd')) {
-	define(__NAMESPACE__ . '\PASSWD', file_get_contents('./config/.passwd'));
+	define('PASSWD', file_get_contents('./config/.passwd'));
 } else {
 	file_put_contents('./config/.passwd', bin2hex(openssl_random_pseudo_bytes(rand(20, 40))));
-	define(__NAMESPACE__ .'\PASSWD', file_get_contents('./config/.passwd'));
+	define('PASSWD', file_get_contents('./config/.passwd'));
 }
