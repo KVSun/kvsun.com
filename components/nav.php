@@ -1,24 +1,27 @@
 <?php
 namespace KVSun\Components\Nav;
 
-use function \KVSun\use_icon;
+use function \KVSun\{use_icon, restore_login};
+
+use const \KVSun\DOMAIN;
+
+use \shgysk8zer0\DOM\HTML;
+use \shgysk8zer0\Core\{PDO, Gravatar};
+use \KVsun\KVSAPI\Abstracts\Content as KVSAPI;
+
 const ATTRS = array(
 	'class' => 'cat-link',
 	'role' => 'button',
 );
 
-return function (
-	\shgysk8zer0\DOM\HTML $dom,
-	\shgysk8zer0\Core\PDO $pdo,
-	\KVSun\KVSAPI\Abstracts\Content $kvs
-)
+return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 {
 	$nav = $dom->body->append('nav', null, [
 		'role' => 'navigation',
 	]);
 	$nav->class = 'flex sticky';
 	$home = $nav->append('a', null, array_merge(ATTRS, [
-		'href'  => \KVSun\DOMAIN,
+		'href'  => DOMAIN,
 		'rel'   => 'bookmark',
 		'title' => 'Home'
 	]));
@@ -31,30 +34,31 @@ return function (
 	foreach(array_merge($categories, $pages) as $cat) {
 		if (isset($cat->icon)) {
 			$add = $nav->append('a', null, array_merge(ATTRS, [
-				'href'  => \KVSun\DOMAIN . $cat->url,
+				'href'  => DOMAIN . $cat->url,
 				'title' => $cat->name,
 			]));
 			use_icon($cat->icon, $add, [
 				'class' => 'icon',
 			]);
 		} else {
-			$nav->append('a', $cat->name, array_merge(ATTRS, ['href' => \KVSun\DOMAIN . $cat->url]));
+			$nav->append('a', $cat->name, array_merge(ATTRS, [
+				'href' => DOMAIN . $cat->url,
+			]));
 		}
 	}
 	$avatar = $nav->append('img', null, [
-		'id' => 'user-avatar',
-		'src' => \KVSun\DOMAIN . '/images/octicons/lib/svg/sign-in.svg',
-		'width' => 64,
+		'id'     => 'user-avatar',
+		'width'  => 64,
 		'height' => 64,
-		'class' => 'round',
-		'role' => 'button',
+		'class'  => 'round',
+		'role'   => 'button',
 	]);
-	$user = \KVSun\restore_login();
+	$user = restore_login();
 	if (isset($user->email)) {
-		$grav = new \shgysk8zer0\Core\Gravatar($user->email);
-		$avatar->src = $grav;
+		$avatar->src = new Gravatar($user->email);
 		$avatar->data_load_form = 'update-user';
 	} else {
+		$avatar->src = DOMAIN . '/images/octicons/lib/svg/sign-in.svg';
 		$avatar->data_show_modal = '#login-dialog';
 	}
 };

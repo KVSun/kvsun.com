@@ -1,14 +1,14 @@
 <?php
 namespace KVSun\Components\Article;
 
-use \KVSun\KVSAPI\Comments as Comments;
+use \shgysk8zer0\DOM\HTML;
+use \shgysk8zer0\Core\PDO;
+use \KVSun\KVSAPI\{Comments, Abstracts\Content as KVSAPI};
+
+use const \KVSun\DOMAIN;
 
 const DATE_FORMAT = 'D. M j, Y \a\t h:m:s A';
-return function (
-	\shgysk8zer0\DOM\HTML $dom,
-	\shgysk8zer0\Core\PDO $pdo,
-	\KVSun\KVSAPI\Abstracts\Content $kvs
-)
+return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 {
 	if (isset($kvs, $kvs->content, $kvs->posted, $kvs->title, $kvs->category)) {
 		$main = $dom->getElementsByTagName('main')->item(0);
@@ -20,11 +20,11 @@ return function (
 		$xpath = new \DOMXPath($dom);
 		try {
 			$breadcrumbs = $xpath->query('.//*[@itemprop="item"]', $main);
-			$xpath->query('.//*[@itemprop="url"]', $breadcrumbs->item(0))->item(0)->setAttribute('href', \KVSun\DOMAIN);
+			$xpath->query('.//*[@itemprop="url"]', $breadcrumbs->item(0))->item(0)->setAttribute('href', DOMAIN);
 			$xpath->query('.//*[@itemprop="name"]', $breadcrumbs->item(1))->item(0)->textContent = $kvs->category->name;
-			$xpath->query('.//*[@itemprop="url"]', $breadcrumbs->item(1))->item(0)->setAttribute('href', \KVSun\DOMAIN . $kvs->category->url);
+			$xpath->query('.//*[@itemprop="url"]', $breadcrumbs->item(1))->item(0)->setAttribute('href', DOMAIN . $kvs->category->url);
 			$xpath->query('.//*[@itemprop="name"]', $breadcrumbs->item(2))->item(0)->textContent = $kvs->title;
-			$xpath->query('.//*[@itemprop="url"]', $breadcrumbs->item(2))->item(0)->setAttribute('href', \KVSun\DOMAIN . $kvs->category->url . '/' . $kvs->url);
+			$xpath->query('.//*[@itemprop="url"]', $breadcrumbs->item(2))->item(0)->setAttribute('href', DOMAIN . $kvs->category->url . '/' . $kvs->url);
 		} catch (\Throwable $e) {
 			trigger_error($e->getMessage());
 		}
@@ -50,15 +50,15 @@ return function (
 			$pub = $xpath->query('.//*[@itemprop="publisher"]', $article);
 			if ($pub) {
 				$pub = $pub->item(0);
-				$xpath->query('.//*[@itemprop="url"]', $pub)->item(0)->setAttribute('href', \KVSun\DOMAIN);
+				$xpath->query('.//*[@itemprop="url"]', $pub)->item(0)->setAttribute('href', DOMAIN);
 				$xpath->query('.//*[@itemprop="name"]', $pub)->item(0)->textContent = 'Kern Valley Sun';
-				$xpath->query('.//*[@itemprop="logo"]', $pub)->item(0)->setAttribute('content', \KVSun\DOMAIN . 'images/sun-icons/256.png');
+				$xpath->query('.//*[@itemprop="logo"]', $pub)->item(0)->setAttribute('content', DOMAIN . 'images/sun-icons/256.png');
 			}
 			set_img_data($articleBody);
 			$count = add_comments($main->getElementsByTagName('footer')->item(0), $kvs->comments);
 			$article->append('meta', null, [
 				'itemprop' => 'commentCount',
-				'content' => count($kvs->comments),
+				'content'  => count($kvs->comments),
 			]);
 		} catch(\Exception $e) {
 			trigger_error($e);
@@ -108,7 +108,8 @@ function add_comments(\DOMElement $parent, Comments $comments)
 	}
 }
 
-function set_keywords(\DOMElement $container, Array $keywords) {
+function set_keywords(\DOMElement $container, Array $keywords)
+{
 	foreach ($keywords as $keyword) {
 		$item = $container->ownerDocument->createElement('a', $keyword);
 		$container->appendChild($item);
@@ -122,7 +123,7 @@ function set_img_data(\DOMElement $container)
 		$img = $imgs->item(0);
 		$url = parse_url($img->src);
 		if (!array_key_exists('host', $url)) {
-			$img->src = \KVSun\DOMAIN . ltrim($img->src, '/');
+			$img->src = DOMAIN . ltrim($img->src, '/');
 		}
 		$container->append('meta', null,[
 			'itemprop' => 'image',
@@ -131,7 +132,7 @@ function set_img_data(\DOMElement $container)
 	} else {
 		$container->append('meta', null, [
 			'itemprop' => 'image',
-			'content' => \KVSun\DOMAIN . 'images/sun-icons/256.png',
+			'content' => DOMAIN . 'images/sun-icons/256.png',
 		]);
 	}
 }

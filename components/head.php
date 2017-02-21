@@ -1,11 +1,13 @@
 <?php
 namespace KVSun\Components\Head;
 
-return function (
-	\shgysk8zer0\DOM\HTML $dom,
-	\shgysk8zer0\Core\PDO $pdo,
-	\KVSun\KVSAPI\Abstracts\Content $kvs
-)
+use const \KVSun\{DOMAIN, DEBUG, STYLE, DEV_STYLE, SCRIPTS, SCRIPTS_DIR};
+
+use \shgysk8zer0\DOM\HTML;
+use \shgysk8zer0\Core\PDO;
+use \KVsun\KVSAPI\Abstracts\Content as KVSAPI;
+
+return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 {
 	$dom->documentElement->itemscope = '';
 	$dom->documentElement->itemtype = 'https://schema.org/WebPage';
@@ -23,14 +25,14 @@ return function (
 			isset($kvs->title) ? "{$data->title} | {$kvs->title}" : $data->title, [
 				'itemprop' => 'name',
 		]);
-		$head->append('base', null, ['href' => \KVSun\DOMAIN]);
+		$head->append('base', null, ['href' => DOMAIN]);
 		$head->append('link', null, [
 			'rel' => 'canonical',
 			'href' => \KVSun\DOMAIN . ltrim($_SERVER['REQUEST_URI'], '/'),
 			'itemprop' => 'url',
 		]);
 		$head->append('meta', null, [
-			'content' => \KVSun\DOMAIN . ltrim($_SERVER['REQUEST_URI'], '/'),
+			'content' => DOMAIN . ltrim($_SERVER['REQUEST_URI'], '/'),
 			'itemprop' => 'url',
 		]);
 		$head->append('meta', null, [
@@ -81,7 +83,7 @@ return function (
 		$manifest = json_decode(file_get_contents('manifest.json'));
 		$head->append('link', null, [
 			'rel' => 'manifest',
-			'href' => \KVSun\DOMAIN . '/manifest.json'
+			'href' => DOMAIN . '/manifest.json'
 		]);
 		$head->append('meta', null, [
 			'name' => 'mobile-web-app-capable',
@@ -95,13 +97,13 @@ return function (
 		foreach ($manifest->icons as $icon) {
 			$head->append('link', null, [
 				'rel' => 'icon',
-				'href' => \KVSun\DOMAIN . $icon->src,
+				'href' => DOMAIN . $icon->src,
 				'sizes' => $icon->sizes,
 				'type' => $icon->type
 			]);
 			$head->append('link', null, [
 				'rel' => 'apple-touch-icon',
-				'href' => \KVSun\DOMAIN . $icon->src,
+				'href' => DOMAIN . $icon->src,
 				'sizes' => $icon->sizes,
 				'type' => $icon->type
 			]);
@@ -109,7 +111,7 @@ return function (
 	} else {
 		$head->append('link', null, [
 			'rel' => 'icon',
-			'href' => \KVSun\DOMAIN . 'images/sun-icons/any.svg',
+			'href' => DOMAIN . 'images/sun-icons/any.svg',
 			'type' => 'image/svg+xml',
 			'sizes' => 'any',
 		]);
@@ -117,14 +119,12 @@ return function (
 	$head->append('link', null, [
 		'rel' => 'stylesheet',
 		'type' => 'text/css',
-		'href' => \KVSun\DEBUG
-			? \KVSun\DOMAIN . \KVSun\DEV_STYLE
-			: \KVSun\DOMAIN . \KVSun\STYLE,
+		'href' => DEBUG ? DOMAIN . DEV_STYLE : DOMAIN . STYLE,
 	]);
 
-	foreach(\KVSun\SCRIPTS as $script) {
+	foreach(SCRIPTS as $script) {
 		$head->append('script', null, [
-			'src' => \KVSun\DOMAIN . \KVSun\SCRIPTS_DIR . $script,
+			'src' => DOMAIN . SCRIPTS_DIR . $script,
 			'async' => '',
 			'type' => 'application/javascript',
 		]);

@@ -1,20 +1,23 @@
 <?php
 namespace KVSun\Components\ContactDialog;
 
-return function (\shgysk8zer0\DOM\HTML $dom, \shgysk8zer0\Core\PDO $pdo)
+use \shgysk8zer0\DOM\HTML;
+use \shgysk8zer0\Core\{PDO, Gravatar};
+
+return function (HTML $dom, PDO $pdo)
 {
 	$dialog = $dom->body->append('dialog');
 	$dialog->id = basename(__FILE__, '.php');
 	$dialog->append('button', null, [
 		'data-close' => "#{$dialog->id}",
-		'type' => 'button',
+		'type'       => 'button',
 	]);
 
 	$users = $pdo('SELECT `user` as `email`, `name`, `position`, `tel` FROM `users`');
 	foreach ($users as $user) {
 		$container = $dialog->append('div');
 		$container->append('img', null, [
-			'src'    => new \shgysk8zer0\Core\Gravatar($user->email),
+			'src'    => new Gravatar($user->email),
 			'height' => 80,
 			'width'  => 80,
 			'alt'    => $user->name,
