@@ -59,7 +59,6 @@ if ($header->accept === 'application/json') {
 			$page = new Article(PDO::load(DB_CREDS), "$url");
 		}
 
-		Console::info($path)->sendLogHeader();
 		exit(json_encode($page));
 	} elseif (array_key_exists('form', $_REQUEST) and is_array($_REQUEST[$_REQUEST['form']])) {
 		require_once COMPONENTS . 'handlers' . DIRECTORY_SEPARATOR . 'form.php';
@@ -68,7 +67,6 @@ if ($header->accept === 'application/json') {
 			case 'categories':
 				$pdo = PDO::load(DB_CREDS);
 				$cats = $pdo('SELECT `name` FROM `categories`');
-				Console::table($cats)->sendLogHeader();
 				$doc = new \DOMDocument();
 				$doc->appendChild($doc->createElement('datalist'));
 				$doc->documentElement->setAttribute('id', 'categories');
@@ -232,7 +230,7 @@ if ($header->accept === 'application/json') {
 						$resp->append('body', "$dialog");
 						$resp->showModal("#{$dialog->id}");
 					} catch (\Throwable $e) {
-						Console::error($e);
+						trigger_error($e->getMessage());
 						$resp->notify('There was an error', $e->getMessage());
 					}
 				}
@@ -300,8 +298,11 @@ if ($header->accept === 'application/json') {
 			);
 		}
 	} else {
-		$resp->notify('Invalid request', 'See console for details.', DOMAIN . LOGO);
-		Console::info($_REQUEST);
+		$resp->notify(
+			'Invalid request',
+			'Try reloading or contact us to report this error',
+			DOMAIN . LOGO
+		);
 	}
 	if (user_can('debug') or DEBUG) {
 		Console::getInstance()->sendLogHeader();

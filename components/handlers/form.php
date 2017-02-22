@@ -192,14 +192,8 @@ switch($req->form) {
 				)->focus('#install-db-user');
 			}
 		} catch(\Exception $e) {
-			Console::error([
-				'message' => $e->getMessage(),
-				'file'    => $e->getFile(),
-				'line'    => $e->getLine(),
-				'trace'   => $e->getTrace(),
-			]);
+			trigger_error($e->getMessage());
 		} finally {
-			Console::getInstance()->sendLogHeader();
 			$resp->send();
 		}
 		exit;
@@ -332,7 +326,6 @@ switch($req->form) {
 		break;
 
 	case 'user-update':
-		$resp->notify('Form received', 'Check console.');
 		// $data = new FormData($_POST['user-update']);
 		$data = filter_var_array(
 			$_POST['user-update'],
@@ -391,7 +384,6 @@ switch($req->form) {
 			$resp->notify('Failed', 'Failed to update user data');
 		}
 
-		Console::info($data);
 		$resp->send();
 		break;
 
@@ -804,7 +796,6 @@ switch($req->form) {
 					and $item->media === 'online'
 				) {
 					$expires = new \DateTime("+ {$item->length}");
-					Console::info($expires);
 					$subscribe->id = $user->id;
 					$subscribe->status = array_search('subscriber', \KVSun\Consts\USER_ROLES);
 					$subscribe->expires = $expires->format('Y-m-d H:i:s');
