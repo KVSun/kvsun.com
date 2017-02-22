@@ -4,7 +4,7 @@ namespace KVSun\Components\Sections\Home;
 
 use function \KVSun\Functions\{use_icon};
 
-use const \KVSun\Consts\{DOMAIN, DATE_FORMAT};
+use const \KVSun\Consts\{DOMAIN, DATE_FORMAT, DATETIME_FORMAT};
 
 use \shgysk8zer0\DOM\{HTML};
 use \shgysk8zer0\Core\{PDO, DateTime};
