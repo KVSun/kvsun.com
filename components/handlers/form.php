@@ -554,7 +554,7 @@ switch($req->form) {
 			$stm->cat = get_cat_id($post->category);
 			$stm->author = strip_tags($post->author);
 			$stm->content = $post->content;
-			$stm->draft = isset($post->draft);
+			$stm->draft = isset($post->draft) or ! user_can('skipApproval');
 			$stm->url = strtolower(str_replace(' ', '-', strip_tags($post->title)));
 			$stm->posted = $user->id;
 			$stm->keywords = $post->keywords ?? null;
