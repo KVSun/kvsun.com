@@ -1,8 +1,8 @@
 <menu type="context" id="wysiwyg_menu">
 	<!--https://developer.mozilla.org/en-US/docs/Midas-->
 	<menu label="Attributes">
-		<menuitem label="Add Class"></menuitem>
-		<menuitem label="Remove Class"></menuitem>
+		<menuitem label="Add Class" icon="images/octicons/lib/svg/plus.svg"></menuitem>
+		<menuitem label="Remove Class" icon="images/octicons/lib/svg/dash.svg"></menuitem>
 		<menuitem label="Set Attribute"></menuitem>
 		<menuitem label="Remove Attribute"></menuitem>
 	</menu>
@@ -66,8 +66,8 @@
 	<menu label="Text Style">
 		<menu label="Font">
 			<menu label="Size">
-				<menuitem label="+" data-editor-command="increasefontsize"></menuitem>
-				<menuitem label="-" data-editor-command="decreasefontsize"></menuitem>
+				<menuitem label="+" icon="images/octicons/lib/svg/text-size.svg" data-editor-command="increasefontsize"></menuitem>
+				<menuitem label="-" icon="images/octicons/lib/svg/text-size.svg" data-editor-command="decreasefontsize"></menuitem>
 			</menu>
 			<menu label="Font Family">
 				<menuitem label="Alice" data-editor-command="fontname" data-editor-value="Alice"></menuitem>
@@ -78,7 +78,7 @@
 				<menuitem label="Comfortaa" data-editor-command="fontname" data-editor-value="Comfortaa"></menuitem>
 				<menuitem label="Chancery" data-editor-command="fontname" data-editor-value="Chancery"></menuitem>
 				<menuitem label="Intuitive" data-editor-command="fontname" data-editor-value="Intuitive"></menuitem>
-				<menuitem label="Other?" data-editor-command="fontname" data-prompt="What font would you like to use?"></menuitem>
+				<menuitem label="Other?" icon="images/octicons/lib/svg/elipsis.svg" data-editor-command="fontname" data-prompt="What font would you like to use?"></menuitem>
 			</menu>
 			<menu label="Font Color">
 				<menuitem label="Red" icon="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201%201%22%3E%3Crect%20width%3D%221%22%20height%3D%221%22%20fill%3D%22red%22%2F%3E%3C%2Fsvg%3E" data-editor-command="forecolor" data-editor-value="red" data-style-with-css></menuitem>
@@ -117,12 +117,12 @@
 				<menuitem label="Green-Yellow" icon="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%201%201%22%3E%3Crect%20width%3D%221%22%20height%3D%221%22%20fill%3D%22greenyellow%22%2F%3E%3C%2Fsvg%3E" data-editor-command="forecolor" data-editor-value="greenyellow" data-style-with-css></menuitem>
 		</menu>
 	</menu>
-	<menuitem label="Paragraph" icon="images/octicons/lib/svg/file-text.svg" data-editor-command="insertparagraph"></menuitem>
+	<menuitem label="Paragraph" icon="images/octicons/lib/svg/note.svg" data-editor-command="insertparagraph"></menuitem>
 	<menuitem label="Blockquote" icon="images/octicons/lib/svg/quote.svg" data-editor-command="formatblock" data-editor-value="BLOCKQUOTE"></menuitem>
-	<menuitem label="Bold" data-editor-command="bold"></menuitem>
-	<menuitem label="Italics" data-editor-command="italic"></menuitem>
+	<menuitem label="Bold" icon="images/octicons/lib/svg/bold.svg" data-editor-command="bold"></menuitem>
+	<menuitem label="Italics" icon="images/octicons/lib/svg/italic.svg" data-editor-command="italic"></menuitem>
 	<menuitem label="Underline" data-editor-command="underline"></menuitem>
-	<menuitem label="Strike Through" data-editor-command="strikethrough"></menuitem>
+	<menuitem label="Strike Through" icon="images/octicons/lib/svg/dash.svg" data-editor-command="strikethrough"></menuitem>
 	<menuitem label="Big" data-editor-command="big"></menuitem>
 	<menuitem label="Small" data-editor-command="small"></menuitem>
 	<menuitem label="Superscript" data-editor-command="superscript"></menuitem>
@@ -134,22 +134,22 @@
 		<menuitem label="Deleted Text" data-editor-command="inserthtml" data-selection-to="del"></menuitem>
 		<menuitem label="Inserted Text" data-editor-command="inserthtml" data-selection-to="ins"></menuitem>
 		<menuitem label="Sample Text" data-editor-command="inserthtml" data-selection-to="samp"></menuitem>
-		<menuitem label="Keyboard" data-editor-command="inserthtml" data-selection-to="kbd"></menuitem>
+		<menuitem label="Keyboard" icon="images/octicons/lib/svg/keyboard.svg" data-editor-command="inserthtml" data-selection-to="kbd"></menuitem>
 		<menuitem label="Variable" data-editor-command="inserthtml" data-selection-to="var"></menuitem>
-		<menuitem label="Quote" data-editor-command="inserthtml" data-selection-to="q"></menuitem>
+		<menuitem label="Quote" icon="images/octicons/lib/svg/quote.svg" data-editor-command="inserthtml" data-selection-to="q"></menuitem>
 		<menuitem label="Citation" data-editor-command="inserthtml" data-selection-to="cite"></menuitem>
-		<menuitem label="Highlighted Text" data-editor-command="inserthtml" data-selection-to="mark"></menuitem>
+		<menuitem label="Highlighted Text" icon="images/octicons/lib/svg/pencil.svg" icon="images/octicons/lib/svg/pencil.svg" data-editor-command="inserthtml" data-selection-to="mark"></menuitem>
 	</menu>
 	</menu>
 	<menu label="Indentation">
-		<menuitem label="Increase" icon="images/octicons/lib/svg/move-right.svg" data-editor-command="indent"></menuitem>
-		<menuitem label="Decrease" icon="images/octicons/lib/svg/move-left.svg" data-editor-command="outdent"></menuitem>
+		<menuitem label="Increase" icon="images/octicons/lib/svg/arrow-right.svg" icon="images/octicons/lib/svg/move-right.svg" data-editor-command="indent"></menuitem>
+		<menuitem label="Decrease" icon="images/octicons/lib/svg/arrow-left.svg" data-editor-command="outdent"></menuitem>
 	</menu>
 	<menu label="Justify">
 		<menuitem label="Center" data-editor-command="justifycenter"></menuitem>
-		<menuitem label="Left" icon="images/octicons/lib/svg/jump-left.svg" data-editor-command="justifyleft"></menuitem>
-		<menuitem label="Right" icon="images/octicons/lib/svg/jump-right.svg" data-editor-command="justifyright"></menuitem>
-		<menuitem label="Full" data-editor-command="justifyfull"></menuitem>
+		<menuitem label="Left" icon="images/octicons/lib/svg/chevron-left.svg" data-editor-command="justifyleft"></menuitem>
+		<menuitem label="Right" icon="images/octicons/lib/svg/chevron-right.svg" data-editor-command="justifyright"></menuitem>
+		<menuitem label="Full" icon="images/octicons/lib/svg/code.svg" data-editor-command="justifyfull"></menuitem>
 	</menu>
 	<menu label="Special Characters">
 		<menu label="Punctuation">
@@ -232,10 +232,10 @@
 		<menuitem label="Remove Links" data-editor-command="unlink"></menuitem>
 	</menu>
 	<menu label="History">
-		<menuitem label="Undo" icon="images/octicons/lib/svg/history.svg" data-editor-command="undo"></menuitem>
-		<menuitem label="Redo" icon="images/octicons/lib/svg/history.svg" data-editor-command="redo"></menuitem>
+		<menuitem label="Undo" icon="images/octicons/lib/svg/thumbsdown.svg" data-editor-command="undo"></menuitem>
+		<menuitem label="Redo" icon="images/octicons/lib/svg/thumbsup.svg" data-editor-command="redo"></menuitem>
 	</menu>
-	<menuitem label="Save Work"></menuitem>
-	<menuitem label="Restore Work"></menuitem>
+	<menuitem label="Save Work" icon="images/octicons/lib/svg/repo-push.svg"></menuitem>
+	<menuitem label="Restore Work" icon="images/octicons/lib/svg/repo-pull.svg"></menuitem>
 	<menuitem label="Full-Screen" icon="images/octicons/lib/svg/screen-full.svg" data-fullscreen="main article"></menuitem>
 </menu>
