@@ -24,6 +24,7 @@ const EXCEPTION_HANDLER = '\shgysk8zer0\Core\Listener::exception';
 const ERROR_HANDLER = '\shgysk8zer0\Core\Listener::error';
 const ERROR_LOG = 'errors.log';
 const EXCEPTION_LOG = 'exceptions.log';
+const CRLF = "\r\n";
 
 const DATE_FORMAT = 'D. M j, Y \a\t h:m:s A';
 const DATETIME_FORMAT = \DATETIME::W3C;
