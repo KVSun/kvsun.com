@@ -4,7 +4,7 @@ namespace KVSun\Mail;
 use \shgysk8zer0\PHPCrypt\{PublicKey};
 use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
 
-use const \KVSun\Consts\{PUBLIC_KEY};
+use const \KVSun\Consts\{PUBLIC_KEY, ERROR_LOG};
 
 try {
 	$email = new \ArrayObject($_POST, \ArrayObject::ARRAY_AS_PROPS);
@@ -45,6 +45,12 @@ try {
 		throw new \Exception('Invalid request', HTTP::BAD_REQUEST);
 	}
 } catch (\Throwable $e) {
-	trigger_error("<{$_SERVER['REMOTE_ADDR']}>:" . $e->getMessage());
+	$err = sprintf(
+		'<%s>: "%s"%s',
+		$_SERVER['REMOTE_ADDR'],
+		$e->getMessage(),
+		PHP_EOL . json_encode(['Request' => $_POST], JSON_PRETTY_PRINT) . PHP_EOL
+	);
+	error_log($err . PHP_EOL, 3, ERROR_LOG);
 	http_response_code($e->getCode() ?? HTTP::INTERNAL_SERVER_ERROR);
 }
