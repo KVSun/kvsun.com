@@ -79,7 +79,8 @@ function html_email(
 	Array $headers = array('From' => 'no-reply@' . DOMAIN)
 ): Bool
 {
-	$headers['Content-Type'] = "text/html;charset={$message->actualEncoding}";
+	$encoding = $messsage->encoding ?? 'utf-8';
+	$headers['Content-Type'] = "text/html;charset={$encoding}";
 	return email($to, $subject, $message->saveHTML(), $headers);
 }
 
