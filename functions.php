@@ -6,11 +6,14 @@ use \shgysk8zer0\DOM\{HTML, HTMLElement, RSS};
 use \KVSun\KVSAPI\{Home, Category, Article};
 use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
 use \shgysk8zer0\Login\{User};
+use \shgysk8zer0\PHPCrypt\{PublicKey, PrivateKey, KeyPair, AES};
 
 use const \KVSun\Consts\{
 	DEBUG,
 	DB_CREDS,
 	PASSWD,
+	PUBLIC_KEY,
+	PRIVATE_KEY,
 	DOMAIN,
 	COMPONENTS,
 	EXT,
@@ -19,7 +22,8 @@ use const \KVSun\Consts\{
 	HTML_TEMPLATES,
 	SPRITES,
 	LOGO,
-	LOGO_SIZE
+	LOGO_SIZE,
+	CRLF
 };
 
 /**
@@ -58,6 +62,78 @@ function build_dom(Array $path = array()): \DOMDocument
 	}
 	Listener::load();
 	return $dom;
+}
+
+/**
+ * Wrapper function for `mail`
+ * @param  Array  $to      ["user1@domain.com", ...]
+ * @param  String $subject Subject of the email to be sent
+ * @param  String $message Body of the email
+ * @param  array  $headers ['From' => 'admin@domain.com', ...]
+ * @return Bool            Whether or not the email sent
+ */
+function email(Array $to, String $subject, String $message, Array $headers = array()): Bool
+{
+	$headers = array_map(function(String $name, String $value): String
+	{
+		return "{$name}: {$value}";
+	}, array_keys($headers), array_values($headers));
+	$message = str_replace(PHP_EOL, CRLF, $message);
+	$message = wordwrap($message, 70, CRLF);
+	return mail(join(', ', $to), $subject, $message, join(CRLF, $headers));
+}
+
+/**
+ * Custom mail function using cURL and cryptographic signature for authentication
+ * @param  String $to                    Receiver, or receivers of the mail
+ * @param  String $subject               Subject of the email to be sent
+ * @param  String $message               Message to be sent (use \r\n)
+ * @param  string $additional_headers    Optional headers: e.g. "From: user@example.com" use \r\n
+ * @param  string $additional_paramaters Pass additional flags as command line options
+ * @return Bool                          Whether or not it sent
+ * @see https://secure.php.net/manual/en/function.mail.php
+ * @todo Remove once email is working properly
+ */
+function mail(
+	String $to,
+	String $subject,
+	String $message,
+	String $additional_headers    = '',
+	String $additional_paramaters = ''
+): Bool
+{
+	try {
+		$url = new URL('/mail.php');
+		$private = PrivateKey::importFromFile(PRIVATE_KEY, PASSWD);
+		$email = [
+			'to'      => $to,
+			'subject' => $subject,
+			'message' => $message,
+			'headers' => $additional_headers,
+			'params'  => $additional_paramaters,
+			'sent'    => date(\Datetime::W3C),
+		];
+		$email['sig'] = $private->sign(json_encode($email));
+		$ch = curl_init($url);
+		curl_setopt_array($ch, [
+			CURLOPT_RETURNTRANSFER => false,
+			CURLOPT_FRESH_CONNECT => true,
+			CURLOPT_POST => true,
+			CURLOPT_POSTFIELDS => $email,
+		]);
+		if (curl_exec($ch)) {
+			header('Content-Type: text/plain');
+			$status = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+			curl_close($ch);
+			return $status === HTTP::OK;
+		} else {
+			curl_close($ch);
+			return false;
+		}
+	} catch (\Throwable $e) {
+		trigger_error($e->getMessage());
+		return false;
+	}
 }
 
 /**
