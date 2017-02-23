@@ -69,15 +69,6 @@ const HTML_TEMPLATES = [
 	TEMPLATE_DIR . 'section.html',
 ];
 
-const USER_ROLES   = array(
-	0 => 'god',
-	1 => 'admin',
-	2 => 'editor',
-	3 => 'freelancer',
-	4 => 'subscriber',
-	5 => 'guest',
-);
-
 const LOCAL_ZIPS = [
 	93205,
 	93238,
