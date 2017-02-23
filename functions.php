@@ -65,6 +65,25 @@ function build_dom(Array $path = array()): \DOMDocument
 }
 
 /**
+ * Wrapper function for `mail` as HTML
+ * @param  Array       $to      ["user1@domain.com", ...]
+ * @param  String      $subject Subject of the email to be sent
+ * @param  DOMDocuemnt $message Body of the email as a DOMDocuemnt
+ * @param  array       $headers ['From' => 'admin@domain.com', ...]
+ * @return Bool                 Whether or not the email sent
+ */
+function html_email(
+	Array $to,
+	String $subject,
+	\DOMDocument $message,
+	Array $headers = array('From' => 'no-reply@' . DOMAIN)
+): Bool
+{
+	$headers['Content-Type'] = ['text/html', 'charset' => $message->actualEncoding];
+	return email($to, $subject, $message->saveHTML(), $headers);
+}
+
+/**
  * Wrapper function for `mail`
  * @param  Array  $to      ["user1@domain.com", ...]
  * @param  String $subject Subject of the email to be sent
@@ -72,7 +91,12 @@ function build_dom(Array $path = array()): \DOMDocument
  * @param  array  $headers ['From' => 'admin@domain.com', ...]
  * @return Bool            Whether or not the email sent
  */
-function email(Array $to, String $subject, String $message, Array $headers = array()): Bool
+function email(
+	Array $to,
+	String $subject,
+	String $message,
+	Array $headers = array('From' => 'no-reply@' . DOMAIN)
+): Bool
 {
 	$headers = array_map(function(String $name, String $value): String
 	{
