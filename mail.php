@@ -6,6 +6,10 @@ use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
 
 use const \KVSun\Consts\{PUBLIC_KEY, ERROR_LOG};
 
+if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
+	require_once __DIR__ . DIRECTORY_SEPARATOR . 'autoloader.php';
+}
+
 try {
 	$email = new \ArrayObject($_POST, \ArrayObject::ARRAY_AS_PROPS);
 	if (isset(
