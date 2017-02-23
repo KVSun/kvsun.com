@@ -112,7 +112,7 @@ function email(
  * @param  String $to                    Receiver, or receivers of the mail
  * @param  String $subject               Subject of the email to be sent
  * @param  String $message               Message to be sent (use \r\n)
- * @param  string $additional_headers    Optional headers: e.g. "From: user@example.com" use \r\n
+ * @param  string $additional_headers    Optional headers: e.g. "From: user@domain.com" use \r\n
  * @param  string $additional_paramaters Pass additional flags as command line options
  * @return Bool                          Whether or not it sent
  * @see https://secure.php.net/manual/en/function.mail.php
@@ -127,36 +127,44 @@ function mail(
 ): Bool
 {
 	try {
-		$url = new URL('/mail.php');
+		$sent    = true;
+		$url     = new URL('/mail.php');
+		$ch      = curl_init($url);
+		$time    = new \DateTime();
 		$private = PrivateKey::importFromFile(PRIVATE_KEY, PASSWD);
-		$email = [
+		$email   = [
 			'to'      => $to,
 			'subject' => $subject,
 			'message' => $message,
 			'headers' => $additional_headers,
 			'params'  => $additional_paramaters,
-			'sent'    => date(\Datetime::W3C),
+			'sent'    => $time->format(\Datetime::W3C),
 		];
 		$email['sig'] = $private->sign(json_encode($email));
-		$ch = curl_init($url);
+
 		curl_setopt_array($ch, [
 			CURLOPT_RETURNTRANSFER => false,
-			CURLOPT_FRESH_CONNECT => true,
-			CURLOPT_POST => true,
-			CURLOPT_POSTFIELDS => $email,
+			CURLOPT_FRESH_CONNECT  => true,
+			CURLOPT_POST           => true,
+			CURLOPT_POSTFIELDS     => $email,
 		]);
+
+		curl_close($ch);
+		return true;
 		if (curl_exec($ch)) {
-			header('Content-Type: text/plain');
 			$status = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-			curl_close($ch);
-			return $status === HTTP::OK;
+			if ($status !== HTTP::OK) {
+				throw new \Exception("<{$url}> {$status}");
+			}
 		} else {
-			curl_close($ch);
-			return false;
+			throw new \RuntimeException(curl_error($ch));
 		}
 	} catch (\Throwable $e) {
+		$sent = false;
 		trigger_error($e->getMessage());
-		return false;
+	} finally {
+		curl_close($ch);
+		return $sent;
 	}
 }
 
