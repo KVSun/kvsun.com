@@ -1,5 +1,5 @@
 <?php
-namespace Unit
+namespace KVSun\Unit
 {
 	const ERROR_LOG = './errors.log';
 	if (PHP_SAPI !== 'cli') {

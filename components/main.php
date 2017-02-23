@@ -1,16 +1,18 @@
 <?php
 namespace KVSun\Components\Main;
-return function (
-	\shgysk8zer0\DOM\HTML $dom,
-	\shgysk8zer0\Core\PDO $pdo,
-	\KVSun\KVSAPI\Abstracts\Content $kvs
-)
+use function \KVSun\Functions\{load, user_can};
+
+use \shgysk8zer0\DOM\{HTML};
+use \shgysk8zer0\Core\{PDO};
+use \KVsun\KVSAPI\{Abstracts\Content as KVSAPI};
+
+return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 {
 	$main = $dom->body->append('main', null, [
 		'role' => 'main',
 	]);
-	if (\KVSun\user_can('createPosts', 'editPosts')) {
+	if (user_can('createPosts', 'editPosts')) {
 		$main->contextmenu = 'admin_menu';
 	}
-	\KVSun\load('sections' . DIRECTORY_SEPARATOR . $kvs::TYPE);
+	load('sections' . DIRECTORY_SEPARATOR . $kvs::TYPE);
 };
