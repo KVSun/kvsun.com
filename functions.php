@@ -170,6 +170,56 @@ function mail(
 }
 
 /**
+ * Get an array of User role names/ids
+ * @return Array [{name: $name, id: $id}, ...]
+ */
+function get_user_roles(): Array
+{
+	$pdo = PDO::load(DB_CREDS);
+	return $pdo('SELECT `roleName` as `name`, `id` FROM `permissions`');
+}
+
+/**
+ * Get a User role name from its ID
+ * @param  Int    $id Role ID
+ * @return String     Role name
+ */
+function get_role_name(Int $id): String
+{
+	$pdo = PDO::load(DB_CREDS);
+	$stm = $pdo->prepare(
+		'SELECT `roleName`
+		FROM `permissions`
+		WHERE `id` = :id
+		LIMIT 1;'
+	);
+	$stm->bindParam('id', $id);
+	$stm->execute();
+	$role = $stm->fetchObject() ?? new \stdClass();
+	return $role->roleName ?? '';
+}
+
+/**
+ * Get a user role ID from its name
+ * @param  String $role Role name
+ * @return Int          Role ID
+ */
+function get_role_id(String $role): Int
+{
+	$pdo = PDO::load(DB_CREDS);
+	$stm = $pdo->prepare(
+		'SELECT `id`
+		FROM `permissions`
+		WHERE `roleName` = :role
+		LIMIT 1;'
+	);
+	$stm->bindParam('role', $role);
+	$stm->execute();
+	$role = $stm->fetchObject() ?? new \stdClass();
+	return $role->id ?? 0;
+}
+
+/**
  * Create a `<picture>` inside of a `<figure>` from an array of sources
  * @param  Array      $imgs    Image data, as from `Core\Image::responsiveImagesFromUpload`
  * @param  DOMElement $parent  Parent element to append `<picture>` to
