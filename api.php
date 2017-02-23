@@ -19,6 +19,7 @@ use function \KVSun\Functions\{
 	user_can,
 	restore_login,
 	email,
+	get_role_id,
 	get_categories,
 	delete_comments,
 	user_update_form,
@@ -86,7 +87,7 @@ if ($header->accept === 'application/json') {
 					JOIN `subscribers` ON `subscribers`.`id` = `user_data`.`id`
 					WHERE `subscribers`.`status` <= :role;'
 				);
-				$stm->role = array_search('freelancer', USER_ROLES);
+				$stm->role = get_role_id('freelancer');
 				$authors = $stm->execute()->getResults();
 				$authors = array_map(function(\stdClass $author): String
 				{
