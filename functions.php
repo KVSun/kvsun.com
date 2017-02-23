@@ -776,7 +776,7 @@ function restore_login()
 		return User::restore('user', DB_CREDS, PASSWD);
 	} else {
 		$user = new \stdClass();
-		$user->status = array_search('guest', USER_ROLES);
+		$user->status = get_role_id('guest');
 		return $user;
 	}
 }
