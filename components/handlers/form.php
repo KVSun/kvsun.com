@@ -26,6 +26,7 @@ use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
 use function \KVSun\Functions\{
 	restore_login,
 	user_can,
+	get_role_id,
 	email,
 	post_comment,
 	category_exists,
@@ -124,7 +125,7 @@ switch($req->form) {
 				$user_data->name = $install->user->name;
 				$user_data->execute();
 
-				$subscribers->status = array_search('god', \KVSun\Consts\USER_ROLES);
+				$subscribers->status = get_role_id('dev');
 				$subscribers->execute();
 
 				$head->execute([
@@ -306,7 +307,7 @@ switch($req->form) {
 					'password' => password_hash($req->register->password, \PASSWORD_DEFAULT)
 				]);
 				$user_data->execute(['name' => $req->register->name]);
-				$subscribers->execute(['status' => array_search('guest', \KVSun\Consts\USER_ROLES)]);
+				$subscribers->execute(['status' => get_role_id('guest')]);
 				$pdo->commit();
 				$user = User::load(DB_CREDS);
 				if ($user($req->register->email, $req->register->password)) {
@@ -798,7 +799,7 @@ switch($req->form) {
 				) {
 					$expires = new \DateTime("+ {$item->length}");
 					$subscribe->id = $user->id;
-					$subscribe->status = array_search('subscriber', \KVSun\Consts\USER_ROLES);
+					$subscribe->status = get_role_id('subscriber');
 					$subscribe->expires = $expires->format('Y-m-d H:i:s');
 					$subscribe->execute();
 				}
