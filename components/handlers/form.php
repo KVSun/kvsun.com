@@ -26,6 +26,7 @@ use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
 use function \KVSun\Functions\{
 	restore_login,
 	user_can,
+	email,
 	post_comment,
 	category_exists,
 	make_category,

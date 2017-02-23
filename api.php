@@ -18,6 +18,7 @@ use \shgysk8zer0\Login\{User};
 use function \KVSun\Functions\{
 	user_can,
 	restore_login,
+	email,
 	get_categories,
 	delete_comments,
 	user_update_form,
