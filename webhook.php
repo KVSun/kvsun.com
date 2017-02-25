@@ -38,11 +38,12 @@ try {
 			case 'push':
 				echo "Push to {$webhook->parsed->ref}" . PHP_EOL;
 				if ($webhook->parsed->ref === 'refs/heads/master') {
+					set_time_limit(60);
 					$pull = `git pull`;
 					$status = `git status`;
 					echo $pull . PHP_EOL;
 					$email->message = $pull . PHP_EOL . PHP_EOL . $status;
-					$email->send();
+					// $email->send();
 				}
 				break;
 
