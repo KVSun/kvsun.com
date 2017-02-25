@@ -6,9 +6,14 @@ use \shgysk8zer0\Core\{PDO};
 use \KVSun\KVSAPI\{Comments, Abstracts\Content as KVSAPI};
 
 use const \KVSun\Consts\{DOMAIN, DATE_FORMAT, DATETIME_FORMAT, LOGO};
+use function \KVSun\Functions\{user_can};
 
 return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 {
+	if (! $kvs->is_free and ! user_can('paidArticles')) {
+		// #TODO need 404 pages (#123)
+		return;
+	}
 	if (isset($kvs, $kvs->content, $kvs->posted, $kvs->title, $kvs->category)) {
 		$main = $dom->getElementsByTagName('main')->item(0);
 		$template = $dom->getElementById('article-template');

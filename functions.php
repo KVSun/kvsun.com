@@ -8,6 +8,8 @@ use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
 use \shgysk8zer0\Login\{User};
 use \shgysk8zer0\PHPCrypt\{PublicKey, PrivateKey, KeyPair, AES};
 
+use \SplFileObject as File;
+
 use const \KVSun\Consts\{
 	DEBUG,
 	DB_CREDS,
@@ -15,6 +17,7 @@ use const \KVSun\Consts\{
 	PUBLIC_KEY,
 	PRIVATE_KEY,
 	DOMAIN,
+	ICONS,
 	COMPONENTS,
 	EXT,
 	PAGES_DIR,
@@ -866,6 +869,24 @@ function make_datalist(String $name, Array $items, Bool $return_string = true)
 }
 
 /**
+ * Reads a CSV file containing SVG sprites and returns [$name => $path, ...]
+ * @param  String $icon_csv The file to read from
+ * @return Array            [$name => $path, ...]
+ */
+function get_icons(String $icon_csv): Array
+{
+	$icons = [];
+	$csv = new File($icon_csv);
+	$csv->setFlags(File::READ_CSV | File::SKIP_EMPTY | File::DROP_NEW_LINE);
+	while ($csv->valid()) {
+		list($key, $value) = $csv->fgetcsv();
+		$icons[$key] = $value;
+		$csv->next();
+	}
+	return $icons;
+}
+
+/**
  * [use_icon description]
  * @param  String         $icon   [description]
  * @param  DOMHTMLElement $parent [description]
@@ -904,19 +925,19 @@ function add_main_menu(\DOMElement $parent): \DOMElement
 
 	$login = $menu->append('menuitem', null, [
 		'label' => 'Login',
-		'icon' => DOMAIN . '/images/octicons/lib/svg/sign-in.svg',
+		'icon' => DOMAIN . ICONS['sign-in'],
 		'data-show-modal' => '#login-dialog',
 	]);
 
 	$register = $menu->append('menuitem', null, [
 		'label' => 'Register',
-		'icon' => DOMAIN . '/images/octicons/lib/svg/sign-in.svg',
+		'icon' => DOMAIN . ICONS['subscribe'],
 		'data-show-modal' => '#registration-dialog',
 	]);
 
 	$logout = $menu->append('menuitem', null, [
 		'label' => 'Sign out',
-		'icon' => DOMAIN . '/images/octicons/lib/svg/sign-out.svg',
+		'icon' => DOMAIN . ICONS['sign-out'],
 		'data-request' => 'action=logout',
 		'data-confirm' => 'Are you sure you want to logout?'
 	]);
@@ -947,12 +968,12 @@ function add_nav_menu(\DOMElement $parent): \DOMElement
 	],  [
 		['menuitem', null, [
 			'label' => 'Top',
-			'icon' => DOMAIN . '/images/octicons/lib/svg/arrow-up.svg',
+			'icon' => DOMAIN . ICONS['arrow-up'],
 			'data-scroll-to' => 'body > header',
 		]],
 		['menuitem', null, [
 			'label' => 'Bottom',
-			'icon' => DOMAIN . '/images/octicons/lib/svg/arrow-down.svg',
+			'icon' => DOMAIN . ICONS['arrow-down'],
 			'data-scroll-to' => 'body > footer',
 		]],
 	]);
@@ -969,27 +990,27 @@ function add_share_menu(\DOMElement $parent): \DOMElement
 	], [
 		['menuitem', null, [
 			'label' => 'Facebook',
-			'icon' => DOMAIN . '/images/logos/Facebook.svg',
+			'icon' => DOMAIN . ICONS['facebook'],
 			'data-share' => 'facebook',
 		]],
 		['menuitem', null, [
 			'label' => 'Twitter',
-			'icon' => DOMAIN . '/images/logos/twitter.svg',
+			'icon' => DOMAIN . ICONS['twitter'],
 			'data-share' => 'twitter',
 		]],
 		['menuitem', null, [
 			'label' => 'Google+',
-			'icon' => DOMAIN . '/images/logos/Google_plus.svg',
+			'icon' => DOMAIN . ICONS['google+'],
 			'data-share' => 'g+',
 		]],
 		['menuitem', null, [
 			'label' => 'Linkedin',
-			'icon' => DOMAIN . '/images/logos/linkedin.svg',
+			'icon' => DOMAIN . ICONS['linkedin'],
 			'data-share' => 'linkedin',
 		]],
 		['menuitem', null, [
 			'label' => 'Reddit',
-			'icon' => DOMAIN . '/images/logos/Reddit.svg',
+			'icon' => DOMAIN . ICONS['reddit'],
 			'data-share' => 'reddit',
 		]],
 	]);
