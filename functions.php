@@ -26,6 +26,7 @@ use const \KVSun\Consts\{
 	SPRITES,
 	LOGO,
 	LOGO_SIZE,
+	DATE_FORMAT,
 	CRLF
 };
 
@@ -169,6 +170,51 @@ function mail(
 		curl_close($ch);
 		return $sent;
 	}
+}
+
+/**
+ * Send password reset emails
+ * @param  User $user The user attempting to reset password
+ * @return Bool       Whether or not the email sent
+ */
+function password_reset_email(User $user): Bool
+{
+	$dom    = new HTML();
+	$date   = new \DateTime();
+	$url    = new URL(DOMAIN);
+	$key    = PrivateKey::importFromFile(PRIVATE_KEY, PASSWD);
+
+	$url->path = 'password_reset.php';
+	$url->query->user = $user->username;
+	$url->query->time = $date->format(\DateTime::W3C);
+	$url->query->token = $key->sign(json_encode([
+		'user' => $user->username,
+		'time' => $date->format(\DateTime::W3C),
+	]));
+	$date->modify('+1 day');
+
+	$dom->body->append(
+		'h2',
+		"A password reset request has been requested for {$user->username} on "
+	)->append('a', DOMAIN, ['href' => DOMAIN]);
+
+	$dom->body->append('br');
+	$dom->body->append('p', 'If you did not request a password reset, simply ignore this email.');
+	$dom->body->append('br');
+	$p = $dom->body->append('p');
+	$p->append('span', 'Otherwise, click ');
+	$link = $p->append('a', 'here');
+	$p->append('span', ' to reset your password');
+	$dom->body->append('br');
+	$dom->body->append('p', "This link will expire on {$date->format(DATE_FORMAT)}");
+	$link->href = $url;
+
+	return html_email(
+		["{$user->name} <{$user->email}>"],
+		'Password reset',
+		$dom,
+		['From' => 'no-reply@kvsun.com']
+	);
 }
 
 /**
