@@ -1,3 +1,4 @@
+import handleJSON from './std-js/json_response.es6';
 const REQUIRED = [
 	'type',
 	'data',
@@ -97,7 +98,9 @@ function update(json) {
 		history.pushState(json, getTitle(json), url);
 		return updateContent(json);
 	} else {
-		throw new Error('Response did not contain type and data.');
+		console.log(json);
+		handleJSON(json);
+		// throw new Error('Response did not contain type and data.');
 	}
 }
 
