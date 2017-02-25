@@ -24,7 +24,8 @@ use function \KVSun\Functions\{
 	get_comments,
 	delete_comments,
 	user_update_form,
-	make_cc_form
+	make_cc_form,
+	make_datalist
 };
 
 use const \KVSun\Consts\{
