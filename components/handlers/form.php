@@ -252,13 +252,26 @@ switch($req->form) {
 		break;
 
 	case 'login':
+		USER::$check_wp_pass = true;
 		$user = User::load(DB_CREDS);
-		$user::$check_wp_pass = true;
 		if ($user($req->login->email, $req->login->password)) {
 			Listener::login($user, isset($req->login->remember));
 		} else {
-			$resp->notify('Login Rejected');
+			$resp->notify(
+				'Login Rejected',
+				'Double check your username & password',
+				DOMAIN . ICONS['alert']
+			);
 			$resp->focus('#login-email');
+			$resp->animate('#login-dialog', [
+				['transform' => 'none'],
+				['transform' => 'translateX(5em)scale(0.9)'],
+				['transform' => 'translateX(-5em)scale(1.1)'],
+				['transform' => 'none']
+			], [
+				'duration'   => 100,
+				'iterations' => 5,
+			]);
 		}
 		break;
 
