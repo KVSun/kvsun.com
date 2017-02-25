@@ -1,4 +1,6 @@
 alert,images/octicons/lib/svg/alert.svg
+arrow-down,images/octicons/lib/svg/arrow-down.svg
+arrow-up,images/octicons/lib/svg/arrow-up.svg
 book,images/octicons/lib/svg/book.svg
 bug,images/octicons/lib/svg/bug.svg
 calendar,images/octicons/lib/svg/calendar.svg
@@ -11,11 +13,13 @@ comment-discussion,images/octicons/lib/svg/comment-discussion.svg
 credit-card,images/octicons/lib/svg/credit-card.svg
 facebook,images/logos/Facebook.svg
 gear,images/octicons/lib/svg/gear.svg
+google+,images/logos/Google_plus.svg
 history,images/octicons/lib/svg/history.svg
 home,images/octicons/lib/svg/home.svg
 info,images/octicons/lib/svg/info.svg
 issue-opened,images/octicons/lib/svg/issue-opened.svg
 law,images/octicons/lib/svg/law.svg
+linkedin,images/logos/linkedin.svg
 location,images/octicons/lib/svg/location.svg
 lock,images/octicons/lib/svg/lock.svg
 mark-github,images/octicons/lib/svg/mark-github.svg
@@ -24,6 +28,7 @@ mention,images/octicons/lib/svg/mention.svg
 organization,images/octicons/lib/svg/organization.svg
 person,images/octicons/lib/svg/person.svg
 quote,images/octicons/lib/svg/quote.svg
+reddit,images/logos/Reddit.svg
 reply,images/octicons/lib/svg/reply.svg
 rss,images/octicons/lib/svg/rss.svg
 search,images/octicons/lib/svg/search.svg
