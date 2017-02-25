@@ -58,8 +58,22 @@ if ($header->accept === 'application/json') {
 			$page = new Home(PDO::load(DB_CREDS), "$url", get_categories('url'));
 		} elseif (count($path) === 1) {
 			$page = new Category(PDO::load(DB_CREDS), "$url");
-		} else {
+		} elseif (count($path) === 2) {
 			$page = new Article(PDO::load(DB_CREDS), "$url");
+			if (! $page->is_free and ! user_can('paidArticles')) {
+				$resp->notify(
+					'You must be a subscriber to view this content',
+					'Please login to continue.',
+					ICONS['sign-in']
+				)->showModal('#login-dialog')
+				->send();
+			}
+		} else {
+			$resp->notify(
+				'Invalid request',
+				"No content for {$url}",
+				DOMAIN . ICONS['circle-slash']
+			)->send();
 		}
 
 		exit(json_encode($page));
