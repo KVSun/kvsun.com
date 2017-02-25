@@ -29,6 +29,7 @@ use function \KVSun\Functions\{
 use const \KVSun\Consts\{
 	DEBUG,
 	DOMAIN,
+	ICONS,
 	DB_CREDS,
 	COMPONENTS,
 	LOGO,
@@ -287,7 +288,7 @@ if ($header->accept === 'application/json') {
 			$resp->notify(
 				"I'm afraid I can't let you do that, Dave",
 				'You are not authorized to moderate comments.',
-				'/images/octicons/lib/svg/alert.svg'
+				ICONS['alert']
 			);
 		} elseif (delete_comments($_GET['delete-comment'])) {
 			$resp->notify('Comment deleted');
@@ -296,7 +297,7 @@ if ($header->accept === 'application/json') {
 			$resp->notify(
 				'Unable to delete comment',
 				'Check error log.',
-				'/images/octicons/lib/svg/bug.svg'
+				ICONS['bug']
 			);
 		}
 	} else {
