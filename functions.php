@@ -132,7 +132,7 @@ function mail(
 {
 	try {
 		$sent    = true;
-		$url     = new URL('/mail.php');
+		$url     = new URL('http://kvsun.com:8888/mail.php');
 		$ch      = curl_init($url);
 		$time    = new \DateTime();
 		$private = PrivateKey::importFromFile(PRIVATE_KEY, PASSWD);
@@ -150,11 +150,10 @@ function mail(
 			CURLOPT_RETURNTRANSFER => false,
 			CURLOPT_FRESH_CONNECT  => true,
 			CURLOPT_POST           => true,
+			CURLOPT_PORT           => $url->port,
 			CURLOPT_POSTFIELDS     => $email,
 		]);
 
-		curl_close($ch);
-		return true;
 		if (curl_exec($ch)) {
 			$status = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
 			if ($status !== HTTP::OK) {
