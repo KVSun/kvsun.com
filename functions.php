@@ -8,6 +8,8 @@ use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
 use \shgysk8zer0\Login\{User};
 use \shgysk8zer0\PHPCrypt\{PublicKey, PrivateKey, KeyPair, AES};
 
+use \SplFileObject as File;
+
 use const \KVSun\Consts\{
 	DEBUG,
 	DB_CREDS,
@@ -863,6 +865,24 @@ function make_datalist(String $name, Array $items, Bool $return_string = true)
 	}
 
 	return $return_string ? $tmp->saveHTML($datalist) : $datalist;
+}
+
+/**
+ * Reads a CSV file containing SVG sprites and returns [$name => $path, ...]
+ * @param  String $icon_csv The file to read from
+ * @return Array            [$name => $path, ...]
+ */
+function get_icons(String $icon_csv): Array
+{
+	$icons = [];
+	$csv = new File($icon_csv);
+	$csv->setFlags(File::READ_CSV | File::SKIP_EMPTY | File::DROP_NEW_LINE);
+	while ($csv->valid()) {
+		list($key, $value) = $csv->fgetcsv();
+		$icons[$key] = $value;
+		$csv->next();
+	}
+	return $icons;
 }
 
 /**
