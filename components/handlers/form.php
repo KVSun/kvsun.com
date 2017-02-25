@@ -260,7 +260,7 @@ switch($req->form) {
 			$resp->notify(
 				'Login Rejected',
 				'Double check your username & password',
-				ICONS['sign-in']
+				DOMAIN . ICONS['alert']
 			);
 			$resp->focus('#login-email');
 			$resp->animate('#login-dialog', [
