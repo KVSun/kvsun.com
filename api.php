@@ -21,6 +21,7 @@ use function \KVSun\Functions\{
 	email,
 	get_role_id,
 	get_categories,
+	get_comments,
 	delete_comments,
 	user_update_form,
 	make_cc_form
@@ -29,6 +30,7 @@ use function \KVSun\Functions\{
 use const \KVSun\Consts\{
 	DEBUG,
 	DOMAIN,
+	ICONS,
 	DB_CREDS,
 	COMPONENTS,
 	LOGO,
@@ -57,8 +59,22 @@ if ($header->accept === 'application/json') {
 			$page = new Home(PDO::load(DB_CREDS), "$url", get_categories('url'));
 		} elseif (count($path) === 1) {
 			$page = new Category(PDO::load(DB_CREDS), "$url");
-		} else {
+		} elseif (count($path) === 2) {
 			$page = new Article(PDO::load(DB_CREDS), "$url");
+			if (! $page->is_free and ! user_can('paidArticles')) {
+				$resp->notify(
+					'You must be a subscriber to view this content',
+					'Please login to continue.',
+					ICONS['sign-in']
+				)->showModal('#login-dialog')
+				->send();
+			}
+		} else {
+			$resp->notify(
+				'Invalid request',
+				"No content for {$url}",
+				DOMAIN . ICONS['circle-slash']
+			)->send();
 		}
 
 		exit(json_encode($page));
@@ -287,7 +303,7 @@ if ($header->accept === 'application/json') {
 			$resp->notify(
 				"I'm afraid I can't let you do that, Dave",
 				'You are not authorized to moderate comments.',
-				'/images/octicons/lib/svg/alert.svg'
+				ICONS['alert']
 			);
 		} elseif (delete_comments($_GET['delete-comment'])) {
 			$resp->notify('Comment deleted');
@@ -296,7 +312,7 @@ if ($header->accept === 'application/json') {
 			$resp->notify(
 				'Unable to delete comment',
 				'Check error log.',
-				'/images/octicons/lib/svg/bug.svg'
+				ICONS['bug']
 			);
 		}
 	} else {

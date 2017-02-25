@@ -1,7 +1,8 @@
 <?php
 namespace KVSun\Consts;
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'functions.php';
+use function \KVSun\Functions\{get_icons};
 const REQUIRED = [
-	'functions.php',
 	'events.php',
 	'vendor/autoload.php',
 ];
@@ -107,6 +108,7 @@ function define(String $const, $value): Bool
 
 define('DEBUG', $_SERVER['SERVER_ADDR'] === $_SERVER['REMOTE_ADDR']);
 define('DOMAIN', "{$_SERVER['REQUEST_SCHEME']}://{$_SERVER['HTTP_HOST']}/");
+define('ICONS', get_icons('./images/icons.csv'));
 
 if (@file_exists('./config/.passwd')) {
 	define('PASSWD', file_get_contents('./config/.passwd'));
