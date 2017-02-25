@@ -21,6 +21,7 @@ use function \KVSun\Functions\{
 	email,
 	get_role_id,
 	get_categories,
+	get_comments,
 	delete_comments,
 	user_update_form,
 	make_cc_form
