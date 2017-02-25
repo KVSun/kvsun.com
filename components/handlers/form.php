@@ -37,6 +37,7 @@ use function \KVSun\Functions\{
 use const \KVSun\Consts\{
 	DEBUG,
 	DOMAIN,
+	ICONS,
 	DB_INSTALLER,
 	DB_CREDS,
 	CONFIG,
@@ -410,7 +411,7 @@ switch($req->form) {
 				$resp->notify(
 					'Cannot post comment',
 					'You seem to have your privacy settings blocking us from knowing which post you are trying to post a comment on.',
-					'/images/octicons/lib/svg/comment-discussion.svg'
+					ICONS['comment-discussion']
 				)->send();
 			} else {
 				$url = $headers->referer;
@@ -421,13 +422,13 @@ switch($req->form) {
 					$resp->notify(
 						'You cannot post on this page',
 						'You seem to by trying to comment on the home page.',
-						'/images/octicons/lib/svg/comment-discussion.svg'
+						ICONS['comment-discussion']
 					)->send();
 				} elseif (!isset($comment->text)) {
 					$resp->notify(
 						'We seem to be missing the comment',
 						'Double check that you\'ve filled out the comment box and try again.',
-						'/images/octicons/lib/svg/comment-discussion.svg'
+						ICONS['comment-discussion']
 					)->send();
 				}
 				$user = restore_login();
@@ -440,7 +441,7 @@ switch($req->form) {
 					$resp->notify(
 						'Comment submitted',
 						'Comments are not displayed until approval by an editor.',
-						'/images/octicons/lib/svg/comment-discussion.svg'
+						ICONS['comment-discussion']
 					);
 					$resp->clear('comments');
 				} else {
@@ -458,7 +459,7 @@ switch($req->form) {
 			$resp->notify(
 				"I'm afraid I can't let you do that, Dave",
 				'You are not authorized to moderate comments.',
-				'/images/octicons/lib/svg/alert.svg'
+				ICONS['alert']
 			);
 		} else {
 			$comments = new FormData($_POST['comment-moderator-form']);
@@ -481,14 +482,14 @@ switch($req->form) {
 				$resp->notify(
 					'Comments have been updated',
 					'You may now close moderator form or make more changes',
-					'/images/octicons/lib/svg/comment-discussion.svg'
+					ICONS['comment-discussion']
 				);
 			} catch (\Throwable $e) {
 				trigger_error($e->getMessage());
 				$resp->notify(
 					'Error updating comments',
 					"{$e->getMessage()} on {$e->getFile()}:{$e->getLine()}",
-					'/images/octicons/lib/svg/bug.svg'
+					ICONS['bug']
 				 );
 			}
 		}
@@ -656,7 +657,7 @@ switch($req->form) {
 			$resp->notify(
 				'Double check your address',
 				'Looks like you missed some info when entering your address',
-				'/images/octicons/lib/svg/credit-card.svg'
+				ICONS['credit-card']
 			)->focus('#ccform-billing-first-name')->send();
 		}
 		$pdo = PDO::load(DB_CREDS);
@@ -687,7 +688,7 @@ switch($req->form) {
 			$resp->notify(
 				'You do not qualify for this subscription',
 				'Please select from our out of Valley print subscriptions',
-				'/images/octicons/lib/svg/credit-card.svg'
+				ICONS['credit-card']
 			)->focus('#ccform-subscription')->send();
 		} elseif (
 			$sub->media === 'print'
@@ -697,7 +698,7 @@ switch($req->form) {
 			$resp->notify(
 				'You do not qualify for this subscription',
 				'Please select from our local print subscriptions',
-				'/images/octicons/lib/svg/credit-card.svg'
+				ICONS['credit-card']
 			)->focus('#ccform-subscription')->send();
 		}
 
@@ -726,7 +727,7 @@ switch($req->form) {
 				'Something went wrong',
 				'We seem to be missing information about that subscription.' .
 				PHP_EOL . 'Please contact us about this issue.',
-				'/images/octicons/lib/svg/credit-card.svg'
+				ICONS['credit-card']
 			)->send();
 		}
 		$items = new Items();
@@ -808,7 +809,7 @@ switch($req->form) {
 			$resp->notify(
 				'Subscription successful',
 				$response,
-				'/images/octicons/lib/svg/credit-card.svg'
+				ICONS['credit-card']
 			);
 			if (DEBUG) {
 				Console::log([
@@ -825,7 +826,7 @@ switch($req->form) {
 			$resp->notify(
 				'There was an error processing your subscription',
 				$response,
-				'/images/octicons/lib/svg/credit-card.svg'
+				ICONS['credit-card']
 			);
 
 			if (DEBUG) {

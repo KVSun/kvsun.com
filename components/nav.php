@@ -3,7 +3,7 @@ namespace KVSun\Components\Nav;
 
 use function \KVSun\Functions\{use_icon, restore_login};
 
-use const \KVSun\Consts\{DOMAIN};
+use const \KVSun\Consts\{DOMAIN, ICONS};
 
 use \shgysk8zer0\DOM\{HTML};
 use \shgysk8zer0\Core\{PDO, Gravatar};
@@ -58,7 +58,7 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 		$avatar->src = new Gravatar($user->email);
 		$avatar->data_load_form = 'update-user';
 	} else {
-		$avatar->src = DOMAIN . '/images/octicons/lib/svg/sign-in.svg';
+		$avatar->src = DOMAIN . ICONS['sign-in'];
 		$avatar->data_show_modal = '#login-dialog';
 	}
 };
