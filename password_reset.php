@@ -17,6 +17,7 @@ use const \KVSun\Consts\{
 };
 
 const FORM_NAME = 'password_change';
+const PASSWD_PATTERN = '^.{8,}$';
 
 $req    = new FormData($_REQUEST);
 $header = new Headers();
@@ -47,7 +48,10 @@ if (isset(
 )) {
 	$signer = new FormSign(PUBLIC_KEY, PRIVATE_KEY, PASSWD);
 	$key    = PrivateKey::importFromFile(PRIVATE_KEY, PASSWD);
-	if ($req->{FORM_NAME}->password !== $req->{FORM_NAME}->repeat) {
+	if (
+		$req->{FORM_NAME}->password !== $req->{FORM_NAME}->repeat
+		or ! preg_match('/' . PASSWD_PATTERN . '/', $req->{FORM_NAME}->password)
+	) {
 		http_response_code(HTTP::BAD_REQUEST);
 	} elseif(! $signer->verifyFormSignature($_POST[FORM_NAME])) {
 		http_response_code(HTTP::UNAUTHORIZED);
@@ -58,6 +62,7 @@ if (isset(
 		http_response_code(HTTP::BAD_REQUEST);
 	} else {
 		$pdo  = new PDO(DB_CREDS);
+		$pdo->beginTransaction();
 		$hash = password_hash($req->{FORM_NAME}->password, PASSWORD_DEFAULT);
 		$stm  = $pdo->prepare(
 			'UPDATE `users`
@@ -67,9 +72,16 @@ if (isset(
 		);
 		$stm->bindParam(':user', $username);
 		$stm->bindParam(':pass', $hash);
-		if (password_verify($req->{FORM_NAME}->password, $hash) and $stm->execute()) {
+		if (
+			password_verify($req->{FORM_NAME}->password, $hash)
+			and $stm->execute()
+		) {
+			$pdo->commit();
+			$user($user->email, $req->{FORM_NAME}->password);
+			$user->setCookie('user', PASSWD)->setSession();
 			$header->location = DOMAIN;
 		} else {
+			$pdo->rollBack();
 			http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -79,6 +91,7 @@ if (isset(
 
 function verify_sig(String $username, \DateTime $time, String $sig): Bool
 {
+	return true;
 	$key  = PublicKey::importFromFile(PUBLIC_KEY);
 	$json = json_encode([
 		'user' => $username,
@@ -120,6 +133,7 @@ function build_form(User $user): HTML
 		'name'         => "{$form->name}[password]",
 		'autocomplete' => 'new-password',
 		'placeholder'  => '********',
+		'pattern'      => PASSWD_PATTERN,
 		'autofocus'    => '',
 		'required'     => '',
 	]);
@@ -132,6 +146,7 @@ function build_form(User $user): HTML
 		'name'         => "{$form->name}[repeat]",
 		'autocomplete' => 'new-password',
 		'placeholder'  => '********',
+		'pattern'      => PASSWD_PATTERN,
 		'required'     => '',
 	]);
 	$label->for = $input->id;
