@@ -14,6 +14,7 @@ use const \KVSun\Consts\{
 	PASSWD
 };
 
+date_default_timezone_set('America/Los_Angeles');
 use function \KVSun\Consts\{defined};
 
 if (array_key_exists('MIN_PHP_VERSION', $_SERVER)) {
