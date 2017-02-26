@@ -66,7 +66,7 @@ if ($header->accept === 'application/json') {
 				$resp->notify(
 					'You must be a subscriber to view this content',
 					'Please login to continue.',
-					ICONS['sign-in']
+					DOMAIN . ICONS['sign-in']
 				)->showModal('#login-dialog')
 				->send();
 			}
