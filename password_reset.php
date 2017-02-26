@@ -70,7 +70,6 @@ if (isset(
 
 function verify_sig(String $username, \DateTime $time, String $sig): Bool
 {
-	return true;
 	$key  = PublicKey::importFromFile(PUBLIC_KEY);
 	$json = json_encode([
 		'user' => $username,
