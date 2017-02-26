@@ -8,6 +8,7 @@ use \shgysk8zer0\DOM\{HTML, HTMLElement};
 use \shgysk8zer0\Login\{User};
 use function \KVSun\Functions\{load, add_main_menu};
 use const \KVSun\Consts\{
+	DEBUG,
 	PUBLIC_KEY,
 	PRIVATE_KEY,
 	PASSWD,
@@ -17,8 +18,11 @@ use const \KVSun\Consts\{
 	PASSWORD_RESET_VALID,
 	STYLE,
 	SCRIPTS,
+	DEV_STYLE,
 	SCRIPTS_DIR,
-	HTML_TEMPLATES
+	COMPONENTS,
+	HTML_TEMPLATES,
+	LOGO_VECTOR
 };
 
 const FORM_NAME = 'password-reset';
@@ -93,20 +97,61 @@ function build_form(User $user, String $error_msg = null): HTML
 {
 	HTMLElement::$import_path = COMPONENTS;
 	$dom    = HTML::getInstance();
+	$head = $dom->head;
 	$dom->body->class = 'flex row wrap';
 	array_map([$dom->body, 'importHTMLFile'], HTML_TEMPLATES);
 	$signer = new FormSign(PUBLIC_KEY, PRIVATE_KEY, PASSWD);
 	$key    = PublicKey::importFromFile(PUBLIC_KEY);
-	$dom->head->append('title', 'Password reset');
-	$dom->head->append('link', null, [
+	$head->append('title', 'Password reset');
+	$head->append('base', null, ['href' => DOMAIN]);
+	if (@file_exists('manifest.json')) {
+		$manifest = json_decode(file_get_contents('manifest.json'));
+		$head->append('link', null, [
+			'rel' => 'manifest',
+			'href' => DOMAIN . '/manifest.json'
+		]);
+		$head->append('meta', null, [
+			'name' => 'mobile-web-app-capable',
+			'content' => 'yes'
+		]);
+		$head->append('meta', null, [
+			'name' => 'theme-color',
+			'content' => $manifest->theme_color
+		]);
+
+		foreach ($manifest->icons as $icon) {
+			$head->append('link', null, [
+				'rel' => 'icon',
+				'href' => DOMAIN . $icon->src,
+				'sizes' => $icon->sizes,
+				'type' => $icon->type
+			]);
+			$head->append('link', null, [
+				'rel' => 'apple-touch-icon',
+				'href' => DOMAIN . $icon->src,
+				'sizes' => $icon->sizes,
+				'type' => $icon->type
+			]);
+		}
+	} else {
+		$head->append('link', null, [
+			'rel' => 'icon',
+			'href' => DOMAIN . LOGO_VECTOR,
+			'type' => 'image/svg+xml',
+			'sizes' => 'any',
+		]);
+	}
+	$head->append('link', null, [
 		'rel' => 'stylesheet',
-		'href' => DOMAIN . STYLE,
+		'type' => 'text/css',
+		'href' => DEBUG ? DOMAIN . DEV_STYLE : DOMAIN . STYLE,
 	]);
 
-	foreach (SCRIPTS as $script) {
-		$dom->head->append('script', null, [
+	foreach(SCRIPTS as $script) {
+		$head->append('script', null, [
 			'src' => DOMAIN . SCRIPTS_DIR . $script,
 			'async' => '',
+			'type' => 'application/javascript',
 		]);
 	}
 
