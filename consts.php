@@ -84,6 +84,8 @@ const LOGGED_OUT_ONLY = [
 	'[data-show-modal="#registration-dialog"]',
 ];
 
+const PASSWORD_RESET_VALID = '+1 day';
+
 const LOGGED_IN_ONLY = [
 	'[data-request="action=logout"]',
 ];

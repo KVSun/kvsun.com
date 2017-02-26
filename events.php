@@ -59,7 +59,7 @@ function logout_handler(User $user): Resp
 	try {
 		$user->logout();
 		$resp = Resp::getInstance();
-		$resp->notify('Success', 'You have been logged out.');
+		$resp->notify('Success', 'You have been logged out.', DOMAIN . ICONS['sign-out']);
 		$resp->close('dialog[open]');
 		$resp->remove('#update-user-dialog, #admin_menu');
 		$resp->attributes('#user-avatar', 'src', DOMAIN . ICONS['sign-in']);
@@ -68,7 +68,6 @@ function logout_handler(User $user): Resp
 		$resp->attributes('[contextmenu="admin_menu"]', 'contextmenu', false);
 		$resp->enable(join(', ', LOGGED_OUT_ONLY));
 		$resp->disable(join(', ', LOGGED_IN_ONLY));
-		$resp->send();
 	} catch (\Throwable $e) {
 		trigger_error($e);
 	} finally {
