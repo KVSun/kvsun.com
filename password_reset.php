@@ -51,6 +51,7 @@ if (isset(
 )) {
 	$signer = new FormSign(PUBLIC_KEY, PRIVATE_KEY, PASSWD);
 	$key    = PrivateKey::importFromFile(PRIVATE_KEY, PASSWD);
+
 	if (! (
 		$username = $key->decrypt($req->{FORM_NAME}->user)
 		and $user = User::search(DB_CREDS, $username)
@@ -74,6 +75,13 @@ if (isset(
 	http_response_code(HTTP::BAD_REQUEST);
 }
 
+/**
+ * Verify RSA signature in request
+ * @param  String   $username Username for password reset
+ * @param  DateTime $time     Time it was requested
+ * @param  String   $sig      The request signature
+ * @return Bool               Whether or not it is valid
+ */
 function verify_sig(String $username, \DateTime $time, String $sig): Bool
 {
 	$key  = PublicKey::importFromFile(PUBLIC_KEY);
@@ -84,6 +92,11 @@ function verify_sig(String $username, \DateTime $time, String $sig): Bool
 	return $key->verify($json, $sig);
 }
 
+/**
+ * Check if a password request is expired
+ * @param  DateTime $time The time the request is from
+ * @return Bool           Whether or not it is expired
+ */
 function request_expired(\DateTime $time): Bool
 {
 	$now     = new \DateTime();
@@ -92,6 +105,12 @@ function request_expired(\DateTime $time): Bool
 	return $time > $now or $now > $expires;
 }
 
+/**
+ * Create the password reset form with optional error message
+ * @param  User   $user      The user the password reset is for
+ * @param  String $error_msg Optional error message to display
+ * @return HTML              The HTML document with password reset form
+ */
 function build_form(User $user, String $error_msg = null): HTML
 {
 	$dom    = new HTML();
