@@ -46,6 +46,10 @@ async function loadPage(page) {
 			headers,
 			credentials: 'include'
 		});
+		document.querySelector('main').scrollIntoView({
+			behavior: 'smooth',
+			block: 'start'
+		});
 		return updatePage(resp);
 	} catch(e) {
 		console.error(e);
