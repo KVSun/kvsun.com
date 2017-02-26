@@ -3,7 +3,7 @@ namespace KVSun\PasswordReset;
 
 use \shgysk8zer0\Core\{PDO, FormData, URL, Headers, Console};
 use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
-use \shgysk8zer0\PHPCrypt\{PublicKey, FormSign};
+use \shgysk8zer0\PHPCrypt\{PublicKey, PrivateKey, FormSign};
 use \shgysk8zer0\DOM\{HTML};
 use \shgysk8zer0\Login\{User};
 use const \KVSun\Consts\{
@@ -16,7 +16,10 @@ use const \KVSun\Consts\{
 	PASSWORD_RESET_VALID
 };
 
-$req = new FormData($_GET);
+const FORM_NAME = 'password_change';
+
+$req    = new FormData($_REQUEST);
+$header = new Headers();
 if (isset(
 	$req->user,
 	$req->time,
@@ -24,14 +27,51 @@ if (isset(
 ) and filter_var($req->time, FILTER_VALIDATE_INT)) {
 	$time = new \DateTime();
 	$time->setTimestamp($req->time);
+
 	if (request_expired($time)) {
 		http_response_code(HTTP::BAD_REQUEST);
 	} elseif (! verify_sig($req->user, $time, $req->token)) {
 		http_response_code(HTTP::UNAUTHORIZED);
-	} elseif ($user = User::search(DB_CREDS, $req->user) and isset($user->username)) {
+	} elseif (
+		$user = User::search(DB_CREDS, $req->user)
+		and isset($user->username)
+	) {
 		exit(build_form($user));
 	} else {
 		http_response_code(HTTP::BAD_REQUEST);
+	}
+} elseif (isset(
+	$req->{FORM_NAME}->password,
+	$req->{FORM_NAME}->repeat,
+	$req->{FORM_NAME}->user
+)) {
+	$signer = new FormSign(PUBLIC_KEY, PRIVATE_KEY, PASSWD);
+	$key    = PrivateKey::importFromFile(PRIVATE_KEY, PASSWD);
+	if ($req->{FORM_NAME}->password !== $req->{FORM_NAME}->repeat) {
+		http_response_code(HTTP::BAD_REQUEST);
+	} elseif(! $signer->verifyFormSignature($_POST[FORM_NAME])) {
+		http_response_code(HTTP::UNAUTHORIZED);
+	} elseif (! (
+		$username = $key->decrypt($req->{FORM_NAME}->user)
+		and $user = User::search(DB_CREDS, $username)
+	)) {
+		http_response_code(HTTP::BAD_REQUEST);
+	} else {
+		$pdo  = new PDO(DB_CREDS);
+		$hash = password_hash($req->{FORM_NAME}->password, PASSWORD_DEFAULT);
+		$stm  = $pdo->prepare(
+			'UPDATE `users`
+			SET `password`   = :pass
+			WHERE `username` = :user
+			LIMIT 1;'
+		);
+		$stm->bindParam(':user', $username);
+		$stm->bindParam(':pass', $hash);
+		if (password_verify($req->{FORM_NAME}->password, $hash) and $stm->execute()) {
+			$header->location = DOMAIN;
+		} else {
+			http_response_code(HTTP::INTERNAL_SERVER_ERROR);
+		}
 	}
 } else {
 	http_response_code(HTTP::BAD_REQUEST);
@@ -40,17 +80,17 @@ if (isset(
 function verify_sig(String $username, \DateTime $time, String $sig): Bool
 {
 	return true;
-	$key = PublicKey::importFromFile(PUBLIC_KEY);
+	$key  = PublicKey::importFromFile(PUBLIC_KEY);
 	$json = json_encode([
 		'user' => $username,
 		'time' => $time->format(DATETIME_FORMAT),
 	]);
-	return $key->verify($json, str_replace(' ', '+', $sig));
+	return $key->verify($json, $sig);
 }
 
 function request_expired(\DateTime $time): Bool
 {
-	$now = new \DateTime();
+	$now     = new \DateTime();
 	$expires = clone($time);
 	$expires->modify(PASSWORD_RESET_VALID);
 	return $time > $now or $now > $expires;
@@ -58,36 +98,42 @@ function request_expired(\DateTime $time): Bool
 
 function build_form(User $user): HTML
 {
-	$dom = new HTML();
+	$dom    = new HTML();
 	$signer = new FormSign(PUBLIC_KEY, PRIVATE_KEY, PASSWD);
+	$key    = PublicKey::importFromFile(PUBLIC_KEY);
 	$dom->head->append('title', 'Password reset');
 	$form = $dom->body->append('form', null, [
-		'name' => 'password_change',
+		'name'   => FORM_NAME,
 		'action' => DOMAIN . basename(__FILE__),
 		'method' => 'post'
+	]);
+	$form->append('input', null, [
+		'type'  => 'hidden',
+		'name'  => "{$form->name}[user]",
+		'value' => $key->encrypt($user->username),
 	]);
 	$fieldset = $form->append('fieldset');
 	$fieldset->append('legend', "Password reset for {$user->name}");
 	$label = $fieldset->append('label', 'New password');
 	$input = $fieldset->append('input', null, [
-		'type' => 'password',
-		'id' => "{$form->name}-password",
-		'name' => "{$form->name}[password]",
+		'type'         => 'password',
+		'id'           => "{$form->name}-password",
+		'name'         => "{$form->name}[password]",
 		'autocomplete' => 'new-password',
-		'placeholder' => '********',
-		'autofocus' => '',
-		'required' => '',
+		'placeholder'  => '********',
+		'autofocus'    => '',
+		'required'     => '',
 	]);
 	$label->for = $input->id;
 	$fieldset->append('br');
 	$label = $fieldset->append('label', 'Repeat password');
 	$input = $fieldset->append('input', null, [
-		'type' => 'repeat',
-		'id' => "{$form->name}-repeat",
-		'name' => "{$form->name}[repeat]",
+		'type'         => 'password',
+		'id'           => "{$form->name}-repeat",
+		'name'         => "{$form->name}[repeat]",
 		'autocomplete' => 'new-password',
-		'placeholder' => '********',
-		'required' => '',
+		'placeholder'  => '********',
+		'required'     => '',
 	]);
 	$label->for = $input->id;
 	$fieldset->append('hr');
