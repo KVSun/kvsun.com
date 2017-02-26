@@ -7,7 +7,8 @@ use \shgysk8zer0\Core\{
 	Console,
 	FormData,
 	Listener,
-	Headers
+	Headers,
+	Gravatar
 };
 use \shgysk8zer0\DOM\{HTML};
 use \shgysk8zer0\Core_API as API;
@@ -22,6 +23,7 @@ use \shgysk8zer0\Authorize\{
 };
 use \shgysk8zer0\Login\{User};
 use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
+use \shgysk8zer0\PHPCrypt\{PublicKey, PrivateKey, FormSign};
 
 use function \KVSun\Functions\{
 	restore_login,
@@ -43,6 +45,9 @@ use const \KVSun\Consts\{
 	DB_CREDS,
 	CONFIG,
 	AUTHORIZE,
+	PRIVATE_KEY,
+	PUBLIC_KEY,
+	PASSWD,
 	LOCAL_ZIPS
 };
 
@@ -369,6 +374,61 @@ switch($req->form) {
 		}
 		break;
 
+	case 'password-reset':
+		$reset  = $req->{'password-reset'};
+		$signer = new FormSign(PUBLIC_KEY, PRIVATE_KEY, PASSWD);
+		$key    = PrivateKey::importFromFile(PRIVATE_KEY, PASSWD);
+		if (! (
+			$username = $key->decrypt($reset->user)
+			and $user = User::search(DB_CREDS, $username)
+			and isset($user->username, $user->email, $user->name)
+		)) {
+			$resp->notify(
+				'Invalid request',
+				'Could not find that user',
+				ICONS['bug']
+			);
+		}
+		if (! isset(
+			$reset->password,
+			$reset->repeat
+		) or ($reset->password !== $reset->repeat)
+			or ! preg_match('/^.{8,}$/', $reset->password)
+		) {
+			$resp->notify(
+				'Password mismatch or too short',
+				'Double check your inputs',
+				ICONS['alert']
+			)->animate('dialog[open]', [
+				['transform' => 'none'],
+				['transform' => 'translateX(-5em) scale(0.9)'],
+				['transform' => 'translateX(5em) scale(1.1)'],
+				['transform' => 'none']
+			], [
+				'duration' => 100,
+				'iterations' => 3,
+			])->focus('#password-reset-password');
+		} elseif(! $signer->verifyFormSignature($_POST['password-reset'])) {
+			$resp->notify(
+				'Something went wrong :(',
+				'Please contact us for support',
+				ICONS['bug']
+			);
+		} elseif ($user->updatePassword($reset->password)) {
+			$resp->notify(
+				"Password changed for {$user->name}",
+				'Check console',
+				new Gravatar($user->email)
+			)->remove('dialog[open]');
+		} else {
+			$resp->notify(
+				'There was an error updating your password',
+				'Either try again or contact us for support.',
+				ICONS['bug']
+			);
+		}
+		Console::info($reset);
+		break;
 	case 'user-update':
 		// $data = new FormData($_POST['user-update']);
 		$data = filter_var_array(
