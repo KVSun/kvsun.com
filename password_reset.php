@@ -21,7 +21,7 @@ use const \KVSun\Consts\{
 	HTML_TEMPLATES
 };
 
-const FORM_NAME = 'password_change';
+const FORM_NAME = 'password-reset';
 const PASSWD_PATTERN = '^.{8,}$';
 
 $req    = new FormData($_REQUEST);
@@ -49,32 +49,6 @@ if (isset(
 	} else {
 		http_response_code(HTTP::BAD_REQUEST);
 	}
-} elseif (isset(
-	$req->{FORM_NAME}->password,
-	$req->{FORM_NAME}->repeat,
-	$req->{FORM_NAME}->user
-)) {
-	$signer = new FormSign(PUBLIC_KEY, PRIVATE_KEY, PASSWD);
-	$key    = PrivateKey::importFromFile(PRIVATE_KEY, PASSWD);
-
-	if (! (
-		$username = $key->decrypt($req->{FORM_NAME}->user)
-		and $user = User::search(DB_CREDS, $username)
-		and isset($user->username)
-	)) {
-		http_response_code(HTTP::BAD_REQUEST);
-	} elseif ($req->{FORM_NAME}->password !== $req->{FORM_NAME}->repeat) {
-		http_response_code(HTTP::BAD_REQUEST);
-		exit(build_form($user, 'Password does not match repeated password.'));
-	} elseif (! preg_match('/' . PASSWD_PATTERN . '/', $req->{FORM_NAME}->password)) {
-		http_response_code(HTTP::BAD_REQUEST);
-		exit(build_form($user, 'Password does not meet requirements.'));
-	} elseif(! $signer->verifyFormSignature($_POST[FORM_NAME])) {
-		http_response_code(HTTP::UNAUTHORIZED);
-	} elseif ($user->updatePassword($req->{FORM_NAME}->password)) {
-		$user->setCookie('user', PASSWD)->setSession();
-		$header->location = DOMAIN;
-	}
 } else {
 	http_response_code(HTTP::BAD_REQUEST);
 }
@@ -88,7 +62,6 @@ if (isset(
  */
 function verify_sig(String $username, \DateTime $time, String $sig): Bool
 {
-	return true;
 	$key  = PublicKey::importFromFile(PUBLIC_KEY);
 	$json = json_encode([
 		'user' => $username,
@@ -139,9 +112,11 @@ function build_form(User $user, String $error_msg = null): HTML
 
 	load('header', 'nav');
 
-	$form = $dom->body->append('main')->append('form', null, [
+	$form = $dom->body->append('main')
+	->append('dialog', null, ['open' => ''])
+	->append('form', null, [
 		'name'   => FORM_NAME,
-		'action' => DOMAIN . basename(__FILE__),
+		'action' => DOMAIN . 'api.php',
 		'method' => 'post'
 	]);
 	if (isset($error_msg)) {
