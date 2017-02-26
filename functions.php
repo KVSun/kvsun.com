@@ -27,6 +27,7 @@ use const \KVSun\Consts\{
 	LOGO,
 	LOGO_SIZE,
 	DATE_FORMAT,
+	PASSWORD_RESET_VALID,
 	CRLF
 };
 
@@ -187,35 +188,36 @@ function password_reset_email(User $user): Bool
 
 		$url->path = 'password_reset.php';
 		$url->query->user = $user->username;
-		$url->query->time = $date->format(\DateTime::W3C);
+		$url->query->time = $date->getTimestamp();
 		$url->query->token = $key->sign(json_encode([
 			'user' => $user->username,
-			'time' => $date->format(\DateTime::W3C),
+			'time' => $date->format(DATETIME_FORMAT),
 		]));
-		$date->modify('+1 day');
+		$expires = clone($date);
+		$expires->modify(PASSWORD_RESET_VALID);
 
 		$dom->body->append(
 			'h2',
 			"A password reset request has been requested for {$user->username} on "
-			)->append('a', DOMAIN, ['href' => DOMAIN]);
+		)->append('a', DOMAIN, ['href' => DOMAIN]);
 
-			$dom->body->append('br');
-			$dom->body->append('p', 'If you did not request a password reset, simply ignore this email.');
-			$dom->body->append('br');
-			$p = $dom->body->append('p');
-			$p->append('span', 'Otherwise, click ');
-			$link = $p->append('a', 'here');
-			$p->append('span', ' to reset your password');
-			$dom->body->append('br');
-			$dom->body->append('p', "This link will expire on {$date->format(DATE_FORMAT)}");
-			$link->href = $url;
+		$dom->body->append('br');
+		$dom->body->append('p', 'If you did not request a password reset, simply ignore this email.');
+		$dom->body->append('br');
+		$p = $dom->body->append('p');
+		$p->append('span', 'Otherwise, click ');
+		$link = $p->append('a', 'here');
+		$p->append('span', ' to reset your password');
+		$dom->body->append('br');
+		$dom->body->append('p', "This link will expire on {$expires->format(DATE_FORMAT)}");
+		$link->href = $url;
 
-			return html_email(
-				["{$user->name} <{$user->email}>"],
-				'Password reset',
-				$dom,
-				['From' => 'no-reply@kvsun.com']
-			);
+		return html_email(
+			["{$user->name} <{$user->email}>"],
+			'Password reset',
+			$dom,
+			['From' => 'no-reply@kvsun.com']
+		);
 	} else {
 		return false;
 	}
