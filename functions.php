@@ -27,6 +27,7 @@ use const \KVSun\Consts\{
 	LOGO,
 	LOGO_SIZE,
 	DATE_FORMAT,
+	DATETIME_FORMAT,
 	PASSWORD_RESET_VALID,
 	CRLF
 };
@@ -189,10 +190,10 @@ function password_reset_email(User $user): Bool
 		$url->path = 'password_reset.php';
 		$url->query->user = $user->username;
 		$url->query->time = $date->getTimestamp();
-		$url->query->token = $key->sign(json_encode([
+		$url->query->token = urlencode($key->sign(json_encode([
 			'user' => $user->username,
 			'time' => $date->format(DATETIME_FORMAT),
-		]));
+		])));
 		$expires = clone($date);
 		$expires->modify(PASSWORD_RESET_VALID);
 
