@@ -21,6 +21,7 @@ const PASSWD_PATTERN = '^.{8,}$';
 
 $req    = new FormData($_REQUEST);
 $header = new Headers();
+
 if (isset(
 	$req->user,
 	$req->time,
@@ -31,8 +32,10 @@ if (isset(
 
 	if (request_expired($time)) {
 		http_response_code(HTTP::BAD_REQUEST);
+		exit('Request expired');
 	} elseif (! verify_sig($req->user, $time, $req->token)) {
 		http_response_code(HTTP::UNAUTHORIZED);
+		exit('Invalid request');
 	} elseif (
 		$user = User::search(DB_CREDS, $req->user)
 		and isset($user->username)
@@ -48,19 +51,22 @@ if (isset(
 )) {
 	$signer = new FormSign(PUBLIC_KEY, PRIVATE_KEY, PASSWD);
 	$key    = PrivateKey::importFromFile(PRIVATE_KEY, PASSWD);
-	if (
-		$req->{FORM_NAME}->password !== $req->{FORM_NAME}->repeat
-		or ! preg_match('/' . PASSWD_PATTERN . '/', $req->{FORM_NAME}->password)
-	) {
-		http_response_code(HTTP::BAD_REQUEST);
-	} elseif(! $signer->verifyFormSignature($_POST[FORM_NAME])) {
-		http_response_code(HTTP::UNAUTHORIZED);
-	} elseif (! (
+	if (! (
 		$username = $key->decrypt($req->{FORM_NAME}->user)
 		and $user = User::search(DB_CREDS, $username)
+		and isset($user->username)
 	)) {
 		http_response_code(HTTP::BAD_REQUEST);
-	} elseif ($user->updatePassword($req->{FORM_NAME}->password)) {
+	} elseif ($req->{FORM_NAME}->password !== $req->{FORM_NAME}->repeat) {
+		http_response_code(HTTP::BAD_REQUEST);
+		exit(build_form($user, 'Password does not match repeated password.'));
+	} elseif (! preg_match('/' . PASSWD_PATTERN . '/', $req->{FORM_NAME}->password)) {
+		http_response_code(HTTP::BAD_REQUEST);
+		exit(build_form($user, 'Password does not meet requirements.'));
+	} elseif(! $signer->verifyFormSignature($_POST[FORM_NAME])) {
+		http_response_code(HTTP::UNAUTHORIZED);
+	}
+	elseif ($user->updatePassword($req->{FORM_NAME}->password)) {
 		$user->setCookie('user', PASSWD)->setSession();
 		$header->location = DOMAIN;
 	}
@@ -86,7 +92,7 @@ function request_expired(\DateTime $time): Bool
 	return $time > $now or $now > $expires;
 }
 
-function build_form(User $user): HTML
+function build_form(User $user, String $error_msg = null): HTML
 {
 	$dom    = new HTML();
 	$signer = new FormSign(PUBLIC_KEY, PRIVATE_KEY, PASSWD);
@@ -97,6 +103,9 @@ function build_form(User $user): HTML
 		'action' => DOMAIN . basename(__FILE__),
 		'method' => 'post'
 	]);
+	if (isset($error_msg)) {
+		$dom->body->append('p')->append('b', $error_msg);
+	}
 	$form->append('input', null, [
 		'type'  => 'hidden',
 		'name'  => "{$form->name}[user]",
