@@ -60,30 +60,9 @@ if (isset(
 		and $user = User::search(DB_CREDS, $username)
 	)) {
 		http_response_code(HTTP::BAD_REQUEST);
-	} else {
-		$pdo  = new PDO(DB_CREDS);
-		$pdo->beginTransaction();
-		$hash = password_hash($req->{FORM_NAME}->password, PASSWORD_DEFAULT);
-		$stm  = $pdo->prepare(
-			'UPDATE `users`
-			SET `password`   = :pass
-			WHERE `username` = :user
-			LIMIT 1;'
-		);
-		$stm->bindParam(':user', $username);
-		$stm->bindParam(':pass', $hash);
-		if (
-			password_verify($req->{FORM_NAME}->password, $hash)
-			and $stm->execute()
-		) {
-			$pdo->commit();
-			$user($user->email, $req->{FORM_NAME}->password);
-			$user->setCookie('user', PASSWD)->setSession();
-			$header->location = DOMAIN;
-		} else {
-			$pdo->rollBack();
-			http_response_code(HTTP::INTERNAL_SERVER_ERROR);
-		}
+	} elseif ($user->updatePassword($req->{FORM_NAME}->password)) {
+		$user->setCookie('user', PASSWD)->setSession();
+		$header->location = DOMAIN;
 	}
 } else {
 	http_response_code(HTTP::BAD_REQUEST);
