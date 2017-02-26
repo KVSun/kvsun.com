@@ -67,7 +67,7 @@ function verify_sig(String $username, \DateTime $time, String $sig): Bool
 		'user' => $username,
 		'time' => $time->format(DATETIME_FORMAT),
 	]);
-	return $key->verify($json, $sig);
+	return $key->verify($json, urldecode($sig)) or $key->verify($json, $sig);
 }
 
 /**
