@@ -28,6 +28,7 @@ use function \KVSun\Functions\{
 	user_can,
 	get_role_id,
 	email,
+	password_reset_email,
 	post_comment,
 	category_exists,
 	make_category,
@@ -270,7 +271,7 @@ switch($req->form) {
 				['transform' => 'none']
 			], [
 				'duration'   => 100,
-				'iterations' => 5,
+				'iterations' => 3,
 			]);
 		}
 		break;
@@ -339,6 +340,33 @@ switch($req->form) {
 			$resp->send();
 		}
 
+		break;
+
+	case 'forgot_password':
+		if (isset($req->forgot_password->user)) {
+			password_reset_email(User::search(DB_CREDS, $req->forgot_password->user));
+			$resp->notify(
+				'Request received',
+				'If a matching user exists, an email has been sent. Check your email.',
+				ICONS['inbox']
+			)->remove('#forgot_password_dialog');
+		} else {
+			$resp->notify(
+				'Missing user info',
+				'Double check your input and try again',
+				ICONS['alert']
+			)->focus(
+				'#forgot_password-user'
+			)->animate('#forgot_password_dialog', [
+				['transform' => 'none'],
+				['transform' => 'translateX(5em)scale(0.9)'],
+				['transform' => 'translateX(-5em)scale(1.1)'],
+				['transform' => 'none']
+			], [
+				'duration'   => 100,
+				'iterations' => 3,
+			]);
+		}
 		break;
 
 	case 'user-update':

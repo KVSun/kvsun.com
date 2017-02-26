@@ -130,6 +130,19 @@ if ($header->accept === 'application/json') {
 		}
 	} elseif (array_key_exists('load_form', $_REQUEST)) {
 		switch($_REQUEST['load_form']) {
+			case 'forgot_password':
+				$doc = new HTML;
+				$dialog = $doc->body->append('dialog');
+				$dialog->id = 'forgot_password_dialog';
+				$dialog->append('button', null, [
+					'data-delete' => "#{$dialog->id}",
+				]);
+				$dialog->append('hr');
+				$dialog->importHTMLFile(COMPONENTS . DIRECTORY_SEPARATOR . 'forms' . DIRECTORY_SEPARATOR . 'forgot_password.html');
+				$resp->append('body', $dialog);
+				$resp->showModal("#{$dialog->id}");
+				break;
+
 			case 'update-user':
 				$user = User::load(DB_CREDS);
 				if (!isset($user->status)) {
@@ -140,7 +153,7 @@ if ($header->accept === 'application/json') {
 				$dialog = user_update_form($user);
 				$resp->append('body', "$dialog");
 				$resp->showModal("#{$dialog->id}");
-				$resp->send();
+				$resp;
 				break;
 
 			case 'ccform':
