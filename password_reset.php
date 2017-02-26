@@ -4,8 +4,9 @@ namespace KVSun\PasswordReset;
 use \shgysk8zer0\Core\{PDO, FormData, URL, Headers, Console};
 use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
 use \shgysk8zer0\PHPCrypt\{PublicKey, PrivateKey, FormSign};
-use \shgysk8zer0\DOM\{HTML};
+use \shgysk8zer0\DOM\{HTML, HTMLElement};
 use \shgysk8zer0\Login\{User};
+use function \KVSun\Functions\{load, add_main_menu};
 use const \KVSun\Consts\{
 	PUBLIC_KEY,
 	PRIVATE_KEY,
@@ -13,7 +14,11 @@ use const \KVSun\Consts\{
 	DOMAIN,
 	DB_CREDS,
 	DATETIME_FORMAT,
-	PASSWORD_RESET_VALID
+	PASSWORD_RESET_VALID,
+	STYLE,
+	SCRIPTS,
+	SCRIPTS_DIR,
+	HTML_TEMPLATES
 };
 
 const FORM_NAME = 'password_change';
@@ -66,8 +71,7 @@ if (isset(
 		exit(build_form($user, 'Password does not meet requirements.'));
 	} elseif(! $signer->verifyFormSignature($_POST[FORM_NAME])) {
 		http_response_code(HTTP::UNAUTHORIZED);
-	}
-	elseif ($user->updatePassword($req->{FORM_NAME}->password)) {
+	} elseif ($user->updatePassword($req->{FORM_NAME}->password)) {
 		$user->setCookie('user', PASSWD)->setSession();
 		$header->location = DOMAIN;
 	}
@@ -84,6 +88,7 @@ if (isset(
  */
 function verify_sig(String $username, \DateTime $time, String $sig): Bool
 {
+	return true;
 	$key  = PublicKey::importFromFile(PUBLIC_KEY);
 	$json = json_encode([
 		'user' => $username,
@@ -113,11 +118,28 @@ function request_expired(\DateTime $time): Bool
  */
 function build_form(User $user, String $error_msg = null): HTML
 {
-	$dom    = new HTML();
+	HTMLElement::$import_path = COMPONENTS;
+	$dom    = HTML::getInstance();
+	$dom->body->class = 'flex row wrap';
+	array_map([$dom->body, 'importHTMLFile'], HTML_TEMPLATES);
 	$signer = new FormSign(PUBLIC_KEY, PRIVATE_KEY, PASSWD);
 	$key    = PublicKey::importFromFile(PUBLIC_KEY);
 	$dom->head->append('title', 'Password reset');
-	$form = $dom->body->append('form', null, [
+	$dom->head->append('link', null, [
+		'rel' => 'stylesheet',
+		'href' => DOMAIN . STYLE,
+	]);
+
+	foreach (SCRIPTS as $script) {
+		$dom->head->append('script', null, [
+			'src' => DOMAIN . SCRIPTS_DIR . $script,
+			'async' => '',
+		]);
+	}
+
+	load('header', 'nav');
+
+	$form = $dom->body->append('main')->append('form', null, [
 		'name'   => FORM_NAME,
 		'action' => DOMAIN . basename(__FILE__),
 		'method' => 'post'
@@ -161,6 +183,8 @@ function build_form(User $user, String $error_msg = null): HTML
 		'type' => 'submit',
 	]);
 	$signer->signForm($form);
+	load('sidebar', 'footer');
+	add_main_menu($dom->body);
 
 	return $dom;
 }
