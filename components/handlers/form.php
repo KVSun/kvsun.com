@@ -417,7 +417,7 @@ switch($req->form) {
 		} elseif ($user->updatePassword($reset->password)) {
 			$resp->notify(
 				"Password changed for {$user->name}",
-				'Check console',
+				'Your password has been updated and you are now signed in.',
 				new Gravatar($user->email)
 			)->remove('dialog[open]');
 		} else {
@@ -427,7 +427,6 @@ switch($req->form) {
 				ICONS['bug']
 			);
 		}
-		Console::info($reset);
 		break;
 	case 'user-update':
 		// $data = new FormData($_POST['user-update']);
