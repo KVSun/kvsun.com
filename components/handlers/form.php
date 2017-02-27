@@ -124,7 +124,7 @@ switch($req->form) {
 					);'
 				);
 
-				$user->email = $install->user->email;
+				$user->email = strtolower($install->user->email);
 				$user->username = $install->user->username;
 				$user->password = password_hash($install->user->password, PASSWORD_DEFAULT);
 				$user->execute();
@@ -322,9 +322,9 @@ switch($req->form) {
 					NULL
 				);');
 				$users->execute([
-					'email' => $req->register->email,
-					'username' => $req->register->username,
-					'password' => password_hash($req->register->password, \PASSWORD_DEFAULT)
+					'email'    => strtolower($req->register->email),
+					'username' => strtolower($req->register->username),
+					'password' => password_hash($req->register->password, PASSWORD_DEFAULT)
 				]);
 				$user_data->execute(['name' => $req->register->name]);
 				$subscribers->execute(['status' => get_role_id('guest')]);
@@ -472,7 +472,7 @@ switch($req->form) {
 		);
 
 		$user_stm->id = $user->id;
-		$user_stm->email = isset($data->email) ? $data->email : $user->email;
+		$user_stm->email = isset($data->email) ? strtolower($data->email) : $user->email;
 
 		$user_data_stm->tel = isset($data->tel) ? $data->tel : $user->tel;
 		$user_data_stm->gplus = isset($data->{'g+'}) ? $data->{'g+'} : $user->{'g+'};
