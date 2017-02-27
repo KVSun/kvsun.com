@@ -79,10 +79,10 @@ function build_dom(Array $path = array()): \DOMDocument
  * @return Bool                 Whether or not the email sent
  */
 function html_email(
-	Array $to,
-	String $subject,
+	Array        $to,
+	String       $subject,
 	\DOMDocument $message,
-	Array $headers = array('From' => 'no-reply@' . DOMAIN)
+	Array        $headers = array()
 ): Bool
 {
 	$encoding = $messsage->encoding ?? 'utf-8';
@@ -99,10 +99,10 @@ function html_email(
  * @return Bool            Whether or not the email sent
  */
 function email(
-	Array $to,
+	Array  $to,
 	String $subject,
 	String $message,
-	Array $headers = array('From' => 'no-reply@' . DOMAIN)
+	Array  $headers = array()
 ): Bool
 {
 	$headers = array_map(function(String $name, String $value): String
