@@ -26,7 +26,8 @@ use function \KVSun\Functions\{
 	delete_comments,
 	user_update_form,
 	make_cc_form,
-	make_datalist
+	make_datalist,
+	make_picture
 };
 
 use const \KVSun\Consts\{
@@ -37,7 +38,9 @@ use const \KVSun\Consts\{
 	COMPONENTS,
 	LOGO,
 	LOGO_VECTOR,
-	LOGO_SIZE
+	LOGO_SIZE,
+	IMG_SIZES,
+	IMG_FORMATS
 };
 
 if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
@@ -305,33 +308,15 @@ if ($header->accept === 'application/json') {
 			)->remove('main > *')->remove('#admin_menu')->send();
 		}
 		try {
-			$file  = new UploadFile($_FILES['upload']);
-			$image = Image::fromUpload($file);
-			$path  = join('/', [
-				'images',
-				'uploads',
-				date('Y'),
-				date('m'),
-				"{$image->basename}.{$image->extension}"
-			]);
-			if ($image->scale(1200)->saveAs($path)) {
-				$html = new HTML();
-				$figure = $html->body->append('figure');
-				$figure->append('img', null, [
-					'src' => "/{$path}",
-				]);
-				$caption = $figure->append('figcaption');
-				$caption->append('span', 'Photo by&nbsp;')->append('cite', '{Photographer}');
-				$caption->append('hr');
-				$caption->append('p', '{Photo caption}');
-				exit($figure);
-			} else {
-				$resp->notify(
-					'Failed',
-					'Could not save uploaded file.',
-					ICONS['alert']
-				);
-			}
+			$dom = new HTML();
+			$imgs = Image::responsiveImagesFromUpload(
+				'upload',
+				['images', 'uploads', date('Y'), date('m')],
+				IMG_SIZES,
+				IMG_FORMATS
+			);
+			$picture = make_picture($imgs, $dom->body, '{PHOTOGRAPHER}', '{CUTLINE}');
+			exit($picture);
 		} catch (\Throwable $e) {
 			trigger_error($e->getMessage());
 			$resp->notify(
