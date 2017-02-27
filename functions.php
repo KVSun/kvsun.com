@@ -284,21 +284,36 @@ function get_role_id(String $role): Int
  */
 function make_picture(
 	Array       $imgs,
-	\DOMElement $parent,
+	HTMLElement $parent,
 	String      $by      = null,
 	String      $caption = null
-): \DOMElement
+): HTMLElement
 {
 	$dom = $parent->ownerDocument;
-	$figure = $parent->appendChild($dom->createElement('figure'));
-	$picture = $figure->appendChild($dom->createElement('picture'));
+	$figure = $parent->append('figure', null, [
+		'itemprop' => 'image',
+		'itemtype' => 'http://schema.org/ImageObject',
+		'itemscope' => '',
+	]);
+	$picture = $figure->append('picture');
 	if (isset($by) or isset($caption)) {
-		$cap = $figure->appendChild($dom->createElement('figcaption'));
+		$cap = $figure->append('figcaption');
 		if (isset($by)) {
-			$cap->appendChild($dom->createElement('cite', $by));
+			$cap->append('cite', null, [
+				'itemprop' => 'creator',
+				'itemtype' => 'http://schema.org/Person',
+				'itemscope' => ''
+			], [
+				['b', 'Photo by&nbsp;'],
+				['b', $by, ['itemprop' => 'name']],
+			]);
+			// $cap->appendChild($dom->createElement('cite', 'Photo by&ndbp;'))
+			// ->appendChild('span', $by);
 		}
 		if (isset($caption)) {
-			$cap->appendChild($dom->createElement('p', $caption));
+			$cap->append('blockquote', $caption, [
+				'itemprop' => 'caption',
+			]);
 		}
 	}
 
@@ -314,11 +329,32 @@ function make_picture(
 			return "{$src['path']} {$src['width']}w";
 		}, $img)));
 	}
-	$img = $picture->appendChild($dom->createElement('img'));
-	$img->setAttribute('src', $imgs['image/jpeg'][0]['path']);
-	$img->setAttribute('width', $imgs['image/jpeg'][0]['width']);
-	$img->setAttribute('height', $imgs['image/jpeg'][0]['height']);
-	$img->setAttribute('alt', '');
+	$img = $picture->append('img', null, [
+		'src'      => $imgs['image/jpeg'][0]['path'],
+		'width'    => $imgs['image/jpeg'][0]['width'],
+		'height'   => $imgs['image/jpeg'][0]['height'],
+		'itemprop' => 'url',
+	]);
+	$figure->append('meta', null, [
+		'itemprop' => 'width',
+		'content'  => $img->width,
+	]);
+	$figure->append('meta', null, [
+		'itemprop' => 'height',
+		'content'  => $img->height,
+	]);
+	$figure->append('meta', null, [
+		'itemprop' => 'fileFormat',
+		'content'  => 'image/jpeg',
+	]);
+	$figure->append('meta', null, [
+		'itemprop' => 'uploadDate',
+		'content'  => date(\DateTime::W3C),
+	]);
+	$figure->append('meta', null, [
+		'itemprop' => 'contentSize',
+		'content'  => (filesize(__DIR__ . $img->src) / 1024) . 'kB',
+	]);
 	return $figure;
 }
 
