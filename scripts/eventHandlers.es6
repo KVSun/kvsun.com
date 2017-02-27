@@ -35,6 +35,12 @@ export function dataShare() {
 	}
 }
 
+export function dataCopy() {
+	if (this.dataset.hasOwnProperty('copy') && (copy instanceof Function)) {
+		copy(this.dataset.copy);
+	}
+}
+
 export function dataClose() {
 	document.querySelector(this.dataset.close).close();
 }
