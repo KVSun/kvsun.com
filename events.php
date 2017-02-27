@@ -4,7 +4,15 @@ namespace KVSun\Events;
 use \shgysk8zer0\Core\{Console, Listener, Gravatar, Timer, JSON_Response as Resp};
 use \shgysk8zer0\Login\{User};
 
-use const \KVSun\Consts\{PASSWD, LOGGED_IN_ONLY, LOGGED_OUT_ONLY, DEBUG, ERROR_LOG};
+use const \KVSun\Consts\{
+	ICONS,
+	DOMAIN,
+	PASSWD,
+	LOGGED_IN_ONLY,
+	LOGGED_OUT_ONLY,
+	DEBUG,
+	ERROR_LOG
+};
 
 use function \KVSun\Functions\{user_can};
 
@@ -51,16 +59,15 @@ function logout_handler(User $user): Resp
 	try {
 		$user->logout();
 		$resp = Resp::getInstance();
-		$resp->notify('Success', 'You have been logged out.');
+		$resp->notify('Success', 'You have been logged out.', DOMAIN . ICONS['sign-out']);
 		$resp->close('dialog[open]');
 		$resp->remove('#update-user-dialog, #admin_menu');
-		$resp->attributes('#user-avatar', 'src', '/images/octicons/lib/svg/sign-in.svg');
+		$resp->attributes('#user-avatar', 'src', DOMAIN . ICONS['sign-in']);
 		$resp->attributes('#user-avatar', 'data-load-form', false);
 		$resp->attributes('#user-avatar', 'data-show-modal', '#login-dialog');
 		$resp->attributes('[contextmenu="admin_menu"]', 'contextmenu', false);
 		$resp->enable(join(', ', LOGGED_OUT_ONLY));
 		$resp->disable(join(', ', LOGGED_IN_ONLY));
-		$resp->send();
 	} catch (\Throwable $e) {
 		trigger_error($e);
 	} finally {

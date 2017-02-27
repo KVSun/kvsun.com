@@ -8,6 +8,8 @@ use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
 use \shgysk8zer0\Login\{User};
 use \shgysk8zer0\PHPCrypt\{PublicKey, PrivateKey, KeyPair, AES};
 
+use \SplFileObject as File;
+
 use const \KVSun\Consts\{
 	DEBUG,
 	DB_CREDS,
@@ -15,6 +17,7 @@ use const \KVSun\Consts\{
 	PUBLIC_KEY,
 	PRIVATE_KEY,
 	DOMAIN,
+	ICONS,
 	COMPONENTS,
 	EXT,
 	PAGES_DIR,
@@ -23,6 +26,9 @@ use const \KVSun\Consts\{
 	SPRITES,
 	LOGO,
 	LOGO_SIZE,
+	DATE_FORMAT,
+	DATETIME_FORMAT,
+	PASSWORD_RESET_VALID,
 	CRLF
 };
 
@@ -73,10 +79,10 @@ function build_dom(Array $path = array()): \DOMDocument
  * @return Bool                 Whether or not the email sent
  */
 function html_email(
-	Array $to,
-	String $subject,
+	Array        $to,
+	String       $subject,
 	\DOMDocument $message,
-	Array $headers = array('From' => 'no-reply@' . DOMAIN)
+	Array        $headers = array()
 ): Bool
 {
 	$encoding = $messsage->encoding ?? 'utf-8';
@@ -93,10 +99,10 @@ function html_email(
  * @return Bool            Whether or not the email sent
  */
 function email(
-	Array $to,
+	Array  $to,
 	String $subject,
 	String $message,
-	Array $headers = array('From' => 'no-reply@' . DOMAIN)
+	Array  $headers = array()
 ): Bool
 {
 	$headers = array_map(function(String $name, String $value): String
@@ -129,7 +135,7 @@ function mail(
 {
 	try {
 		$sent    = true;
-		$url     = new URL('/mail.php');
+		$url     = new URL('http://kvsun.com:8888/mail.php');
 		$ch      = curl_init($url);
 		$time    = new \DateTime();
 		$private = PrivateKey::importFromFile(PRIVATE_KEY, PASSWD);
@@ -147,11 +153,10 @@ function mail(
 			CURLOPT_RETURNTRANSFER => false,
 			CURLOPT_FRESH_CONNECT  => true,
 			CURLOPT_POST           => true,
+			CURLOPT_PORT           => $url->port,
 			CURLOPT_POSTFIELDS     => $email,
 		]);
 
-		curl_close($ch);
-		return true;
 		if (curl_exec($ch)) {
 			$status = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
 			if ($status !== HTTP::OK) {
@@ -166,6 +171,56 @@ function mail(
 	} finally {
 		curl_close($ch);
 		return $sent;
+	}
+}
+
+/**
+ * Send password reset emails
+ * @param  User $user The user attempting to reset password
+ * @return Bool       Whether or not the email sent
+ */
+function password_reset_email(User $user): Bool
+{
+	if (isset($user->email, $user->name, $user->username)) {
+		$dom    = new HTML();
+		$date   = new \DateTime();
+		$url    = new URL(DOMAIN);
+		$key    = PrivateKey::importFromFile(PRIVATE_KEY, PASSWD);
+
+		$url->path = 'password_reset.php';
+		$url->query->user = $user->username;
+		$url->query->time = $date->getTimestamp();
+		$url->query->token = urlencode($key->sign(json_encode([
+			'user' => $user->username,
+			'time' => $date->format(DATETIME_FORMAT),
+		])));
+		$expires = clone($date);
+		$expires->modify(PASSWORD_RESET_VALID);
+
+		$dom->body->append(
+			'h2',
+			"A password reset request has been requested for {$user->username} on "
+		)->append('a', DOMAIN, ['href' => DOMAIN]);
+
+		$dom->body->append('br');
+		$dom->body->append('p', 'If you did not request a password reset, simply ignore this email.');
+		$dom->body->append('br');
+		$p = $dom->body->append('p');
+		$p->append('span', 'Otherwise, click ');
+		$link = $p->append('a', 'here');
+		$p->append('span', ' to reset your password');
+		$dom->body->append('br');
+		$dom->body->append('p', "This link will expire on {$expires->format(DATE_FORMAT)}");
+		$link->href = $url;
+
+		return html_email(
+			["{$user->name} <{$user->email}>"],
+			'Password reset',
+			$dom,
+			['From' => 'no-reply@kvsun.com']
+		);
+	} else {
+		return false;
 	}
 }
 
@@ -237,12 +292,16 @@ function make_picture(
 	$dom = $parent->ownerDocument;
 	$figure = $parent->appendChild($dom->createElement('figure'));
 	$picture = $figure->appendChild($dom->createElement('picture'));
-	if (isset($by)) {
-		$figure->appendChild($dom->createElement('cite', $by));
+	if (isset($by) or isset($caption)) {
+		$cap = $figure->appendChild($dom->createElement('figcaption'));
+		if (isset($by)) {
+			$cap->appendChild($dom->createElement('cite', $by));
+		}
+		if (isset($caption)) {
+			$cap->appendChild($dom->createElement('p', $caption));
+		}
 	}
-	if (isset($caption)) {
-		$cap = $figure->appendChild($dom->createElement('figcaption', $caption));
-	}
+
 	foreach($imgs as $format => $img) {
 		usort($img, function(Array $src1, Array $src2): Int
 		{
@@ -260,7 +319,7 @@ function make_picture(
 	$img->setAttribute('width', $imgs['image/jpeg'][0]['width']);
 	$img->setAttribute('height', $imgs['image/jpeg'][0]['height']);
 	$img->setAttribute('alt', '');
-	return $picture;
+	return $figure;
 }
 
 /**
@@ -866,6 +925,24 @@ function make_datalist(String $name, Array $items, Bool $return_string = true)
 }
 
 /**
+ * Reads a CSV file containing SVG sprites and returns [$name => $path, ...]
+ * @param  String $icon_csv The file to read from
+ * @return Array            [$name => $path, ...]
+ */
+function get_icons(String $icon_csv): Array
+{
+	$icons = [];
+	$csv = new File($icon_csv);
+	$csv->setFlags(File::READ_CSV | File::SKIP_EMPTY | File::DROP_NEW_LINE);
+	while ($csv->valid()) {
+		list($key, $value) = $csv->fgetcsv();
+		$icons[$key] = $value;
+		$csv->next();
+	}
+	return $icons;
+}
+
+/**
  * [use_icon description]
  * @param  String         $icon   [description]
  * @param  DOMHTMLElement $parent [description]
@@ -904,19 +981,19 @@ function add_main_menu(\DOMElement $parent): \DOMElement
 
 	$login = $menu->append('menuitem', null, [
 		'label' => 'Login',
-		'icon' => DOMAIN . '/images/octicons/lib/svg/sign-in.svg',
+		'icon' => DOMAIN . ICONS['sign-in'],
 		'data-show-modal' => '#login-dialog',
 	]);
 
 	$register = $menu->append('menuitem', null, [
 		'label' => 'Register',
-		'icon' => DOMAIN . '/images/octicons/lib/svg/sign-in.svg',
+		'icon' => DOMAIN . ICONS['subscribe'],
 		'data-show-modal' => '#registration-dialog',
 	]);
 
 	$logout = $menu->append('menuitem', null, [
 		'label' => 'Sign out',
-		'icon' => DOMAIN . '/images/octicons/lib/svg/sign-out.svg',
+		'icon' => DOMAIN . ICONS['sign-out'],
 		'data-request' => 'action=logout',
 		'data-confirm' => 'Are you sure you want to logout?'
 	]);
@@ -947,12 +1024,12 @@ function add_nav_menu(\DOMElement $parent): \DOMElement
 	],  [
 		['menuitem', null, [
 			'label' => 'Top',
-			'icon' => DOMAIN . '/images/octicons/lib/svg/arrow-up.svg',
+			'icon' => DOMAIN . ICONS['arrow-up'],
 			'data-scroll-to' => 'body > header',
 		]],
 		['menuitem', null, [
 			'label' => 'Bottom',
-			'icon' => DOMAIN . '/images/octicons/lib/svg/arrow-down.svg',
+			'icon' => DOMAIN . ICONS['arrow-down'],
 			'data-scroll-to' => 'body > footer',
 		]],
 	]);
@@ -969,27 +1046,27 @@ function add_share_menu(\DOMElement $parent): \DOMElement
 	], [
 		['menuitem', null, [
 			'label' => 'Facebook',
-			'icon' => DOMAIN . '/images/logos/Facebook.svg',
+			'icon' => DOMAIN . ICONS['facebook'],
 			'data-share' => 'facebook',
 		]],
 		['menuitem', null, [
 			'label' => 'Twitter',
-			'icon' => DOMAIN . '/images/logos/twitter.svg',
+			'icon' => DOMAIN . ICONS['twitter'],
 			'data-share' => 'twitter',
 		]],
 		['menuitem', null, [
 			'label' => 'Google+',
-			'icon' => DOMAIN . '/images/logos/Google_plus.svg',
+			'icon' => DOMAIN . ICONS['google+'],
 			'data-share' => 'g+',
 		]],
 		['menuitem', null, [
 			'label' => 'Linkedin',
-			'icon' => DOMAIN . '/images/logos/linkedin.svg',
+			'icon' => DOMAIN . ICONS['linkedin'],
 			'data-share' => 'linkedin',
 		]],
 		['menuitem', null, [
 			'label' => 'Reddit',
-			'icon' => DOMAIN . '/images/logos/Reddit.svg',
+			'icon' => DOMAIN . ICONS['reddit'],
 			'data-share' => 'reddit',
 		]],
 	]);

@@ -1,7 +1,8 @@
 <?php
 namespace KVSun\Consts;
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'functions.php';
+use function \KVSun\Functions\{get_icons};
 const REQUIRED = [
-	'functions.php',
 	'events.php',
 	'vendor/autoload.php',
 ];
@@ -77,11 +78,21 @@ const LOCAL_ZIPS = [
 	93283,
 	93285
 ];
-
+const IMG_SIZES   = [
+	1200,
+	800,
+	400
+];
+const IMG_FORMATS = [
+	'image/webp',
+	'image/jpeg'
+];
 const LOGGED_OUT_ONLY = [
 	'[data-show-modal="#login-dialog"]',
 	'[data-show-modal="#registration-dialog"]',
 ];
+
+const PASSWORD_RESET_VALID = '+1 day';
 
 const LOGGED_IN_ONLY = [
 	'[data-request="action=logout"]',
@@ -107,6 +118,7 @@ function define(String $const, $value): Bool
 
 define('DEBUG', $_SERVER['SERVER_ADDR'] === $_SERVER['REMOTE_ADDR']);
 define('DOMAIN', "{$_SERVER['REQUEST_SCHEME']}://{$_SERVER['HTTP_HOST']}/");
+define('ICONS', get_icons('./images/icons.csv'));
 
 if (@file_exists('./config/.passwd')) {
 	define('PASSWD', file_get_contents('./config/.passwd'));

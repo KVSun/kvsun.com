@@ -1,6 +1,7 @@
 <?php
 namespace KVSun\WebHook;
-use \shgysk8zer0\Core\{GitHubWebhook, Email};
+use \shgysk8zer0\Core\{GitHubWebhook};
+use function \KVSun\Functions\{email};
 const CONFIG = 'config/github.json';
 error_reporting(0);
 if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
@@ -24,10 +25,9 @@ set_exception_handler(__NAMESPACE__ . '\handler_exception');
 echo 'Connection successful.' . PHP_EOL;
 try {
 	$webhook = new GitHubWebhook(CONFIG);
-	$email = new Email(
-		$_SERVER['SERVER_ADMIN'],
-		sprintf('%s event on %s', $webhook->event, $_SERVER['SERVER_NAME'])
-	);
+	$to = [$_SERVER['SERVER_ADMIN']];
+	$subject = sprintf('%s event on %s', $webhook->event, $_SERVER['SERVER_NAME']);
+	$headers = ['From' => 'git@kvsun.com'];
 
 	if ($webhook->validate()) {
 		echo 'Request validated.' . PHP_EOL;
@@ -38,11 +38,12 @@ try {
 			case 'push':
 				echo "Push to {$webhook->parsed->ref}" . PHP_EOL;
 				if ($webhook->parsed->ref === 'refs/heads/master') {
+					set_time_limit(60);
 					$pull = `git pull`;
 					$status = `git status`;
-					echo $pull . PHP_EOL;
-					$email->message = $pull . PHP_EOL . PHP_EOL . $status;
-					$email->send();
+					$message = $pull . PHP_EOL . PHP_EOL . $status;
+					echo $message;
+					email($to, $subject, $message, $headers);
 				}
 				break;
 

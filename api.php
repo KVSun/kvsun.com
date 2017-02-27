@@ -8,6 +8,7 @@ use \shgysk8zer0\Core\{
 	Headers,
 	Console,
 	UploadFile,
+	Image,
 	Listener
 };
 use \shgysk8zer0\DOM\{HTML, HTMLElement, RSS};
@@ -21,19 +22,25 @@ use function \KVSun\Functions\{
 	email,
 	get_role_id,
 	get_categories,
+	get_comments,
 	delete_comments,
 	user_update_form,
-	make_cc_form
+	make_cc_form,
+	make_datalist,
+	make_picture
 };
 
 use const \KVSun\Consts\{
 	DEBUG,
 	DOMAIN,
+	ICONS,
 	DB_CREDS,
 	COMPONENTS,
 	LOGO,
 	LOGO_VECTOR,
-	LOGO_SIZE
+	LOGO_SIZE,
+	IMG_SIZES,
+	IMG_FORMATS
 };
 
 if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
@@ -57,8 +64,22 @@ if ($header->accept === 'application/json') {
 			$page = new Home(PDO::load(DB_CREDS), "$url", get_categories('url'));
 		} elseif (count($path) === 1) {
 			$page = new Category(PDO::load(DB_CREDS), "$url");
-		} else {
+		} elseif (count($path) === 2) {
 			$page = new Article(PDO::load(DB_CREDS), "$url");
+			if (! $page->is_free and ! user_can('paidArticles')) {
+				$resp->notify(
+					'You must be a subscriber to view this content',
+					'Please login to continue.',
+					DOMAIN . ICONS['sign-in']
+				)->showModal('#login-dialog')
+				->send();
+			}
+		} else {
+			$resp->notify(
+				'Invalid request',
+				"No content for {$url}",
+				DOMAIN . ICONS['circle-slash']
+			)->send();
 		}
 
 		exit(json_encode($page));
@@ -113,6 +134,19 @@ if ($header->accept === 'application/json') {
 		}
 	} elseif (array_key_exists('load_form', $_REQUEST)) {
 		switch($_REQUEST['load_form']) {
+			case 'forgot_password':
+				$doc = new HTML;
+				$dialog = $doc->body->append('dialog');
+				$dialog->id = 'forgot_password_dialog';
+				$dialog->append('button', null, [
+					'data-delete' => "#{$dialog->id}",
+				]);
+				$dialog->append('hr');
+				$dialog->importHTMLFile(COMPONENTS . DIRECTORY_SEPARATOR . 'forms' . DIRECTORY_SEPARATOR . 'forgot_password.html');
+				$resp->append('body', $dialog);
+				$resp->showModal("#{$dialog->id}");
+				break;
+
 			case 'update-user':
 				$user = User::load(DB_CREDS);
 				if (!isset($user->status)) {
@@ -123,7 +157,12 @@ if ($header->accept === 'application/json') {
 				$dialog = user_update_form($user);
 				$resp->append('body', "$dialog");
 				$resp->showModal("#{$dialog->id}");
-				$resp->send();
+				$resp->animate("#{$dialog->id}", [
+					['transform' => 'translateX(50vw) translateY(50vh) scale(0.1)'],
+					['transform' => 'none'],
+				], [
+					'duration' => 300,
+				]);
 				break;
 
 			case 'ccform':
@@ -262,24 +301,59 @@ if ($header->accept === 'application/json') {
 	} elseif(array_key_exists('upload', $_FILES)) {
 		if (! user_can('uploadMedia')) {
 			trigger_error('Unauthorized upload attempted');
-			http_response_code(HTTP::UNAUTHORIZED);
-			exit('{}');
+			$resp->notify(
+				'Unauthorized',
+				'You are not authorized to upload files',
+				ICONS['alert']
+			)->remove('main > *')->remove('#admin_menu')->send();
 		}
-		$file = new UploadFile('upload');
-		if (in_array($file->type, ['image/jpeg', 'image/png', 'image/svg+xml', 'image/gif'])) {
-			if ($file->saveTo('images', 'uploads', date('Y'), date('m'))) {
-				header('Content-Type: application/json');
-				exit($file);
-			} else {
-				$resp->notify('Failed', 'Could not save uploaded file.');
-			}
-		} else {
-			throw new \Exception("{$file->name} has a type of {$file->type}, which is not allowed.");
+		try {
+			$dom = new HTML();
+			$imgs = Image::responsiveImagesFromUpload(
+				'upload',
+				['images', 'uploads', date('Y'), date('m')],
+				IMG_SIZES,
+				IMG_FORMATS
+			);
+			$picture = make_picture($imgs, $dom->body, '{PHOTOGRAPHER}', '{CUTLINE}');
+			exit($picture);
+		} catch (\Throwable $e) {
+			trigger_error($e->getMessage());
+			$resp->notify(
+				'There was an error uploading the image',
+				$e->getMessage(),
+				ICONS['bug']
+			);
 		}
 	} elseif (array_key_exists('action', $_REQUEST)) {
 		switch($_REQUEST['action']) {
 			case 'logout':
 				Listener::logout(restore_login());
+				break;
+
+			case 'debug':
+				if (user_can('debug')) {
+					Console::info([
+						'memory' => (memory_get_peak_usage(true) / 1024) . ' kb',
+						'resources' => [
+							'files'          => get_included_files(),
+							'path'           => explode(PATH_SEPARATOR, get_include_path()),
+							'functions'      => get_defined_functions(true)['user'],
+							'constansts'     => get_defined_constants(true)['user'],
+							'classes' => [
+								'classes'    => get_declared_classes(),
+								'interfaces' => get_declared_interfaces(),
+								'traits'     => get_declared_traits(),
+							],
+						],
+						'globals' => [
+							'_SERVER'  => $_SERVER,
+							'_REQUEST' => $_REQUEST,
+							'_SESSION' => $_SESSION ?? [],
+							'_COOKIE'  => $_COOKIE,
+						],
+					]);
+				}
 				break;
 		}
 	} elseif (array_key_exists('delete-comment', $_GET)) {
@@ -287,7 +361,7 @@ if ($header->accept === 'application/json') {
 			$resp->notify(
 				"I'm afraid I can't let you do that, Dave",
 				'You are not authorized to moderate comments.',
-				'/images/octicons/lib/svg/alert.svg'
+				ICONS['alert']
 			);
 		} elseif (delete_comments($_GET['delete-comment'])) {
 			$resp->notify('Comment deleted');
@@ -296,7 +370,7 @@ if ($header->accept === 'application/json') {
 			$resp->notify(
 				'Unable to delete comment',
 				'Check error log.',
-				'/images/octicons/lib/svg/bug.svg'
+				ICONS['bug']
 			);
 		}
 	} else {
