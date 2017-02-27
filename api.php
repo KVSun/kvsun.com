@@ -8,6 +8,7 @@ use \shgysk8zer0\Core\{
 	Headers,
 	Console,
 	UploadFile,
+	Image,
 	Listener
 };
 use \shgysk8zer0\DOM\{HTML, HTMLElement, RSS};
@@ -297,24 +298,72 @@ if ($header->accept === 'application/json') {
 	} elseif(array_key_exists('upload', $_FILES)) {
 		if (! user_can('uploadMedia')) {
 			trigger_error('Unauthorized upload attempted');
-			http_response_code(HTTP::UNAUTHORIZED);
-			exit('{}');
+			$resp->notify(
+				'Unauthorized',
+				'You are not authorized to upload files',
+				ICONS['alert']
+			)->remove('main > *')->remove('#admin_menu')->send();
 		}
-		$file = new UploadFile('upload');
-		if (in_array($file->type, ['image/jpeg', 'image/png', 'image/svg+xml', 'image/gif'])) {
-			if ($file->saveTo('images', 'uploads', date('Y'), date('m'))) {
-				header('Content-Type: application/json');
-				exit($file);
+		try {
+			$file  = new UploadFile($_FILES['upload']);
+			$image = Image::fromUpload($file);
+			$path  = join('/', [
+				'images',
+				'uploads',
+				date('Y'),
+				date('m'),
+				"{$image->basename}.{$image->extension}"
+			]);
+			if ($image->scale(1200)->saveAs($path)) {
+				$html = new HTML();
+				$image = $html->body->append('img', null, [
+					'src' => "/{$path}",
+				]);
+				exit($image);
 			} else {
-				$resp->notify('Failed', 'Could not save uploaded file.');
+				$resp->notify(
+					'Failed',
+					'Could not save uploaded file.',
+					ICONS['alert']
+				);
 			}
-		} else {
-			throw new \Exception("{$file->name} has a type of {$file->type}, which is not allowed.");
+		} catch (\Throwable $e) {
+			trigger_error($e->getMessage());
+			$resp->notify(
+				'There was an error uploading the image',
+				$e->getMessage(),
+				ICONS['bug']
+			);
 		}
 	} elseif (array_key_exists('action', $_REQUEST)) {
 		switch($_REQUEST['action']) {
 			case 'logout':
 				Listener::logout(restore_login());
+				break;
+
+			case 'debug':
+				if (user_can('debug')) {
+					Console::info([
+						'memory' => (memory_get_peak_usage(true) / 1024) . ' kb',
+						'resources' => [
+							'files'          => get_included_files(),
+							'path'           => explode(PATH_SEPARATOR, get_include_path()),
+							'functions'      => get_defined_functions(true)['user'],
+							'constansts'     => get_defined_constants(true)['user'],
+							'classes' => [
+								'classes'    => get_declared_classes(),
+								'interfaces' => get_declared_interfaces(),
+								'traits'     => get_declared_traits(),
+							],
+						],
+						'globals' => [
+							'_SERVER'  => $_SERVER,
+							'_REQUEST' => $_REQUEST,
+							'_SESSION' => $_SESSION ?? [],
+							'_COOKIE'  => $_COOKIE,
+						],
+					]);
+				}
 				break;
 		}
 	} elseif (array_key_exists('delete-comment', $_GET)) {
