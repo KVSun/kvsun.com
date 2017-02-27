@@ -472,7 +472,7 @@ switch($req->form) {
 		);
 
 		$user_stm->id = $user->id;
-		$user_stm->email = isset($data->email) ? $data->email : $user->email;
+		$user_stm->email = isset($data->email) ? strtolower($data->email) : $user->email;
 
 		$user_data_stm->tel = isset($data->tel) ? $data->tel : $user->tel;
 		$user_data_stm->gplus = isset($data->{'g+'}) ? $data->{'g+'} : $user->{'g+'};
