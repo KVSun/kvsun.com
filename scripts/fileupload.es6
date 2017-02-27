@@ -1,30 +1,24 @@
 import handleJSON from './std-js/json_response.es6';
 
-export default function DnD(el) {
-	el.ondragover = dragOverHandler;
-	el.ondragend  = dragEndHandler;
-	el.ondrop     = dropHandler;
-}
-
 function fileError(error) {
 	console.error(error);
 }
 
-function dragOverHandler(event) {
+export function dragOverHandler(event) {
 	event.stopPropagation();
 	event.preventDefault();
 	this.classList.add('receiving');
 	return false;
 }
 
-function dragEndHandler(event) {
+export function dragEndHandler(event) {
 	event.stopPropagation();
 	event.preventDefault();
 	this.classList.remove('receiving');
 	return false;
 }
 
-function dropHandler(drop) {
+export function dropHandler(drop) {
 	drop.stopPropagation();
 	drop.preventDefault();
 	this.classList.remove('receiving');
@@ -90,7 +84,7 @@ async function uploadImage(file) {
 			}
 		} else if (resp.headers.get('Content-Type').startsWith('text/html')) {
 			const html = await resp.text();
-			document.execCommand('insertHTML', null, html);
+			document.execCommand('insertHTML', null, `${html}<br/>`);
 		} else {
 			throw new TypeError('Request did not get a valid response.');
 		}
