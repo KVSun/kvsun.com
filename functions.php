@@ -292,12 +292,16 @@ function make_picture(
 	$dom = $parent->ownerDocument;
 	$figure = $parent->appendChild($dom->createElement('figure'));
 	$picture = $figure->appendChild($dom->createElement('picture'));
-	if (isset($by)) {
-		$figure->appendChild($dom->createElement('cite', $by));
+	if (isset($by) or isset($caption)) {
+		$cap = $figure->appendChild($dom->createElement('figcaption'));
+		if (isset($by)) {
+			$cap->appendChild($dom->createElement('cite', $by));
+		}
+		if (isset($caption)) {
+			$cap->appendChild($dom->createElement('p', $caption));
+		}
 	}
-	if (isset($caption)) {
-		$cap = $figure->appendChild($dom->createElement('figcaption', $caption));
-	}
+
 	foreach($imgs as $format => $img) {
 		usort($img, function(Array $src1, Array $src2): Int
 		{
@@ -315,7 +319,7 @@ function make_picture(
 	$img->setAttribute('width', $imgs['image/jpeg'][0]['width']);
 	$img->setAttribute('height', $imgs['image/jpeg'][0]['height']);
 	$img->setAttribute('alt', '');
-	return $picture;
+	return $figure;
 }
 
 /**
