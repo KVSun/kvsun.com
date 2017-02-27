@@ -316,10 +316,15 @@ if ($header->accept === 'application/json') {
 			]);
 			if ($image->scale(1200)->saveAs($path)) {
 				$html = new HTML();
-				$image = $html->body->append('img', null, [
+				$figure = $html->body->append('figure');
+				$figure->append('img', null, [
 					'src' => "/{$path}",
 				]);
-				exit($image);
+				$caption = $figure->append('figcaption');
+				$caption->append('span', 'Photo by&nbsp;')->append('cite', '{Photographer}');
+				$caption->append('hr');
+				$caption->append('p', '{Photo caption}');
+				exit($figure);
 			} else {
 				$resp->notify(
 					'Failed',
