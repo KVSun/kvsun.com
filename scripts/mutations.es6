@@ -18,20 +18,6 @@ function wysiwygToggle(el) {
 	}
 }
 
-// function pictureShim(picture) {
-// 	if ('matchMedia' in window) {
-// 		let sources = picture.querySelectorAll('source[media][srcset]');
-// 		for (let n = 0; n < sources.length; n++) {
-// 			if (matchMedia(sources[n].getAttribute('media')).matches) {
-// 				picture.getElementsByTagName('img')[0].src = sources[n].getAttribute('srcset');
-// 				break;
-// 			}
-// 		}
-// 	} else {
-// 		picture.getElementsByTagName('img')[0].src = picture.querySelector('source[media][srcset]').getAttribute('srcset');
-// 	}
-// }
-
 function toggleFullScreen(){
 	if (fullScreen) {
 		document.cancelFullScreen();
@@ -209,9 +195,6 @@ export function bootstrap() {
 		if (supports('datalist')) {
 			query('[list]', node).forEach(eventHandler.getDatalist);
 		}
-		// if (!supports('picture')) {
-		// 	query('picture', node).forEach(pictureShim);
-		// }
 		query('[autofocus]', node).forEach(input => input.focus());
 		query(
 			'a[href]:not([target="_blank"]):not([download]):not([href*="\#"])',
@@ -237,9 +220,6 @@ export function bootstrap() {
 		query('[data-scroll-to]', node).forEach(el => {
 			el.addEventListener('click', eventHandler.dataScrollTo);
 		});
-		// query('[data-import]', node).forEach(el => {
-		// 	el.HTMLimport();
-		// });
 		query('[data-close]', node).forEach(el => {
 			el.addEventListener('click', eventHandler.dataClose);
 		});
@@ -261,37 +241,12 @@ export function bootstrap() {
 			toggle.addEventListener('click', eventHandler.toggleCheckboxes);
 		});
 		query('[data-must-match]', node).forEach(eventHandler.matchPattern);
-		// query('[data-dropzone]', node) .forEach(function (el) {
-		// 	document.querySelector(el.dataset.dropzone).DnD(el);
-		// });
+
 		query('input[data-equal-input]', node).forEach(input => {
 			input.addEventListener('input', eventHandler.matchInput);
 		});
 		query('[contenteditable]', node).forEach(el => wysiwygToggle(el));
 		query('menu#wysiwyg_menu[type="context"]', node).forEach(wysiwyg);
-		// query('[data-request]', node).forEach(el => {
-		// 	el.addEventListener('click', click => {
-		// 		click.preventDefault();
-		// 		if (!(el.dataset.hasOwnProperty('confirm')) || confirm(el.dataset.confirm)) {
-		// 			let url = new URL(el.dataset.url || document.baseURI);
-		// 			let headers = new Headers();
-		// 			let body = new URLSearchParams(el.dataset.request);
-		// 			headers.set('Accept', 'application/json');
-		// 			if ('prompt' in el.dataset) {
-		// 				body.set('prompt_value', prompt(el.dataset.prompt));
-		// 			}
-		// 			fetch(url, {
-		// 				method: 'POST',
-		// 				headers,
-		// 				body,
-		// 				credentials: 'include'
-		// 			}).then(parseResponse).then(handleJSON).catch(reportError);
-		// 		}
-		// 	});
-		// });
-		// query('[data-dropzone]', node).forEach(finput => {
-		// 	document.querySelector(finput.dataset.dropzone).DnD(finput);
-		// });
 	});
 	return this;
 }
