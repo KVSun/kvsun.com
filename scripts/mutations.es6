@@ -129,14 +129,6 @@ export const watcher = {
 			}
 			break;
 
-		case 'data-copy':
-			if (this.target.dataset.hasOwnProperty('copy')) {
-				this.target.addEventListener('click', eventHandler.dataCopy);
-			} else {
-				this.target.removeEventListener('click', eventHandler.dataCopy);
-			}
-			break;
-
 		case 'data-fullscreen':
 			if (this.target.dataset.hasOwnProperty('fullscreen')) {
 				this.target.addEventListener('click', fullScreen);
@@ -177,7 +169,6 @@ export const attributeTree = [
 	'data-load-form',
 	'data-request',
 	'data-share',
-	'data-copy',
 	'data-fullscreen',
 	'data-admin'
 ];
@@ -235,11 +226,6 @@ export function bootstrap() {
 		query('[data-share]', node).forEach(node => {
 			node.addEventListener('click', eventHandler.dataShare);
 		});
-		if (copy instanceof Function) {
-			query('[date-copy]', node).forEach(node => {
-				node.addEventListener('click', eventHandler.dataCopy);
-			});
-		}
 		query('[data-fullscreen]', node).forEach(el => {
 			el.addEventListener('click', toggleFullScreen);
 		});

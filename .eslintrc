@@ -28,7 +28,6 @@
     },
     "globals": {
         "URLSearchParams": false,
-        "ga": false,
-        "copy": false
+        "ga": false
     }
 }
