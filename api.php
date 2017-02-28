@@ -309,12 +309,96 @@ if ($header->accept === 'application/json') {
 		}
 		try {
 			$dom = new HTML();
-			$imgs = Image::responsiveImagesFromUpload(
-				'upload',
-				['images', 'uploads', date('Y'), date('m')],
-				IMG_SIZES,
-				IMG_FORMATS
-			);
+			$pdo = PDO::load(DB_CREDS);
+			$user = restore_login();
+			$pdo->beginTransaction();
+			try {
+				$img_stm = $pdo->prepare(
+					'INSERT INTO `images` (
+						`path`,
+						`fileFormat`,
+						`contentSize`,
+						`height`,
+						`width`,
+						`uploadedBy`
+					) VALUES (
+						:path,
+						:format,
+						:size,
+						:height,
+						:width,
+						:uploadedBy
+					);'
+				);
+				$srcset_stm = $pdo->prepare(
+					'INSERT INTO `srcset` (
+						`parentID`,
+						`path`,
+						`width`,
+						`height`,
+						`format`,
+						`filesize`
+					) VALUES (
+						:parent,
+						:path,
+						:width,
+						:height,
+						:format,
+						:filesize
+					);'
+				);
+				$imgs = Image::responsiveImagesFromUpload(
+					'upload',
+					['images', 'uploads', date('Y'), date('m')],
+					IMG_SIZES,
+					IMG_FORMATS
+				);
+				$parent = array_reverse($imgs['image/jpeg']);
+				$parent = (object) end($parent);
+				$img_stm->execute([
+					'path'       => $parent->path,
+					'format'     => $parent->type,
+					'size'       => $parent->size,
+					'height'     => $parent->height,
+					'width'      => $parent->width,
+					'uploadedBy' => $user->id,
+				]);
+				if (intval($img_stm->errorCode()) !== 0) {
+					throw new \Exception(
+						'SQL Error: '. join(PHP_EOL, $img_stm->errorInfo())
+					);
+				}
+				$parent_id = $pdo->lastInsertId();
+				foreach ($imgs as $format) {
+					foreach ($format as $img) {
+						$img = (object) $img;
+						$srcset_stm->execute([
+							'parent'   => $parent_id,
+							'path'     => $img->path,
+							'width'    => $img->width,
+							'height'   => $img->height,
+							'format'   => $img->type,
+							'filesize' => $img->size,
+						]);
+						if (intval($srcset_stm->errorCode()) !== 0) {
+							throw new \Exception(
+								'SQL Error: '. join(PHP_EOL, $srcset_stm->errorInfo())
+							);
+						}
+					}
+				}
+				Console::table($pdo('SELECT * FROM `srcset`;'));
+				Console::info($imgs);
+				$pdo->rollBack();
+			} catch (\Throwable $e) {
+				$pdo->rollBack();
+				$resp->notify(
+					'Error uploading image',
+					$e->getMessage(),
+					ICONS['bug']
+				)->send();
+			}
+
 			$picture = make_picture($imgs, $dom->body, '{PHOTOGRAPHER}', '{CUTLINE}');
 			exit($picture);
 		} catch (\Throwable $e) {
