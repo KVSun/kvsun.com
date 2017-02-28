@@ -78,7 +78,15 @@ const LOCAL_ZIPS = [
 	93283,
 	93285
 ];
-
+const IMG_SIZES   = [
+	1200,
+	800,
+	400
+];
+const IMG_FORMATS = [
+	'image/webp',
+	'image/jpeg'
+];
 const LOGGED_OUT_ONLY = [
 	'[data-show-modal="#login-dialog"]',
 	'[data-show-modal="#registration-dialog"]',

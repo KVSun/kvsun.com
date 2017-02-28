@@ -1,5 +1,9 @@
+import * as fileUpload from './fileupload.es6';
 function buildArticleForm() {
 	const form = document.createElement('form');
+	form.addEventListener('dragOver', fileUpload.dragOverHandler);
+	form.addEventListener('dragEnd', fileUpload.dragEndHandler);
+	form.addEventListener('drop', fileUpload.dropHandler);
 	const template = getTemplate('article-template');
 	form.appendChild(template);
 	return form;

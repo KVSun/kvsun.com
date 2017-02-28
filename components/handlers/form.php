@@ -8,6 +8,7 @@ use \shgysk8zer0\Core\{
 	FormData,
 	Listener,
 	Headers,
+	URL,
 	Gravatar
 };
 use \shgysk8zer0\DOM\{HTML};
@@ -34,7 +35,8 @@ use function \KVSun\Functions\{
 	post_comment,
 	category_exists,
 	make_category,
-	get_cat_id
+	get_cat_id,
+	get_img_id
 };
 
 use const \KVSun\Consts\{
@@ -189,7 +191,8 @@ switch($req->form) {
 					$resp->notify(
 						'There was an error installing',
 						'Database connection was successfully made, but there
-						was an error setting data.'
+						was an error setting data.',
+						ICONS['bug']
 					);
 				}
 			} else {
@@ -197,7 +200,8 @@ switch($req->form) {
 					'Error installing',
 					'Double check your database credentials and make sure that
 					the use is created and has access to the existing database
-					on the server. <https://dev.mysql.com/doc/refman/5.7/en/grant.html>'
+					on the server. <https://dev.mysql.com/doc/refman/5.7/en/grant.html>',
+					ICONS['bug']
 				)->focus('#install-db-user');
 			}
 		} catch(\Exception $e) {
@@ -333,14 +337,22 @@ switch($req->form) {
 				if ($user($req->register->email, $req->register->password)) {
 					Listener::login($user);
 				} else {
-					$resp->notify('Error registering', 'There was an error saving your user info');
+					$resp->notify(
+						'Error registering',
+						'There was an error saving your user info',
+						ICONS['bug']
+					);
 				}
 				$resp->send();
 			} catch(\Exception $e) {
 				Console::error($e);
 			}
 		} else {
-			$resp->notify('Invalid registration entered', 'Please check your inputs');
+			$resp->notify(
+				'Invalid registration entered',
+				'Please check your inputs',
+				ICONS['thmbsdown']
+			);
 			$resp->focus('register[username]');
 			$resp->send();
 		}
@@ -428,6 +440,7 @@ switch($req->form) {
 			);
 		}
 		break;
+
 	case 'user-update':
 		// $data = new FormData($_POST['user-update']);
 		$data = filter_var_array(
@@ -481,13 +494,19 @@ switch($req->form) {
 
 		if ($user_stm->execute() and $user_data_stm->execute()) {
 			$pdo->commit();
-			$resp->notify('Success', 'Data has been updated.');
+			$resp->notify(
+				'Success',
+				'Data has been updated.',
+				ICONS['thumbsup']
+			);
 			$resp->remove('#update-user-dialog');
 		} else {
-			$resp->notify('Failed', 'Failed to update user data');
+			$resp->notify(
+				'Failed',
+				'Failed to update user data',
+				ICONS['bug']
+			);
 		}
-
-		$resp->send();
 		break;
 
 	case 'search':
@@ -543,6 +562,7 @@ switch($req->form) {
 						'Comments are not displayed until approval by an editor.',
 						ICONS['comment-discussion']
 					);
+					Listener::commentPosted($user, $url, $comment);
 					$resp->clear('comments');
 				} else {
 					$resp->notify('There was an error posting your comment.');
@@ -594,6 +614,8 @@ switch($req->form) {
 			}
 		}
 		break;
+
+	# TODO Use images / srcset from database instead of from post content
 	case 'new-post':
 		if (! user_can('createPosts')) {
 			http_response_code(HTTP::UNAUTHORIZED);
@@ -605,7 +627,8 @@ switch($req->form) {
 		if (! isset($post->author, $post->title, $post->content, $post->category)) {
 			$resp->notify(
 				'Missing info for post',
-				'Please make sure it has a title, author, and content.'
+				'Please make sure it has a title, author, and content.',
+				ICONS['thumbsdown']
 			)->send();
 		}
 
@@ -638,40 +661,72 @@ switch($req->form) {
 			:description
 		);';
 		try {
-			if (! category_exists($post->category)) {
-				if (! make_category($post->category)) {
-					$resp->notify('Error creating category', 'Try an existing category or contact an admin.');
-				}
+			if (! (category_exists($post->category) or make_category($post->category))) {
+				$resp->notify(
+					'Error creating category',
+					'Try an existing category or contact an admin.',
+					ICONS['bug']
+				);
 			}
 			$stm = $pdo->prepare($sql);
 			$user = restore_login();
 			$stm->title = strip_tags($post->title);
 			$stm->cat = get_cat_id($post->category);
 			$stm->author = strip_tags($post->author);
-			$stm->content = $post->content;
 			$stm->draft = isset($post->draft) or ! user_can('skipApproval');
-			$stm->url = strtolower(str_replace(' ', '-', strip_tags($post->title)));
+			$stm->url = urlencode(strtolower(str_replace(' ', '-', strip_tags($post->title))));
 			$stm->posted = $user->id;
 			$stm->keywords = $post->keywords ?? null;
 			$stm->description = $post->description ?? null;
 
 			$article_dom = new \DOMDocument();
-			$article_dom->loadHTML($post->content);
-			$imgs = $article_dom->getElementsByTagName('img');
+			libxml_use_internal_errors(true);
+			$article_dom->loadHTML("<div>$post->content</div>");
+			libxml_clear_errors();
 
-			$stm->img = ($imgs = $article_dom->getElementsByTagName('img') and $imgs->length !== 0)
-			? $imgs->item(0)->getAttribute('src') : null;
+			if ($imgs = $article_dom->getElementsByTagName('img') and $imgs->length) {
+				$img = $imgs->item(0);
+				$url = new URL($img->getAttribute('src'));
 
-			unset($article_dom, $imgs);
-
-			if (intval($stm->errorCode()) !== 0) {
-				throw new \Exception('SQL Error: '. join(PHP_EOL, $stm->errorInfo()));
-			}
-			if ($stm->execute()) {
-				$resp->notify('Received post', $post->title);
+				if ($url->host === $_SERVER['HTTP_HOST']) {
+					$id = get_img_id($url->path);
+					$stm->img = ($id === 0) ? null : $id;
+				}
 			} else {
-				trigger_error('Error posting article.');
-				$resp->notify('Error', 'There was an error creating the post');
+				$stm->img = null;
+			}
+			if ($figures = $article_dom->getElementsByTagName('figure')) {
+				foreach ($figures as $figure) {
+					if ($figure->hasAttribute('data-image-id')) {
+						$figure->removeAttribute('itemprop');
+						$figure->removeAttribute('itemtype');
+						$figure->removeAttribute('itemscope');
+						while ($figure->hasChildNodes() and $node = $figure->firstChild) {
+							$figure->removeChild($node);
+						}
+					}
+				}
+			}
+			# Need to get the content out of DOM structured `<html><body><div>$content...`
+			$stm->content = $article_dom->saveHTML($article_dom->documentElement->firstChild->firstChild);
+
+			unset($article_dom, $imgs, $img, $id, $url);
+
+			if ($stm->execute() and intval($stm->errorCode()) === 0) {
+				$resp->notify(
+					'Received post',
+					$post->title,
+					ICONS['thumbsup']
+				);
+				Listener::contentPosted(get_cat_id($post->category));
+			} else {
+				$err = join(PHP_EOL, $stm->errorInfo());
+				trigger_error($err);
+				$resp->notify(
+					'Error creating post',
+					$err,
+					ICONS['bug']
+				);
 			}
 		} catch (\Throwable $e) {
 			trigger_error($e->getMessage());
@@ -679,6 +734,8 @@ switch($req->form) {
 		}
 		break;
 
+	# TODO Update for changes in image handling
+	# TODO Use images / srcset from database instead of from post content
 	case 'update-post':
 		if (! user_can('editPosts')) {
 			http_response_code(HTTP::UNAUTHORIZED);
@@ -686,7 +743,6 @@ switch($req->form) {
 		}
 
 		$post = new FormData($_POST['update-post']);
-		Console::info($post);
 
 		if (
 			!isset($post->category, $post->title, $post->author, $post->content, $post->url)
@@ -696,53 +752,91 @@ switch($req->form) {
 		) {
 			$resp->notify(
 				'Missing info for post',
-				'Please make sure it has a title, author, and content.'
+				'Please make sure it has a title, author, and content.',
+				ICONS['thumbsdown']
 			)->send();
 		}
 
 		$stm = PDO::load(DB_CREDS)->prepare(
 			'UPDATE `posts` SET
-				`cat-id` = :cat,
-				`title` = :title,
-				`author` = :author,
-				`content` = :content,
+				`cat-id` = COALESCE(:cat, `cat-id`),
+				`title` = COALESCE(:title, `title`),
+				`author` = COALESCE(:author, `author`),
+				`content` = COALESCE(:content, `content`),
 				`draft` = :draft,
-				`img` = :img,
-				`keywords` = :keywords,
-				`description` = :description
+				`img` = COALESCE(:img, `img`),
+				`keywords` = COALESCE(:keywords, `keywords`),
+				`description` = COALESCE(:description, `description`)
 			WHERE `url` = :url
 			LIMIT 1;'
 		);
 
 		try {
-			if (! category_exists($post->category)) {
-				if (! make_category($post->category)) {
-					$resp->notify('Error creating category', 'Try an existing category or contact an admin.');
-				}
+			if (! (category_exists($post->category) or make_category($post->category))) {
+				$resp->notify(
+					'Error creating category',
+					'Try an existing category or contact an admin.',
+					ICONS['bug']
+				);
 			}
 			$url = explode('/', rtrim($post->url, '/'));
 			$stm->cat = get_cat_id($post->category);
 			$stm->title = strip_tags($post->title);
 			$stm->author = strip_tags($post->author);
-			$stm->content = $post->content;
 			$stm->draft = isset($post->draft);
 			$stm->keywords = strip_tags($post->keywords) ?? null;
 			$stm->description = strip_tags($post->description) ?? null;
 			$stm->url = end($url);
 			$article_dom = new \DOMDocument();
-			$article_dom->loadHTML($post->content);
-			$imgs = $article_dom->getElementsByTagName('img');
+			libxml_use_internal_errors(true);
+			$article_dom->loadHTML("<div>{$post->content}</div>");
+			libxml_clear_errors();
 
-			$stm->img = ($imgs = $article_dom->getElementsByTagName('img') and $imgs->length !== 0)
-				? $imgs->item(0)->getAttribute('src') : null;
+			if ($imgs = $article_dom->getElementsByTagName('img') and $imgs->length) {
+				$img = $imgs->item(0);
+				$path = new URL($img->getAttribute('src'));
 
-			unset($article_dom, $imgs);
-			$stm->execute();
-			if (intval($stm->errorCode()) !== 0) {
-				throw new \Exception('SQL Error: '. join(PHP_EOL, $stm->errorInfo()));
+				if ($path->host === $_SERVER['HTTP_HOST']) {
+					$id = get_img_id($path->path);
+					$stm->img = ($id === 0) ? null : $id;
+				}
+			} else {
+				$stm->img = null;
 			}
-			$resp->notify('Update submitted', "Updated '{$post->title}'");
-			$resp->reload();
+
+			if ($figures = $article_dom->getElementsByTagName('figure')) {
+				foreach ($figures as $figure) {
+					if ($figure->hasAttribute('data-image-id')) {
+						$figure->removeAttribute('itemprop');
+						$figure->removeAttribute('itemtype');
+						$figure->removeAttribute('itemscope');
+						while ($figure->hasChildNodes() and $node = $figure->firstChild) {
+							$figure->removeChild($node);
+						}
+					}
+				}
+			}
+
+			# Need to get the content out of DOM structured `<html><body><div>$content...`
+			$stm->content = $article_dom->saveHTML($article_dom->documentElement->firstChild->firstChild);
+			unset($article_dom, $imgs, $img, $path, $id);
+			if ($stm->execute() and intval($stm->errorCode()) === 0) {
+				$resp->notify(
+					'Received post',
+					$post->title,
+					ICONS['thumbsup']
+				);
+				Listener::contentPosted(get_cat_id($post->category));
+				$resp->reload();
+			} else {
+				$err = join(PHP_EOL, $stm->errorInfo());
+				trigger_error('Error updating article.');
+				$resp->notify(
+					'Error updating post',
+					$err,
+					ICONS['bug']
+				);
+			}
 		} catch (\Throwable $e) {
 			trigger_error($e->getMessage());
 			$resp->notify('Error updating post', $e->getMessage());

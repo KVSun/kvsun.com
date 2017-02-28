@@ -8,6 +8,7 @@ use \shgysk8zer0\Core\{
 	Headers,
 	Console,
 	UploadFile,
+	Image,
 	Listener
 };
 use \shgysk8zer0\DOM\{HTML, HTMLElement, RSS};
@@ -25,7 +26,8 @@ use function \KVSun\Functions\{
 	delete_comments,
 	user_update_form,
 	make_cc_form,
-	make_datalist
+	make_datalist,
+	make_picture
 };
 
 use const \KVSun\Consts\{
@@ -36,7 +38,9 @@ use const \KVSun\Consts\{
 	COMPONENTS,
 	LOGO,
 	LOGO_VECTOR,
-	LOGO_SIZE
+	LOGO_SIZE,
+	IMG_SIZES,
+	IMG_FORMATS
 };
 
 if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
@@ -297,24 +301,142 @@ if ($header->accept === 'application/json') {
 	} elseif(array_key_exists('upload', $_FILES)) {
 		if (! user_can('uploadMedia')) {
 			trigger_error('Unauthorized upload attempted');
-			http_response_code(HTTP::UNAUTHORIZED);
-			exit('{}');
+			$resp->notify(
+				'Unauthorized',
+				'You are not authorized to upload files',
+				ICONS['alert']
+			)->remove('main > *')->remove('#admin_menu')->send();
 		}
-		$file = new UploadFile('upload');
-		if (in_array($file->type, ['image/jpeg', 'image/png', 'image/svg+xml', 'image/gif'])) {
-			if ($file->saveTo('images', 'uploads', date('Y'), date('m'))) {
-				header('Content-Type: application/json');
-				exit($file);
-			} else {
-				$resp->notify('Failed', 'Could not save uploaded file.');
+		try {
+			$dom = new HTML();
+			$pdo = PDO::load(DB_CREDS);
+			$user = restore_login();
+			$pdo->beginTransaction();
+			try {
+				$img_stm = $pdo->prepare(
+					'INSERT INTO `images` (
+						`path`,
+						`fileFormat`,
+						`contentSize`,
+						`height`,
+						`width`,
+						`uploadedBy`
+					) VALUES (
+						:path,
+						:format,
+						:size,
+						:height,
+						:width,
+						:uploadedBy
+					);'
+				);
+				$srcset_stm = $pdo->prepare(
+					'INSERT INTO `srcset` (
+						`parentID`,
+						`path`,
+						`width`,
+						`height`,
+						`format`,
+						`filesize`
+					) VALUES (
+						:parent,
+						:path,
+						:width,
+						:height,
+						:format,
+						:filesize
+					);'
+				);
+				$imgs = Image::responsiveImagesFromUpload(
+					'upload',
+					['images', 'uploads', date('Y'), date('m')],
+					IMG_SIZES,
+					IMG_FORMATS
+				);
+				$parent = array_reverse($imgs['image/jpeg']);
+				$parent = (object) end($parent);
+				$img_stm->execute([
+					'path'       => $parent->path,
+					'format'     => $parent->type,
+					'size'       => $parent->size,
+					'height'     => $parent->height,
+					'width'      => $parent->width,
+					'uploadedBy' => $user->id,
+				]);
+				if (intval($img_stm->errorCode()) !== 0) {
+					throw new \Exception(
+						'SQL Error: '. join(PHP_EOL, $img_stm->errorInfo())
+					);
+				}
+				$parent_id = $pdo->lastInsertId();
+				foreach ($imgs as $format) {
+					foreach ($format as $img) {
+						$img = (object) $img;
+						$srcset_stm->execute([
+							'parent'   => $parent_id,
+							'path'     => $img->path,
+							'width'    => $img->width,
+							'height'   => $img->height,
+							'format'   => $img->type,
+							'filesize' => $img->size,
+						]);
+						if (intval($srcset_stm->errorCode()) !== 0) {
+							throw new \Exception(
+								'SQL Error: '. join(PHP_EOL, $srcset_stm->errorInfo())
+							);
+						}
+					}
+				}
+				$pdo->commit();
+			} catch (\Throwable $e) {
+				$pdo->rollBack();
+				$resp->notify(
+					'Error uploading image',
+					$e->getMessage(),
+					ICONS['bug']
+				)->send();
 			}
-		} else {
-			throw new \Exception("{$file->name} has a type of {$file->type}, which is not allowed.");
+
+			$picture = make_picture($imgs, $dom->body, '{PHOTOGRAPHER}', '{CUTLINE}');
+			$picture->setAttribute('data-image-id', $parent_id);
+			exit($picture);
+		} catch (\Throwable $e) {
+			trigger_error($e->getMessage());
+			$resp->notify(
+				'There was an error uploading the image',
+				$e->getMessage(),
+				ICONS['bug']
+			);
 		}
 	} elseif (array_key_exists('action', $_REQUEST)) {
 		switch($_REQUEST['action']) {
 			case 'logout':
 				Listener::logout(restore_login());
+				break;
+
+			case 'debug':
+				if (user_can('debug')) {
+					Console::info([
+						'memory' => (memory_get_peak_usage(true) / 1024) . ' kb',
+						'resources' => [
+							'files'          => get_included_files(),
+							'path'           => explode(PATH_SEPARATOR, get_include_path()),
+							'functions'      => get_defined_functions(true)['user'],
+							'constansts'     => get_defined_constants(true)['user'],
+							'classes' => [
+								'classes'    => get_declared_classes(),
+								'interfaces' => get_declared_interfaces(),
+								'traits'     => get_declared_traits(),
+							],
+						],
+						'globals' => [
+							'_SERVER'  => $_SERVER,
+							'_REQUEST' => $_REQUEST,
+							'_SESSION' => $_SESSION ?? [],
+							'_COOKIE'  => $_COOKIE,
+						],
+					]);
+				}
 				break;
 		}
 	} elseif (array_key_exists('delete-comment', $_GET)) {

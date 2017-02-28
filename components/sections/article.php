@@ -58,7 +58,6 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 				$xpath->query('.//*[@itemprop="name"]', $pub)->item(0)->textContent = 'Kern Valley Sun';
 				$xpath->query('.//*[@itemprop="logo"]', $pub)->item(0)->setAttribute('content', DOMAIN . LOGO);
 			}
-			set_img_data($articleBody);
 			$count = add_comments($main->getElementsByTagName('footer')->item(0), $kvs->comments);
 			$article->append('meta', null, [
 				'itemprop' => 'commentCount',
@@ -118,25 +117,5 @@ function set_keywords(\DOMElement $container, Array $keywords)
 		$item = $container->ownerDocument->createElement('a', $keyword);
 		$container->appendChild($item);
 		$item->setAttribute('rel', 'tag');
-	}
-}
-
-function set_img_data(\DOMElement $container)
-{
-	if ($imgs = $container->getElementsByTagName('img') and $imgs->length !== 0) {
-		$img = $imgs->item(0);
-		$url = parse_url($img->src);
-		if (!array_key_exists('host', $url)) {
-			$img->src = DOMAIN . ltrim($img->src, '/');
-		}
-		$container->append('meta', null,[
-			'itemprop' => 'image',
-			'content' => $img->src,
-		]);
-	} else {
-		$container->append('meta', null, [
-			'itemprop' => 'image',
-			'content' => DOMAIN . LOGO,
-		]);
 	}
 }
