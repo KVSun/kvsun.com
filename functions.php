@@ -275,6 +275,104 @@ function get_role_id(String $role): Int
 }
 
 /**
+ * Get an image id from its source / path
+ * @param  String $src "/path/to/image"
+ * @return Int         ID in `images` table
+ */
+function get_img_id(String $src): Int
+{
+	static $stm;
+	if (is_null($stm)) {
+		$stm = PDO::load(DB_CREDS)->prepare(
+			'SELECT `id` FROM `images` WHERE `path` = :path LIMIT 1;'
+		);
+	}
+	$stm->bindParam(':path', $src);
+	$stm->execute();
+	$img = $stm->fetchObject() ?? new \stdClass();
+	return $img->id ?? 0;
+}
+
+/**
+ * Get the path to an image from its ID
+ * @param  Int    $id ID in `images` table
+ * @return String     "/path/to/image"
+ */
+function get_img_path(Int $id): String
+{
+	static $stm;
+	if (is_null($stm)) {
+		$stm = PDO::load(DB_CREDS)->prepare(
+			'SELECT `path` FROM `images` WHERE `id` = :id LIMIT 1;'
+		);
+	}
+	$stm->bindParam(':id', $id);
+	$stm->execute();
+	$img = $stm->fetchObject() ?? new \stdClass();
+	return $img->path ?? '';
+}
+
+/**
+ * Gets all data from `images` table from an ID
+ * @param  Int       $id Image's ID
+ * @return stdClass     {"path": $path, ...}
+ */
+function get_img(Int $id): \stdClass
+{
+	static $stm;
+	if (! isset($stm)) {
+		$stm = PDO::load(DB_CREDS)->prepare(
+			'SELECT * FROM `images` WHERE `id` = :id LIMIT 1;'
+		);
+	}
+	$stm->bindParam('id', $id);
+	$stm->execute();
+	return $stm->fetchObject() ?? new \stdClass();
+}
+
+/**
+ * Retrieves all images created from a parent images as a multi-dimensional array
+ * @param  Int   $id Parent image ID
+ * @return Array     [$mime => ['width', 'height', 'filesize', 'path', 'format']]
+ */
+function get_srcset(Int $id): Array
+{
+	static $srcset_stm = null;
+	if (is_null($srcset_stm)) {
+		$pdo = PDO::load(DB_CREDS);
+		$srcset_stm = $pdo->prepare('SELECT * FROM `srcset` WHERE `parentID` = :id;');
+	}
+	$srcset_stm->id = $id;
+	$srcset_stm->execute();
+	$imgs = $srcset_stm->fetchAll(PDO::FETCH_CLASS);
+	Console::table($imgs);
+
+	return array_reduce($imgs, function(Array $carry, \stdClass $img): Array
+	{
+		if (! array_key_exists($img->format, $carry)) {
+			$carry[$img->format] = [];
+		}
+		unset($img['parentId']);
+		$carry[$img->format][] = get_object_vars($img);
+		return $carry;
+	}, []);
+}
+
+/**
+ * Create a `<figure>` & `<picture>` using image data from database
+ * @param  HTMLElement $parent Element to append to
+ * @param  Int         $id     Image ID
+ * @return HTMLElement         Element with `<figure>` appended
+ */
+function get_picture(HTMLElement $parent, Int $id): HTMLElement
+{
+	$img    = get_img($id);
+	$srcset = get_srcset($id);
+
+	return make_picture($srcset, $parent, $img->creator, $img->caption, $img);
+}
+
+/**
  * Create a `<picture>` inside of a `<figure>` from an array of sources
  * @param  Array      $imgs    Image data, as from `Core\Image::responsiveImagesFromUpload`
  * @param  DOMElement $parent  Parent element to append `<picture>` to
@@ -285,8 +383,9 @@ function get_role_id(String $role): Int
 function make_picture(
 	Array       $imgs,
 	HTMLElement $parent,
-	String      $by      = null,
-	String      $caption = null
+	String      $by       = null,
+	String      $caption  = null,
+	\stdClass   $dflt_img = null
 ): HTMLElement
 {
 	$dom = $parent->ownerDocument;
@@ -307,8 +406,6 @@ function make_picture(
 				['b', 'Photo by&nbsp;'],
 				['b', $by, ['itemprop' => 'name']],
 			]);
-			// $cap->appendChild($dom->createElement('cite', 'Photo by&ndbp;'))
-			// ->appendChild('span', $by);
 		}
 		if (isset($caption)) {
 			$cap->append('blockquote', $caption, [
@@ -329,12 +426,27 @@ function make_picture(
 			return "{$src['path']} {$src['width']}w";
 		}, $img)));
 	}
-	$img = $picture->append('img', null, [
-		'src'      => $imgs['image/jpeg'][0]['path'],
-		'width'    => $imgs['image/jpeg'][0]['width'],
-		'height'   => $imgs['image/jpeg'][0]['height'],
-		'itemprop' => 'url',
-	]);
+	if (isset(
+		$dflt_img,
+		$dflt_img->src,
+		$dflt_img->height,
+		$dflt_img->width
+	)) {
+		$img = $picture->append('img', null, [
+			'src'      => $dflt_img->src,
+			'width'    => $dflt_img->width,
+			'height'   => $dflt_img->height,
+			'alt'      => $dflt_img->alt ?? null,
+			'itemprop' => 'url',
+		]);
+	} else {
+		$img = $picture->append('img', null, [
+			'src'      => $imgs['image/jpeg'][0]['path'],
+			'width'    => $imgs['image/jpeg'][0]['width'],
+			'height'   => $imgs['image/jpeg'][0]['height'],
+			'itemprop' => 'url',
+		]);
+	}
 	$figure->append('meta', null, [
 		'itemprop' => 'width',
 		'content'  => $img->width,
