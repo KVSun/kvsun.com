@@ -189,7 +189,8 @@ switch($req->form) {
 					$resp->notify(
 						'There was an error installing',
 						'Database connection was successfully made, but there
-						was an error setting data.'
+						was an error setting data.',
+						ICONS['bug']
 					);
 				}
 			} else {
@@ -197,7 +198,8 @@ switch($req->form) {
 					'Error installing',
 					'Double check your database credentials and make sure that
 					the use is created and has access to the existing database
-					on the server. <https://dev.mysql.com/doc/refman/5.7/en/grant.html>'
+					on the server. <https://dev.mysql.com/doc/refman/5.7/en/grant.html>',
+					ICONS['bug']
 				)->focus('#install-db-user');
 			}
 		} catch(\Exception $e) {
@@ -333,14 +335,22 @@ switch($req->form) {
 				if ($user($req->register->email, $req->register->password)) {
 					Listener::login($user);
 				} else {
-					$resp->notify('Error registering', 'There was an error saving your user info');
+					$resp->notify(
+						'Error registering',
+						'There was an error saving your user info',
+						ICONS['bug']
+					);
 				}
 				$resp->send();
 			} catch(\Exception $e) {
 				Console::error($e);
 			}
 		} else {
-			$resp->notify('Invalid registration entered', 'Please check your inputs');
+			$resp->notify(
+				'Invalid registration entered',
+				'Please check your inputs',
+				ICONS['thmbsdown']
+			);
 			$resp->focus('register[username]');
 			$resp->send();
 		}
@@ -481,13 +491,19 @@ switch($req->form) {
 
 		if ($user_stm->execute() and $user_data_stm->execute()) {
 			$pdo->commit();
-			$resp->notify('Success', 'Data has been updated.');
+			$resp->notify(
+				'Success',
+				'Data has been updated.',
+				ICONS['thumbsup']
+			);
 			$resp->remove('#update-user-dialog');
 		} else {
-			$resp->notify('Failed', 'Failed to update user data');
+			$resp->notify(
+				'Failed',
+				'Failed to update user data',
+				ICONS['bug']
+			);
 		}
-
-		$resp->send();
 		break;
 
 	case 'search':
@@ -543,6 +559,7 @@ switch($req->form) {
 						'Comments are not displayed until approval by an editor.',
 						ICONS['comment-discussion']
 					);
+					Listener::commentPosted($user, $url, $comment);
 					$resp->clear('comments');
 				} else {
 					$resp->notify('There was an error posting your comment.');
@@ -640,7 +657,11 @@ switch($req->form) {
 		try {
 			if (! category_exists($post->category)) {
 				if (! make_category($post->category)) {
-					$resp->notify('Error creating category', 'Try an existing category or contact an admin.');
+					$resp->notify(
+						'Error creating category',
+						'Try an existing category or contact an admin.',
+						ICONS['bug']
+					);
 				}
 			}
 			$stm = $pdo->prepare($sql);
@@ -668,10 +689,19 @@ switch($req->form) {
 				throw new \Exception('SQL Error: '. join(PHP_EOL, $stm->errorInfo()));
 			}
 			if ($stm->execute()) {
-				$resp->notify('Received post', $post->title);
+				$resp->notify(
+					'Received post',
+					$post->title,
+					ICONS['thumbsup']
+				);
+				Listener::contentPosted(get_cat_id($post->category));
 			} else {
 				trigger_error('Error posting article.');
-				$resp->notify('Error', 'There was an error creating the post');
+				$resp->notify(
+					'Error',
+					'There was an error creating the post',
+					ICONS['bug']
+				);
 			}
 		} catch (\Throwable $e) {
 			trigger_error($e->getMessage());
@@ -686,7 +716,6 @@ switch($req->form) {
 		}
 
 		$post = new FormData($_POST['update-post']);
-		Console::info($post);
 
 		if (
 			!isset($post->category, $post->title, $post->author, $post->content, $post->url)
@@ -741,7 +770,12 @@ switch($req->form) {
 			if (intval($stm->errorCode()) !== 0) {
 				throw new \Exception('SQL Error: '. join(PHP_EOL, $stm->errorInfo()));
 			}
-			$resp->notify('Update submitted', "Updated '{$post->title}'");
+			$resp->notify(
+				'Update submitted',
+				"Updated '{$post->title}'",
+				ICONS['thumbsup']
+			);
+			Listener::contentPosted(get_cat_id($post->category));
 			$resp->reload();
 		} catch (\Throwable $e) {
 			trigger_error($e->getMessage());
