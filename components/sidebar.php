@@ -1,7 +1,7 @@
 <?php
 namespace KVSun\Components\Sidebar;
 
-use function \KVSun\Functions\{use_icon};
+use function \KVSun\Functions\{use_icon, get_img, get_picture};
 
 use const \KVSun\Consts\{DOMAIN};
 
@@ -67,11 +67,15 @@ function make_rail(\DOMElement $parent, PDO $pdo, Int $limit = 7, Int $size = 25
 		$link = $parent->append('a', null, [
 			'href' => DOMAIN . "{$post->catURL}/{$post->url}",
 		]);
-		$link->append('img', null, [
+		/*$link->append('img', null, [
 			'src'    => $post->img,
 			'width'  => $size,
 			'height' => $size,
-		]);
+		]);*/
+		$img = get_img($post->img);
+		if ($img !== 0) {
+			get_picture($link, $img);
+		}
 		$link->append('p', "{$post->category} &raquo; {$post->title}");
 		$parent->append('hr');
 	};
