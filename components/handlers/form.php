@@ -712,10 +712,7 @@ switch($req->form) {
 
 			unset($article_dom, $imgs, $img, $id, $url);
 
-			if (intval($stm->errorCode()) !== 0) {
-				throw new \Exception('SQL Error: '. join(PHP_EOL, $stm->errorInfo()));
-			}
-			if ($stm->execute()) {
+			if ($stm->execute() and intval($stm->errorCode()) !== 0) {
 				$resp->notify(
 					'Received post',
 					$post->title,
@@ -725,8 +722,8 @@ switch($req->form) {
 			} else {
 				trigger_error('Error posting article.');
 				$resp->notify(
-					'Error',
-					'There was an error creating the post',
+					'Error creating post',
+					join(PHP_EOL, $stm->errorInfo()),
 					ICONS['bug']
 				);
 			}
