@@ -343,6 +343,7 @@ if ($header->accept === 'application/json') {
 				$pdo->commit();
 				exit($figure->ownerDocument->saveHTML($figure));
 			} catch (\Throwable $e) {
+				trigger_error($e->getMessage());
 				$pdo->rollBack();
 				$resp->notify(
 					'Error uploading image',
