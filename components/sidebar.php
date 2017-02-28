@@ -6,7 +6,7 @@ use function \KVSun\Functions\{use_icon, get_img, get_picture};
 use const \KVSun\Consts\{DOMAIN};
 
 use \shgysk8zer0\DOM\{HTML};
-use \shgysk8zer0\Core\{PDO};
+use \shgysk8zer0\Core\{PDO, Console};
 
 return function (HTML $dom, PDO $pdo)
 {
@@ -51,32 +51,48 @@ return function (HTML $dom, PDO $pdo)
 
 function make_rail(\DOMElement $parent, PDO $pdo, Int $limit = 7, Int $size = 256)
 {
-	foreach($pdo(
-		"SELECT
-			`categories`.`name` AS `category`,
-			`categories`.`url-name` as `catURL`,
-			`posts`.`title`,
-			`posts`.`url`,
-			`posts`.`img`
-		FROM `posts`
-		JOIN `categories` on `categories`.`id` = `posts`.`cat-id`
-		WHERE `posts`.`img` IS NOT NULL
-		ORDER BY `posts`.`posted` DESC
-		LIMIT $limit;"
-	) as $post) {
-		$link = $parent->append('a', null, [
-			'href' => DOMAIN . "{$post->catURL}/{$post->url}",
-		]);
-		/*$link->append('img', null, [
-			'src'    => $post->img,
-			'width'  => $size,
-			'height' => $size,
-		]);*/
-		$img = get_img($post->img);
-		if ($img !== 0) {
+	try {
+		foreach($pdo(
+			"SELECT
+				`categories`.`name` AS `category`,
+				`categories`.`url-name` as `catURL`,
+				`posts`.`title`,
+				`posts`.`url`,
+				`images`.`id` AS `imgId`,
+				`images`.`path` AS `imgPath`,
+				`images`.`fileFormat` AS `imgFileFormat`,
+				`images`.`contentSize` AS `imgContentSize`,
+				`images`.`uploadDate` AS `imgUploadDate`,
+				`images`.`height` AS `imgHeight`,
+				`images`.`width` AS `imgWidth`,
+				`images`.`creator` AS `imgCreator`,
+				`images`.`caption` AS `imgCaption`
+			FROM `posts`
+			JOIN `categories` ON `categories`.`id` = `posts`.`cat-id`
+			JOIN `images` ON `posts`.`img` = `images`.`id`
+			WHERE `posts`.`img` IS NOT NULL
+			ORDER BY `posts`.`posted` DESC
+			LIMIT $limit;"
+		) as $post) {
+			$link = $parent->append('a', null, [
+				'href' => DOMAIN . "{$post->catURL}/{$post->url}",
+			]);
+			$img              = new \stdClass();
+			$img->id          = $post->imgId;
+			$img->path        = $post->imgPath;
+			$img->fileFormat  = $post->imgFileFormat;
+			$img->contentSize = $post->imgContentSize;
+			$img->uploadDate  = $post->imgUploadDate;
+			$img->height      = $post->imgHeight;
+			$img->width       = $post->imgWidth;
+			$img->creator     = $post->imgCreator;
+			$img->caption     = $post->imgCaption;
+
 			get_picture($link, $img);
-		}
-		$link->append('p', "{$post->category} &raquo; {$post->title}");
-		$parent->append('hr');
-	};
+			$link->append('p', "{$post->category} &raquo; {$post->title}");
+			$parent->append('hr');
+		};
+	} catch (\Throwable $e) {
+		trigger_error($e->getMessage());
+	}
 }
