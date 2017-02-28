@@ -759,10 +759,12 @@ switch($req->form) {
 		);
 
 		try {
-			if (! category_exists($post->category)) {
-				if (! make_category($post->category)) {
-					$resp->notify('Error creating category', 'Try an existing category or contact an admin.');
-				}
+			if (! (category_exists($post->category) or make_category($post->category))) {
+				$resp->notify(
+					'Error creating category',
+					'Try an existing category or contact an admin.',
+					ICONS['bug']
+				);
 			}
 			$url = explode('/', rtrim($post->url, '/'));
 			$stm->cat = get_cat_id($post->category);
