@@ -8,6 +8,7 @@ use \shgysk8zer0\Core\{
 	FormData,
 	Listener,
 	Headers,
+	URL,
 	Gravatar
 };
 use \shgysk8zer0\DOM\{HTML};
@@ -34,7 +35,8 @@ use function \KVSun\Functions\{
 	post_comment,
 	category_exists,
 	make_category,
-	get_cat_id
+	get_cat_id,
+	get_img_id
 };
 
 use const \KVSun\Consts\{
@@ -655,14 +657,12 @@ switch($req->form) {
 			:description
 		);';
 		try {
-			if (! category_exists($post->category)) {
-				if (! make_category($post->category)) {
-					$resp->notify(
-						'Error creating category',
-						'Try an existing category or contact an admin.',
-						ICONS['bug']
-					);
-				}
+			if (! (category_exists($post->category) or make_category($post->category))) {
+				$resp->notify(
+					'Error creating category',
+					'Try an existing category or contact an admin.',
+					ICONS['bug']
+				);
 			}
 			$stm = $pdo->prepare($sql);
 			$user = restore_login();
@@ -671,19 +671,26 @@ switch($req->form) {
 			$stm->author = strip_tags($post->author);
 			$stm->content = $post->content;
 			$stm->draft = isset($post->draft) or ! user_can('skipApproval');
-			$stm->url = strtolower(str_replace(' ', '-', strip_tags($post->title)));
+			$stm->url = urlencode(strtolower(str_replace(' ', '-', strip_tags($post->title))));
 			$stm->posted = $user->id;
 			$stm->keywords = $post->keywords ?? null;
 			$stm->description = $post->description ?? null;
 
 			$article_dom = new \DOMDocument();
+			libxml_use_internal_errors(true);
 			$article_dom->loadHTML($post->content);
-			$imgs = $article_dom->getElementsByTagName('img');
+			libxml_clear_errors();
 
-			$stm->img = ($imgs = $article_dom->getElementsByTagName('img') and $imgs->length !== 0)
-			? $imgs->item(0)->getAttribute('src') : null;
+			if ($imgs = $article_dom->getElementsByTagName('img') and $imgs->length) {
+				$img = $imgs->item(0);
+				$url = new URL($img->getAttribute('src'));
+				$id = get_img_id($url->path);
+				$stm->img = ($id === 0) ? null : $id;
+			} else {
+				$stm->img = null;
+			}
 
-			unset($article_dom, $imgs);
+			unset($article_dom, $imgs, $img, $id);
 
 			if (intval($stm->errorCode()) !== 0) {
 				throw new \Exception('SQL Error: '. join(PHP_EOL, $stm->errorInfo()));
