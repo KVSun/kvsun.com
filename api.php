@@ -398,6 +398,7 @@ if ($header->accept === 'application/json') {
 			}
 
 			$picture = make_picture($imgs, $dom->body, '{PHOTOGRAPHER}', '{CUTLINE}');
+			$picture->setAttribute('data-image-id', $parent_id);
 			exit($picture);
 		} catch (\Throwable $e) {
 			trigger_error($e->getMessage());
