@@ -275,6 +275,45 @@ function get_role_id(String $role): Int
 }
 
 /**
+ * Create or update an image using an array of data
+ * @param  Array $data Image data
+ * @return Int         The inserted id
+ * @todo Make this actually do what it is supposed to do
+ */
+function set_img(Array $data): Int
+{
+	static $stm;
+	if (is_null($stm)) {
+		$stm = PDO::load(DB_CREDS)->prepare(
+			'INSERT INTO `images` (
+				`path`,
+				`fileFormat`,
+				`contentSize`,
+				`height`,
+				`width`,
+				`creator`,
+				`caption`,
+				`alt`,
+				`uploadedBy`
+			) VALUES (
+				:path,
+				:format,
+				:size,
+				:height,
+				:width,
+				:creator,
+				:caption,
+				:alt,
+				:uploader
+			) ON DUPLICATE KEY UPDATE
+			SET `caption` = :caption,
+				`alt` = COALESCE(:alt, `alt`),
+				`uploadedBy` = COALESCE(:uploader, `uploadedBy`);'
+		);
+	}
+	return 0;
+}
+/**
  * Get an image id from its source / path
  * @param  String $src "/path/to/image"
  * @return Int         ID in `images` table
