@@ -389,7 +389,7 @@ if ($header->accept === 'application/json') {
 				}
 				Console::table($pdo('SELECT * FROM `srcset`;'));
 				Console::info($imgs);
-				$pdo->rollBack();
+				$pdo->commit();
 			} catch (\Throwable $e) {
 				$pdo->rollBack();
 				$resp->notify(
