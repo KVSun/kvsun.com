@@ -615,6 +615,7 @@ switch($req->form) {
 		}
 		break;
 
+	# TODO Use images / srcset from database instead of from post content
 	case 'new-post':
 		if (! user_can('createPosts')) {
 			http_response_code(HTTP::UNAUTHORIZED);
@@ -723,6 +724,7 @@ switch($req->form) {
 		break;
 
 	# TODO Update for changes in image handling
+	# TODO Use images / srcset from database instead of from post content
 	case 'update-post':
 		if (! user_can('editPosts')) {
 			http_response_code(HTTP::UNAUTHORIZED);
