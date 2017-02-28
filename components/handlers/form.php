@@ -712,7 +712,7 @@ switch($req->form) {
 
 			unset($article_dom, $imgs, $img, $id, $url);
 
-			if ($stm->execute() and intval($stm->errorCode()) !== 0) {
+			if ($stm->execute() and intval($stm->errorCode()) === 0) {
 				$resp->notify(
 					'Received post',
 					$post->title,
@@ -720,10 +720,11 @@ switch($req->form) {
 				);
 				Listener::contentPosted(get_cat_id($post->category));
 			} else {
-				trigger_error('Error posting article.');
+				$err = join(PHP_EOL, $stm->errorInfo());
+				trigger_error($err);
 				$resp->notify(
 					'Error creating post',
-					join(PHP_EOL, $stm->errorInfo()),
+					$err,
 					ICONS['bug']
 				);
 			}
@@ -782,14 +783,13 @@ switch($req->form) {
 			$stm->cat = get_cat_id($post->category);
 			$stm->title = strip_tags($post->title);
 			$stm->author = strip_tags($post->author);
-			$stm->content = $post->content;
 			$stm->draft = isset($post->draft);
 			$stm->keywords = strip_tags($post->keywords) ?? null;
 			$stm->description = strip_tags($post->description) ?? null;
 			$stm->url = end($url);
 			$article_dom = new \DOMDocument();
 			libxml_use_internal_errors(true);
-			$article_dom->loadHTML($post->content);
+			$article_dom->loadHTML("<div>{$post->content}</div>");
 			libxml_clear_errors();
 
 			if ($imgs = $article_dom->getElementsByTagName('img') and $imgs->length) {
@@ -804,18 +804,39 @@ switch($req->form) {
 				$stm->img = null;
 			}
 
-			unset($article_dom, $imgs, $img, $path, $id);
-			$stm->execute();
-			if (intval($stm->errorCode()) !== 0) {
-				throw new \Exception('SQL Error: '. join(PHP_EOL, $stm->errorInfo()));
+			if ($figures = $article_dom->getElementsByTagName('figure')) {
+				foreach ($figures as $figure) {
+					if ($figure->hasAttribute('data-image-id')) {
+						$figure->removeAttribute('itemprop');
+						$figure->removeAttribute('itemtype');
+						$figure->removeAttribute('itemscope');
+						while ($figure->hasChildNodes() and $node = $figure->firstChild) {
+							$figure->removeChild($node);
+						}
+					}
+				}
 			}
-			$resp->notify(
-				'Update submitted',
-				"Updated '{$post->title}'",
-				ICONS['thumbsup']
-			);
-			Listener::contentPosted(get_cat_id($post->category));
-			$resp->reload();
+
+			# Need to get the content out of DOM structured `<html><body><div>$content...`
+			$stm->content = $article_dom->saveHTML($article_dom->documentElement->firstChild->firstChild);
+			unset($article_dom, $imgs, $img, $path, $id);
+			if ($stm->execute() and intval($stm->errorCode()) === 0) {
+				$resp->notify(
+					'Received post',
+					$post->title,
+					ICONS['thumbsup']
+				);
+				Listener::contentPosted(get_cat_id($post->category));
+				$resp->reload();
+			} else {
+				$err = join(PHP_EOL, $stm->errorInfo());
+				trigger_error('Error updating article.');
+				$resp->notify(
+					'Error updating post',
+					$err,
+					ICONS['bug']
+				);
+			}
 		} catch (\Throwable $e) {
 			trigger_error($e->getMessage());
 			$resp->notify('Error updating post', $e->getMessage());
