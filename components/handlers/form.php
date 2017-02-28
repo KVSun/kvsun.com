@@ -440,6 +440,7 @@ switch($req->form) {
 			);
 		}
 		break;
+
 	case 'user-update':
 		// $data = new FormData($_POST['user-update']);
 		$data = filter_var_array(
@@ -613,6 +614,7 @@ switch($req->form) {
 			}
 		}
 		break;
+
 	case 'new-post':
 		if (! user_can('createPosts')) {
 			http_response_code(HTTP::UNAUTHORIZED);
@@ -624,7 +626,8 @@ switch($req->form) {
 		if (! isset($post->author, $post->title, $post->content, $post->category)) {
 			$resp->notify(
 				'Missing info for post',
-				'Please make sure it has a title, author, and content.'
+				'Please make sure it has a title, author, and content.',
+				ICONS['thumbsdown']
 			)->send();
 		}
 
@@ -684,13 +687,16 @@ switch($req->form) {
 			if ($imgs = $article_dom->getElementsByTagName('img') and $imgs->length) {
 				$img = $imgs->item(0);
 				$url = new URL($img->getAttribute('src'));
-				$id = get_img_id($url->path);
-				$stm->img = ($id === 0) ? null : $id;
+
+				if ($url->host === $_SERVER['HTTP_HOST']) {
+					$id = get_img_id($url->path);
+					$stm->img = ($id === 0) ? null : $id;
+				}
 			} else {
 				$stm->img = null;
 			}
 
-			unset($article_dom, $imgs, $img, $id);
+			unset($article_dom, $imgs, $img, $id, $url);
 
 			if (intval($stm->errorCode()) !== 0) {
 				throw new \Exception('SQL Error: '. join(PHP_EOL, $stm->errorInfo()));
@@ -716,6 +722,7 @@ switch($req->form) {
 		}
 		break;
 
+	# TODO Update for changes in image handling
 	case 'update-post':
 		if (! user_can('editPosts')) {
 			http_response_code(HTTP::UNAUTHORIZED);
@@ -732,20 +739,21 @@ switch($req->form) {
 		) {
 			$resp->notify(
 				'Missing info for post',
-				'Please make sure it has a title, author, and content.'
+				'Please make sure it has a title, author, and content.',
+				ICONS['thumbsdown']
 			)->send();
 		}
 
 		$stm = PDO::load(DB_CREDS)->prepare(
 			'UPDATE `posts` SET
-				`cat-id` = :cat,
-				`title` = :title,
-				`author` = :author,
-				`content` = :content,
+				`cat-id` = COALESCE(:cat, `cat-id`),
+				`title` = COALESCE(:title, `title`),
+				`author` = COALESCE(:author, `author`),
+				`content` = COALESCE(:content, `content`),
 				`draft` = :draft,
-				`img` = :img,
-				`keywords` = :keywords,
-				`description` = :description
+				`img` = COALESCE(:img, `img`),
+				`keywords` = COALESCE(:keywords, `keywords`),
+				`description` = COALESCE(:description, `description`)
 			WHERE `url` = :url
 			LIMIT 1;'
 		);
@@ -767,12 +775,20 @@ switch($req->form) {
 			$stm->url = end($url);
 			$article_dom = new \DOMDocument();
 			$article_dom->loadHTML($post->content);
-			$imgs = $article_dom->getElementsByTagName('img');
 
-			$stm->img = ($imgs = $article_dom->getElementsByTagName('img') and $imgs->length !== 0)
-				? $imgs->item(0)->getAttribute('src') : null;
+			if ($imgs = $article_dom->getElementsByTagName('img') and $imgs->length) {
+				$img = $imgs->item(0);
+				$path = new URL($img->getAttribute('src'));
 
-			unset($article_dom, $imgs);
+				if ($path->host === $_SERVER['HTTP_HOST']) {
+					$id = get_img_id($path->path);
+					$stm->img = ($id === 0) ? null : $id;
+				}
+			} else {
+				$stm->img = null;
+			}
+
+			unset($article_dom, $imgs, $img, $path, $id);
 			$stm->execute();
 			if (intval($stm->errorCode()) !== 0) {
 				throw new \Exception('SQL Error: '. join(PHP_EOL, $stm->errorInfo()));
