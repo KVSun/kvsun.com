@@ -673,7 +673,6 @@ switch($req->form) {
 			$stm->title = strip_tags($post->title);
 			$stm->cat = get_cat_id($post->category);
 			$stm->author = strip_tags($post->author);
-			$stm->content = $post->content;
 			$stm->draft = isset($post->draft) or ! user_can('skipApproval');
 			$stm->url = urlencode(strtolower(str_replace(' ', '-', strip_tags($post->title))));
 			$stm->posted = $user->id;
@@ -682,7 +681,7 @@ switch($req->form) {
 
 			$article_dom = new \DOMDocument();
 			libxml_use_internal_errors(true);
-			$article_dom->loadHTML($post->content);
+			$article_dom->loadHTML("<div>$post->content</div>");
 			libxml_clear_errors();
 
 			if ($imgs = $article_dom->getElementsByTagName('img') and $imgs->length) {
@@ -696,6 +695,20 @@ switch($req->form) {
 			} else {
 				$stm->img = null;
 			}
+			if ($figures = $article_dom->getElementsByTagName('figure')) {
+				foreach ($figures as $figure) {
+					if ($figure->hasAttribute('data-image-id')) {
+						$figure->removeAttribute('itemprop');
+						$figure->removeAttribute('itemtype');
+						$figure->removeAttribute('itemscope');
+						while ($figure->hasChildNodes() and $node = $figure->firstChild) {
+							$figure->removeChild($node);
+						}
+					}
+				}
+			}
+			# Need to get the content out of DOM structured `<html><body><div>$content...`
+			$stm->content = $article_dom->saveHTML($article_dom->documentElement->firstChild->firstChild);
 
 			unset($article_dom, $imgs, $img, $id, $url);
 
