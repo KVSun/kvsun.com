@@ -320,14 +320,18 @@ function get_img_path(Int $id): String
 function get_img(Int $id): \stdClass
 {
 	static $stm;
-	if (! isset($stm)) {
+	if (is_null($stm)) {
 		$stm = PDO::load(DB_CREDS)->prepare(
 			'SELECT * FROM `images` WHERE `id` = :id LIMIT 1;'
 		);
 	}
 	$stm->bindParam('id', $id);
 	$stm->execute();
-	return $stm->fetchObject() ?? new \stdClass();
+	if ($img = $stm->fetchObject()) {
+		return $img;
+	} else {
+		return new \stdClass();
+	}
 }
 
 /**
@@ -352,7 +356,7 @@ function get_srcset(Int $id): Array
 		if (! array_key_exists($img->format, $carry)) {
 			$carry[$img->format] = [];
 		}
-		unset($img['parentId']);
+		unset($img->parentId);
 		$carry[$img->format][] = get_object_vars($img);
 		return $carry;
 	}, []);
@@ -364,12 +368,15 @@ function get_srcset(Int $id): Array
  * @param  Int         $id     Image ID
  * @return HTMLElement         Element with `<figure>` appended
  */
-function get_picture(HTMLElement $parent, Int $id): HTMLElement
+function get_picture(HTMLElement $parent, \stdClass $img): Bool
 {
-	$img    = get_img($id);
-	$srcset = get_srcset($id);
-
-	return make_picture($srcset, $parent, $img->creator, $img->caption, $img);
+	if (! isset($img->id) or $img->id !== 0) {
+		$srcset = get_srcset($img->id);
+		make_picture($srcset, $parent, $img->creator, $img->caption, $img);
+		return true;
+	} else {
+		return false;
+	}
 }
 
 /**
