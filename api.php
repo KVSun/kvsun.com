@@ -13,7 +13,7 @@ use \shgysk8zer0\Core\{
 };
 use \shgysk8zer0\DOM\{HTML, HTMLElement, RSS};
 use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
-use \KVSun\KVSAPI\{Home, Category, Article};
+use \KVSun\KVSAPI\{Home, Category, Article, Picture};
 use \shgysk8zer0\Login\{User};
 
 use function \KVSun\Functions\{
@@ -307,87 +307,41 @@ if ($header->accept === 'application/json') {
 				ICONS['alert']
 			)->remove('main > *')->remove('#admin_menu')->send();
 		}
+		$pdo = PDO::load(DB_CREDS);
+		$pdo->beginTransaction();
 		try {
-			$dom = new HTML();
-			$pdo = PDO::load(DB_CREDS);
 			$user = restore_login();
-			$pdo->beginTransaction();
+			$picture = new Picture($pdo);
 			try {
-				$img_stm = $pdo->prepare(
-					'INSERT INTO `images` (
-						`path`,
-						`fileFormat`,
-						`contentSize`,
-						`height`,
-						`width`,
-						`uploadedBy`
-					) VALUES (
-						:path,
-						:format,
-						:size,
-						:height,
-						:width,
-						:uploadedBy
-					);'
-				);
-				$srcset_stm = $pdo->prepare(
-					'INSERT INTO `srcset` (
-						`parentID`,
-						`path`,
-						`width`,
-						`height`,
-						`format`,
-						`filesize`
-					) VALUES (
-						:parent,
-						:path,
-						:width,
-						:height,
-						:format,
-						:filesize
-					);'
-				);
 				$imgs = Image::responsiveImagesFromUpload(
 					'upload',
 					['images', 'uploads', date('Y'), date('m')],
 					IMG_SIZES,
 					IMG_FORMATS
 				);
-				$parent = array_reverse($imgs['image/jpeg']);
-				$parent = (object) end($parent);
-				$img_stm->execute([
-					'path'       => $parent->path,
-					'format'     => $parent->type,
-					'size'       => $parent->size,
-					'height'     => $parent->height,
-					'width'      => $parent->width,
-					'uploadedBy' => $user->id,
-				]);
-				if (intval($img_stm->errorCode()) !== 0) {
-					throw new \Exception(
-						'SQL Error: '. join(PHP_EOL, $img_stm->errorInfo())
-					);
+				if (empty($imgs)) {
+					throw new \Exception('No valid uploads received.');
 				}
-				$parent_id = $pdo->lastInsertId();
-				foreach ($imgs as $format) {
-					foreach ($format as $img) {
-						$img = (object) $img;
-						$srcset_stm->execute([
-							'parent'   => $parent_id,
-							'path'     => $img->path,
-							'width'    => $img->width,
-							'height'   => $img->height,
-							'format'   => $img->type,
-							'filesize' => $img->size,
-						]);
-						if (intval($srcset_stm->errorCode()) !== 0) {
-							throw new \Exception(
-								'SQL Error: '. join(PHP_EOL, $srcset_stm->errorInfo())
-							);
-						}
-					}
+				$largest = $picture->largestImage($imgs);
+				$parent_id = $picture->addImage($largest, $user);
+				if(! $picture->addSources($imgs, $parent_id)) {
+					throw new \RuntimeException('Error saving uploaded images.');
 				}
+				$figure = $picture->getFigure($parent_id);
+				$dom = $figure->ownerDocument;
+				$caption = $figure->appendChild($dom->createElement('figcaption'));
+				$cite = $caption->appendChild($dom->createElement('cite', "Photo by&nbsp;"));
+				$cite->setAttribute('itemprop', 'creator');
+				$cite->setAttribute('itemtype', 'http://schema.org/Person');
+				$cite->setAttribute('itemscope', null);
+				$credit = $cite->appendChild($dom->createElement('span', '{PHOTOGRAPHER}'));
+				$credit->setAttribute('itemprop', 'name');
+				$caption->appendChild($dom->createElement('br'));
+				$cap = $caption->appendChild($dom->createElement('blockquote', '{CAPTION}'));
+				$cap->setAttribute('itemprop', 'caption');
+
 				$pdo->commit();
+				exit($figure->ownerDocument->saveHTML($figure));
 			} catch (\Throwable $e) {
 				$pdo->rollBack();
 				$resp->notify(
@@ -396,10 +350,6 @@ if ($header->accept === 'application/json') {
 					ICONS['bug']
 				)->send();
 			}
-
-			$picture = make_picture($imgs, $dom->body, '{PHOTOGRAPHER}', '{CUTLINE}');
-			$picture->setAttribute('data-image-id', $parent_id);
-			exit($picture);
 		} catch (\Throwable $e) {
 			trigger_error($e->getMessage());
 			$resp->notify(
