@@ -387,8 +387,6 @@ if ($header->accept === 'application/json') {
 						}
 					}
 				}
-				Console::table($pdo('SELECT * FROM `srcset`;'));
-				Console::info($imgs);
 				$pdo->commit();
 			} catch (\Throwable $e) {
 				$pdo->rollBack();
