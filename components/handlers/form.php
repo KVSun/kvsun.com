@@ -776,7 +776,9 @@ switch($req->form) {
 			$stm->description = strip_tags($post->description) ?? null;
 			$stm->url = end($url);
 			$article_dom = new \DOMDocument();
+			libxml_use_internal_errors(true);
 			$article_dom->loadHTML($post->content);
+			libxml_clear_errors();
 
 			if ($imgs = $article_dom->getElementsByTagName('img') and $imgs->length) {
 				$img = $imgs->item(0);
