@@ -25,6 +25,7 @@ use \shgysk8zer0\Authorize\{
 use \shgysk8zer0\Login\{User};
 use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
 use \shgysk8zer0\PHPCrypt\{PublicKey, PrivateKey, FormSign};
+use \KVSun\KVSAPI\{Picture};
 
 use function \KVSun\Functions\{
 	restore_login,
@@ -633,6 +634,7 @@ switch($req->form) {
 		}
 
 		$pdo = PDO::load(DB_CREDS);
+		$pdo->beginTransaction();
 		$sql = 'INSERT INTO `posts` (
 			`cat-id`,
 			`title`,
@@ -684,20 +686,23 @@ switch($req->form) {
 			$article_dom->loadHTML("<div>$post->content</div>");
 			libxml_clear_errors();
 
-			if ($imgs = $article_dom->getElementsByTagName('img') and $imgs->length) {
-				$img = $imgs->item(0);
-				$url = new URL($img->getAttribute('src'));
-
-				if ($url->host === $_SERVER['HTTP_HOST']) {
-					$id = get_img_id($url->path);
-					$stm->img = ($id === 0) ? null : $id;
-				}
-			} else {
-				$stm->img = null;
-			}
 			if ($figures = $article_dom->getElementsByTagName('figure')) {
+				$picture = new Picture($pdo);
+				$user = restore_login();
+				$main_img = null;
 				foreach ($figures as $figure) {
 					if ($figure->hasAttribute('data-image-id')) {
+						if (is_null($main_img)) {
+							$stm->img = $figure->getAttribute('data-image-id');
+						}
+						$microdata = $picture->parseFigure($figure);
+						if (! empty($microdata)) {
+							try {
+								$picture->addImage($microdata, $user);
+							} catch (\Exception $e) {
+							trigger_error($e->getMessage());
+							}
+						}
 						$figure->removeAttribute('itemprop');
 						$figure->removeAttribute('itemtype');
 						$figure->removeAttribute('itemscope');
@@ -713,12 +718,14 @@ switch($req->form) {
 			unset($article_dom, $imgs, $img, $id, $url);
 
 			if ($stm->execute() and intval($stm->errorCode()) === 0) {
+				$pdo->commit();
 				$resp->notify(
 					'Received post',
 					$post->title,
 					ICONS['thumbsup']
 				);
 				Listener::contentPosted(get_cat_id($post->category));
+				$resp->reload();
 			} else {
 				$err = join(PHP_EOL, $stm->errorInfo());
 				trigger_error($err);
@@ -734,15 +741,13 @@ switch($req->form) {
 		}
 		break;
 
-	# TODO Update for changes in image handling
-	# TODO Use images / srcset from database instead of from post content
 	case 'update-post':
 		if (! user_can('editPosts')) {
 			http_response_code(HTTP::UNAUTHORIZED);
 			$resp->notify('Error', 'You must be logged in for that.')->send();
 		}
 
-		$post = new FormData($_POST['update-post']);
+		$post = $req->{'update-post'};
 
 		if (
 			!isset($post->category, $post->title, $post->author, $post->content, $post->url)
@@ -757,7 +762,9 @@ switch($req->form) {
 			)->send();
 		}
 
-		$stm = PDO::load(DB_CREDS)->prepare(
+		$pdo = PDO::load(DB_CREDS);
+		$pdo->beginTransaction();
+		$stm = $pdo->prepare(
 			'UPDATE `posts` SET
 				`cat-id` = COALESCE(:cat, `cat-id`),
 				`title` = COALESCE(:title, `title`),
@@ -784,29 +791,31 @@ switch($req->form) {
 			$stm->title = strip_tags($post->title);
 			$stm->author = strip_tags($post->author);
 			$stm->draft = isset($post->draft);
-			$stm->keywords = strip_tags($post->keywords) ?? null;
-			$stm->description = strip_tags($post->description) ?? null;
+			$stm->keywords = isset($post->keywords) ? strip_tags($post->keywords) : null;
+			$stm->description = isset($post->description) ? strip_tags($post->description) : null;
 			$stm->url = end($url);
 			$article_dom = new \DOMDocument();
 			libxml_use_internal_errors(true);
 			$article_dom->loadHTML("<div>{$post->content}</div>");
 			libxml_clear_errors();
 
-			if ($imgs = $article_dom->getElementsByTagName('img') and $imgs->length) {
-				$img = $imgs->item(0);
-				$path = new URL($img->getAttribute('src'));
-
-				if ($path->host === $_SERVER['HTTP_HOST']) {
-					$id = get_img_id($path->path);
-					$stm->img = ($id === 0) ? null : $id;
-				}
-			} else {
-				$stm->img = null;
-			}
-
 			if ($figures = $article_dom->getElementsByTagName('figure')) {
+				$picture = new Picture($pdo);
+				$user = restore_login();
+				$main_img = null;
 				foreach ($figures as $figure) {
 					if ($figure->hasAttribute('data-image-id')) {
+						if (is_null($main_img)) {
+							$stm->img = $figure->getAttribute('data-image-id');
+						}
+						$microdata = $picture->parseFigure($figure);
+						if (! empty($microdata)) {
+							try {
+								$picture->addImage($microdata, $user);
+							} catch (\Exception $e) {
+								trigger_error($e->getMessage());
+							}
+						}
 						$figure->removeAttribute('itemprop');
 						$figure->removeAttribute('itemtype');
 						$figure->removeAttribute('itemscope');
@@ -821,6 +830,7 @@ switch($req->form) {
 			$stm->content = $article_dom->saveHTML($article_dom->documentElement->firstChild->firstChild);
 			unset($article_dom, $imgs, $img, $path, $id);
 			if ($stm->execute() and intval($stm->errorCode()) === 0) {
+				$pdo->commit();
 				$resp->notify(
 					'Received post',
 					$post->title,
@@ -830,16 +840,16 @@ switch($req->form) {
 				$resp->reload();
 			} else {
 				$err = join(PHP_EOL, $stm->errorInfo());
-				trigger_error('Error updating article.');
-				$resp->notify(
-					'Error updating post',
-					$err,
-					ICONS['bug']
-				);
+				throw new \RuntimeException($err);
 			}
 		} catch (\Throwable $e) {
+			$pdo->rollBack();
 			trigger_error($e->getMessage());
-			$resp->notify('Error updating post', $e->getMessage());
+			$resp->notify(
+				'Error updating post',
+				$e->getMessage(),
+				ICONS['bug']
+			);
 		}
 		break;
 
