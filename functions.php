@@ -1393,3 +1393,46 @@ function build_rss(String $category): RSS
 		return $rss;
 	}
 }
+
+/**
+ * Reads a CSV file and returns a multi-dimensional array
+ * @param  String  $fname       Filename of CSV, including extension
+ * @param  boolean $use_headers Whether or not to use the first row as headers / column names
+ * @param  String  $use_key     Optional column to use as key in created array. Requires $use_headers
+ * @return Array                The parsed CSV file as a multi-dimensional array
+ */
+function read_csv(
+	String $fname,
+	Bool   $use_headers = false,
+	String $use_key     = null
+): Array
+{
+	$csv = new \SplFileObject($fname);
+	$csv->setFlags($csv::READ_CSV | $csv::DROP_NEW_LINE | $csv::SKIP_EMPTY);
+	$rows = [];
+
+	if ($use_headers and $csv->valid()) {
+		$headers = $csv->fgetcsv();
+		$csv->next();
+		$header_size = count($headers);
+	}
+
+	while ($csv->valid()) {
+		$row = $csv->fgetcsv();
+		$csv->next();
+
+		if (empty($row)) {
+			continue;
+		}
+		if ($use_headers) {
+			$row = array_pad($row, $header_size, null);
+			$row = array_combine($headers, $row);
+		}
+		if ($use_headers and isset($use_key) and array_key_exists($use_key, $row)) {
+			$rows[$row[$use_key]] = $row;
+		} else {
+			$rows[] = $row;
+		}
+	}
+	return $rows;
+}
