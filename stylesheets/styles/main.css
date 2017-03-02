@@ -4,7 +4,6 @@ main {
 	min-height: 100vh;
 }
 main > section {
-	height: 100vh;
 	background-size: cover;
 	background-repeat: no-repeat;
 }
@@ -23,11 +22,7 @@ section.category {
 	align-content: flex-start;
 	overflow-y: auto;
 }
-section.category > header {
-	flex-basis: 100%;
-}
 .article-thumb {
-	flex: 1 0 20%;
 	margin: 1rem;
 	padding: 0.4rem;
 	border: 0.05rem solid #888;
@@ -35,9 +30,21 @@ section.category > header {
 	box-shadow: 0.1em 0.1em 0.1em rgba(60, 60, 60, 0.8);
 	background-color: #dfdfdf;
 }
-.article-thumb:first-of-type {
-	flex: 2 0 40%;
+@media (min-width: 800px) {
+	main section {
+		height: 100vh;
+	}
+	section.category > header {
+		flex-basis: 100%;
+	}
+	.article-thumb {
+		flex: 1 0 20%;
+	}
+	.article-thumb:first-of-type {
+		flex: 2 0 40%;
+	}
 }
+
 /*#news {
 	font-family: GNUTypewriter;
 }
