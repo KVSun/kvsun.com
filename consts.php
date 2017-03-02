@@ -84,8 +84,7 @@ const IMG_SIZES   = [
 	400
 ];
 const IMG_FORMATS = [
-	'image/webp',
-	'image/jpeg'
+	'image/jpeg',
 ];
 const LOGGED_OUT_ONLY = [
 	'[data-show-modal="#login-dialog"]',
