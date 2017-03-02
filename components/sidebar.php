@@ -15,39 +15,40 @@ return function (HTML $dom, PDO $pdo)
 		'role' => 'sidebar',
 	]);
 
-	$search = $sidebar->append('form', null, [
-		'name'   => 'search',
-		'action' => DOMAIN . 'api.php',
-		'role'   => 'search',
-		'method' => 'post',
-	]);
-
-	$search->append('input', null, [
-		'type' => 'search',
-		'name' => 'search[query]',
-		'pattern' => '[\w\- ]+',
-		'placeholder' => 'Search for...',
-		// 'list' => 'search-suggestions',
-		'required' => '',
-	]);
+	// $search = $sidebar->append('form', null, [
+	// 	'name'   => 'search',
+	// 	'action' => DOMAIN . 'api.php',
+	// 	'role'   => 'search',
+	// 	'method' => 'post',
+	// ]);
+	//
+	// $search->append('input', null, [
+	// 	'type' => 'search',
+	// 	'name' => 'search[query]',
+	// 	'pattern' => '[\w\- ]+',
+	// 	'placeholder' => 'Search for...',
+	// 	// 'list' => 'search-suggestions',
+	// 	'required' => '',
+	// ]);
+	//
+	// $search->append('button', null, [
+	// 	'type' => 'submit',
+	// 	'class' => 'icon',
+	// ]);
+	// use_icon('search', $submit, [
+	// 	'class' => 'icon',
+	// ]);
 
 	make_rail($sidebar->append('div', null, ['class' => 'center']), $pdo, 7);
 
-	$submit = $search->append('button', null, [
-		'type' => 'submit',
-		'class' => 'icon',
-	]);
 
-	use_icon('search', $submit, [
-		'class' => 'icon',
-	]);
 
-	$list = $sidebar->append('ul');
-	foreach($pdo('SELECT `name`, `url-name` AS `url` FROM `categories`') as $category) {
-		$list->append('li')->append('a', $category->name, [
-			'href' => $category->url,
-		]);
-	}
+	// $list = $sidebar->append('ul');
+	// foreach($pdo('SELECT `name`, `url-name` AS `url` FROM `categories`') as $category) {
+	// 	$list->append('li')->append('a', $category->name, [
+	// 		'href' => $category->url,
+	// 	]);
+	// }
 };
 
 function make_rail(\DOMElement $parent, PDO $pdo, Int $limit = 7, Int $size = 256)

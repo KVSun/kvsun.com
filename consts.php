@@ -58,10 +58,12 @@ const CSP          = array(
 		'https://i.imgur.com',
 		'https://kernvalleysun.com',
 		'data:',
+		'*',
 	],
+	'child-src'    => ['*'],
 	'script-src'   => ["'self'"],
 	'style-src'    => ["'self'", "'unsafe-inline'"],
-	'media-src'    => ["'self'"],
+	'media-src'    => ['*'],
 	'report-uri'   => '/csp.php',
 );
 
