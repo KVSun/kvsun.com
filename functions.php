@@ -1395,6 +1395,143 @@ function build_rss(String $category): RSS
 }
 
 /**
+ * Import users from WP CSV file and MySQL generated CSV file
+ * @param  String $members WP exported users CSV file
+ * @param  String $users   MySQL exported CSV file
+ * @return Int             Number of users imported
+ * @see https://github.com/KVSun/kvsun.com/issues/100
+ */
+function import_users(String $members, String $users): Int
+{
+	$members = read_csv($members, true, 'username');
+	$users = read_csv($users, true, 'user_login');
+	$pdo = PDO::load(DB_CREDS);
+	$users_stm = $pdo->prepare(
+		'INSERT INTO `users` (
+			`email`,
+			`password`,
+			`username`
+		) VALUES (
+			:email,
+			:password,
+			:username
+		);'
+	);
+	$user_data_stm = $pdo->prepare(
+		'INSERT INTO `user_data` (
+			`id`,
+			`name`,
+			`tel`
+		) VALUES (
+			:id,
+			:name,
+			:tel
+		) ON DUPLICATE KEY UPDATE
+			`name` = COALESCE(:name, `name`),
+			`tel`  = COALESCE(:tel, `tel`);'
+	);
+	$subscribers_stm = $pdo->prepare(
+		'INSERT INTO `subscribers` (
+			`id`,
+			`status`,
+			`sub_modified`,
+			`sub_expires`
+		) VALUES (
+			:id,
+			:status,
+			:joined,
+			:expires
+		) ON DUPLICATE KEY UPDATE
+			`status` = COALESCE(:status, `status`),
+			`sub_expires` = COALESCE(:expires, `sub_expires`);'
+	);
+
+	$imported = 0;
+	$roles = [
+		'Online Subscription (1 year)' => 5,
+		'Staff' => 2,
+		'E-Edition (1 year)' => 6,
+		'Online Subscription (6 months)' => 5,
+		'E-Edition (6 months)' => 6,
+		'Online Subscription (1 month)' => 5,
+	];
+	foreach ($members as $username => $member) {
+		$pdo->beginTransaction();
+		try {
+			if (! in_array($member['membership'], $roles)) {
+				$roles[] = $member['membership'];
+			}
+			if (array_key_exists($username, $users)) {
+				$users_stm->execute([
+					'email' => $member['email'],
+					'password' => $users[$username]['user_pass'],
+					'username' => $username,
+				]);
+				if (intval($users_stm->errorCode()) !== 0) {
+					$err = join(PHP_EOL, $users_stm->errorInfo());
+					throw new \Exception($err);
+				} elseif ($users_stm->rowCount() !== 1) {
+					throw new \Exception("Failed to import {$username}");
+				}
+				$user_id = $pdo->lastInsertId();
+				if (
+					array_key_exists('firstname', $member)
+					and array_key_exists('lastname', $member)
+				) {
+					$name = "{$member['firstname']} {$member['lastname']}";
+				} else {
+					$name= null;
+				}
+				$user_data_stm->execute([
+					'id' => $user_id,
+					'name' => $name,
+					'tel' => isset($member['phone']) ? $member['tel'] : null,
+				]);
+				if (intval($user_data_stm->errorCode()) !== 0) {
+					$err = join(PHP_EOL, $user_data_stm->errorInfo());
+					throw new \Exception($err);
+				} elseif ($user_data_stm->rowCount() !== 1) {
+					throw new \Exception("Failed to import {$username}");
+				}
+				if ($member['expires'] !== 'Never') {
+					$expires = (new \DateTime($member['expires']))->format(\DateTime::W3C);
+				} else {
+					$expires = null;
+				}
+
+				$joined = new \DateTime($member['joined']);
+				$subscribers_stm->execute([
+					'id' => $user_id,
+					'status' => array_key_exists($member['membership'], $roles)
+						? $roles[$member['membership']] : 8,
+					'joined' => $joined->format(\DateTime::W3C),
+					'expires' => $expires,
+				]);
+				if (intval($subscribers_stm->errorCode()) !== 0) {
+					$err = join(PHP_EOL, $subscribers_stm->errorInfo());
+					throw new \Exception($err);
+				} elseif ($subscribers_stm->rowCount() !== 1) {
+					throw new \Exception("Failed to import {$username}");
+				}
+
+				$imported++;
+				$pdo->commit();
+			} else {
+				throw new \Exception("{$username} not found in users list.");
+			}
+		} catch (\Throwable $e) {
+			$pdo->rollBack();
+			echo $e->getMessage() . PHP_EOL;
+			trigger_error($e->getMessage());
+		}
+	}
+	foreach (func_get_args() as $file) {
+		unlink($file);
+	}
+	return $imported;
+}
+
+/**
  * Reads a CSV file and returns a multi-dimensional array
  * @param  String  $fname       Filename of CSV, including extension
  * @param  boolean $use_headers Whether or not to use the first row as headers / column names
