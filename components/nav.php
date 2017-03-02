@@ -6,7 +6,7 @@ use function \KVSun\Functions\{use_icon, restore_login};
 use const \KVSun\Consts\{DOMAIN, ICONS};
 
 use \shgysk8zer0\DOM\{HTML};
-use \shgysk8zer0\Core\{PDO, Gravatar};
+use \shgysk8zer0\Core\{PDO, Gravatar, URL};
 use \KVsun\KVSAPI\{Abstracts\Content as KVSAPI};
 
 const ATTRS = array(
@@ -31,7 +31,7 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 
 	$pages = $pdo('SELECT `name`, `url`, `icon` FROM `pages`');
 	$categories = $pdo('SELECT `name`, `icon`, `url-name` AS `url` FROM `categories`');
-	foreach(array_merge($categories, $pages) as $cat) {
+	foreach($categories as $cat) {
 		if (isset($cat->icon)) {
 			$add = $nav->append('a', null, array_merge(ATTRS, [
 				'href'  => DOMAIN . $cat->url,
@@ -43,6 +43,25 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 		} else {
 			$nav->append('a', $cat->name, array_merge(ATTRS, [
 				'href' => DOMAIN . $cat->url,
+			]));
+		}
+	}
+	foreach($pages as $page) {
+		if (isset($page->icon)) {
+			$url = new URL($page->url);
+			$add = $nav->append('a', null, array_merge(ATTRS, [
+				'href'  => $url,
+				'title' => $page->name,
+			]));
+			use_icon($page->icon, $add, [
+				'class' => 'icon',
+			]);
+			if ($url->host !== $_SERVER['HTTP_HOST']) {
+				$add->target = '_blank';
+			}
+		} else {
+			$nav->append('a', $page->name, array_merge(ATTRS, [
+				'href' => DOMAIN . $page->url,
 			]));
 		}
 	}
