@@ -9,4 +9,7 @@
 		position: relative;
 		order: 0;
 	}
+	.desktop-only {
+		display: none;
+	}
 }

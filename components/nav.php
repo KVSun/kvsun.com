@@ -37,6 +37,7 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 				'href'  => DOMAIN . $cat->url,
 				'title' => $cat->name,
 			]));
+			$add->append('span', $cat->name, ['class' => 'desktop-only']);
 			use_icon($cat->icon, $add, [
 				'class' => 'icon',
 			]);
@@ -53,6 +54,7 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 				'href'  => $url,
 				'title' => $page->name,
 			]));
+			$add->append('span', $page->name, ['class' => 'desktop-only']);
 			use_icon($page->icon, $add, [
 				'class' => 'icon',
 			]);
