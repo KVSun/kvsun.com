@@ -35,13 +35,13 @@ return function (HTML $dom, PDO $pdo)
 	// 	'type' => 'submit',
 	// 	'class' => 'icon',
 	// ]);
+	// use_icon('search', $submit, [
+	// 	'class' => 'icon',
+	// ]);
 
 	make_rail($sidebar->append('div', null, ['class' => 'center']), $pdo, 7);
 
 
-	use_icon('search', $submit, [
-		'class' => 'icon',
-	]);
 
 	// $list = $sidebar->append('ul');
 	// foreach($pdo('SELECT `name`, `url-name` AS `url` FROM `categories`') as $category) {
