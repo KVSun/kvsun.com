@@ -13,8 +13,8 @@ section.category {
 	box-shadow: 0.2rem 0.2rem 0.2rem #444;
 	background-color: #eee;
 	padding: 0.7rem;
-	height: 90vh;
-	height: calc(100vh - var(--nav-height) - 2 * var(--nav-padding));
+/* 	height: 90vh; */
+/* 	height: calc(100vh - var(--nav-height) - 2 * var(--nav-padding)); */
 	background-size: cover;
 	background-repeat: no-repeat;
 	align-items: stretch;
@@ -31,9 +31,6 @@ section.category {
 	background-color: #dfdfdf;
 }
 @media (min-width: 800px) {
-	main section {
-		height: 100vh;
-	}
 	section.category > header {
 		flex-basis: 100%;
 	}
