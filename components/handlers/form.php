@@ -938,29 +938,29 @@ switch($req->form) {
 			$sub->online = $sub->online === '1';
 			$sub->pdf    = $sub->pdf    === '1';
 
-			// if (
-			// 	$sub->print
-			// 	and $sub->local
-			// 	and ! in_array(intval($req->ccform->billing->zip), LOCAL_ZIPS)
-			// ) {
-			// 	$resp->notify(
-			// 		'You do not qualify for this subscription',
-			// 		'Please select from our out of Valley print subscriptions',
-			// 		ICONS['credit-card'],
-			// 		true
-			// 	)->focus('#ccform-subscription')->send();
-			// } elseif (
-			// 	$sub->print
-			// 	and !$sub->local
-			// 	and in_array(intval($req->ccform->billing->zip), LOCAL_ZIPS)
-			// ) {
-			// 	$resp->notify(
-			// 		'You do not qualify for this subscription',
-			// 		'Please select from our local print subscriptions',
-			// 		ICONS['credit-card'],
-			// 		true
-			// 	)->focus('#ccform-subscription')->send();
-			// }
+			if (
+				$sub->print
+				and $sub->local
+				and ! in_array(intval($req->ccform->billing->zip), LOCAL_ZIPS)
+			) {
+				$resp->notify(
+					'You do not qualify for this subscription',
+					'Please select from our out of Valley print subscriptions',
+					ICONS['credit-card'],
+					true
+				)->focus('#ccform-subscription')->send();
+			} elseif (
+				$sub->print
+				and !$sub->local
+				and in_array(intval($req->ccform->billing->zip), LOCAL_ZIPS)
+			) {
+				$resp->notify(
+					'You do not qualify for this subscription',
+					'Please select from our local print subscriptions',
+					ICONS['credit-card'],
+					true
+				)->focus('#ccform-subscription')->send();
+			}
 
 			$creds = Credentials::loadFromIniFile(AUTHORIZE, DEBUG);
 			$expires = new \DateTime(
