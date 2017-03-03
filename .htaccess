@@ -164,10 +164,10 @@ AddDefaultCharset utf-8
 # be removed: http://developer.yahoo.com/performance/rules.html#etags.
 
 # `FileETag None` is not enough for every server.
-<IfModule headers_module>
-	Header unset ETag
-</IfModule>
-FileETag None
+# <IfModule headers_module>
+# 	Header unset ETag
+# </IfModule>
+# FileETag None
 
 # ------------------------------------------------------------------------------
 # | Expires headers (for better cache control)								 |
