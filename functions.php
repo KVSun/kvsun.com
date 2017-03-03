@@ -148,6 +148,9 @@ function mail(
 			'sent'    => $time->format(\Datetime::W3C),
 		];
 		$email['sig'] = $private->sign(json_encode($email));
+		if (DEBUG) {
+			return true;
+		}
 
 		curl_setopt_array($ch, [
 			CURLOPT_RETURNTRANSFER => false,
@@ -935,52 +938,39 @@ function make_cc_form(HTMLElement $parent = null, String $name = 'ccform'): \DOM
 		'id' => "{$form->name}-subscription",
 	]);
 
-	$online = $input->append('optgroup', null, ['label' => 'Online subscriptions']);
-	$print_local = $input->append('optgroup', null, ['label' => 'Print subscriptions']);
-	$e_edition = $input->append('optgroup', null, ['label' => 'E-Edition subscriptions']);
-	$print_oov = $input->append('optgroup', null, ['label' => 'Out of Valley print subscriptions']);
-
 	$pdo = PDO::load(DB_CREDS);
 	try {
 		$subs = $pdo(
 			'SELECT
 			`id`,
 			`name`,
-			`media`,
+			`term`,
 			`price`,
 			`isLocal`
 			FROM `subscription_rates`
+			WHERE `isUpgrade` = 0
 			ORDER BY `price` DESC;'
 		);
 	} catch(\Throwable $e) {
 		trigger_error($e->getMessage());
 	}
 
-	array_map(function(\stdClass $sub) use (
-		$print_local,
-		$print_oov,
-		$e_edition,
-		$online
-	)
+	$groups = [];
+
+	usort($subs, function(\stdClass $sub1, \stdClass $sub2): Int
 	{
-		$option = new \DOMElement('option', "{$sub->name} [\${$sub->price}]");
-		switch($sub->media) {
-			case 'online':
-				$online->appendChild($option);
-				break;
+		return new \DateTime($sub2->term) <=> new \DateTime($sub1->term);
+	});
 
-			case 'e-edition':
-				$e_edition->appendChild($option);
-				break;
-
-			case 'print':
-				if ($sub->isLocal) {
-					$print_local->appendChild($option);
-				} else {
-					$print_oov->appendChild($option);
-				}
-				break;
+	array_map(function(\stdClass $sub) use (&$groups, $input)
+	{
+		if (! array_key_exists($sub->term, $groups)) {
+			$groups[$sub->term] = new \DOMElement('optgroup');
+			$input->appendChild($groups[$sub->term]);
+			$groups[$sub->term]->setAttribute('label', $sub->term);
 		}
+		$option = new \DOMElement('option', "{$sub->name} [\${$sub->price}]");
+		$groups[$sub->term]->appendChild($option);
 		$option->setAttribute('value', $sub->id);
 	}, $subs);
 	$label->for = $input->id;

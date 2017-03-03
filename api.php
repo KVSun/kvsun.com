@@ -57,6 +57,7 @@ if ($header->accept === 'application/json') {
 		$path = explode('/', trim($url->path));
 		$path = array_filter($path);
 		$path = array_values($path);
+		$user = restore_login();
 
 		if (empty($path)) {
 			// This would be a request for home
@@ -66,13 +67,33 @@ if ($header->accept === 'application/json') {
 			$page = new Category(PDO::load(DB_CREDS), "$url");
 		} elseif (count($path) === 2) {
 			$page = new Article(PDO::load(DB_CREDS), "$url");
-			if (! $page->is_free and ! user_can('paidArticles')) {
-				$resp->notify(
-					'You must be a subscriber to view this content',
-					'Please login to continue.',
-					DOMAIN . ICONS['sign-in']
-				)->showModal('#login-dialog')
-				->send();
+			if (! ($page->is_free or $user->hasPermission('paidArticles'))) {
+				if (is_null($user->status)) {
+					$resp->notify(
+						'You must be a subscriber to view this content',
+						'Please login or register to continue.',
+						DOMAIN . ICONS['sign-in']
+					)->showModal('#login-dialog')->send();
+				} else {
+					$dom = new HTML();
+					$dialog = $dom->body->append('dialog', null, [
+						'id' => 'ccform-dialog'
+					]);
+					$dialog->append('button', null, [
+						'type' => 'button',
+						'data-delete' => "#{$dialog->id}",
+					]);
+					make_cc_form($dialog);
+					$resp->append('body', $dialog);
+					$resp->showModal("#{$dialog->id}");
+					$resp->notify(
+						'You must be a paid subscriber to view this content',
+						'Please choose from these subscription plans',
+						DOMAIN . ICONS['credit-card'],
+						true
+					);
+					$resp->send();
+				}
 			}
 		} else {
 			$resp->notify(
@@ -104,10 +125,11 @@ if ($header->accept === 'application/json') {
 
 			case 'author_list':
 				$pdo = PDO::load(DB_CREDS);
-				$stm = $pdo->prepare('SELECT `name`
+				$stm = $pdo->prepare('SELECT DISTINCT(`name`)
 					FROM `user_data`
 					JOIN `subscribers` ON `subscribers`.`id` = `user_data`.`id`
-					WHERE `subscribers`.`status` <= :role;'
+					WHERE `subscribers`.`status` <= :role
+					UNION SELECT DISTINCT(`author`) FROM `posts`;'
 				);
 				$stm->role = get_role_id('freelancer');
 				$authors = $stm->execute()->getResults();
@@ -180,7 +202,7 @@ if ($header->accept === 'application/json') {
 
 					$resp->showModal('#login-dialog');
 					$resp->send();
-				} elseif ($user->hasPermission('paidArticles') or true) {
+				} elseif ($user->hasPermission('paidArticles') and ! DEBUG) {
 					$resp->notify(
 						'You do not need to subscribe',
 						"Your subscription has not yet expired",
