@@ -909,29 +909,35 @@ switch($req->form) {
 				true
 			)->focus('#ccform-billing-first-name')->send();
 		}
-		$pdo = PDO::load(DB_CREDS);
 
-		$stm = $pdo->prepare('SELECT
-				`id`,
+		$pdo = PDO::load(DB_CREDS);
+		$stm = $pdo->prepare(
+			'SELECT
+				`subscription_rates`.`id`,
 				`name`,
 				`description`,
-				`length`,
+				`term`,
 				`price`,
-				`media`,
-				`isLocal`,
-				`includes`
+				`isLocal` AS `local`,
+				`includesPrint` AS `print`,
+				`permissions`.`paidArticles` AS `online`,
+				`permissions`.`eEdition` AS `pdf`
 			FROM `subscription_rates`
-			WHERE `id` = :id
+			JOIN `permissions` ON `permissions`.`id` = `subscription_rates`.`role`
+			WHERE `subscription_rates`.`id` = :id
 			LIMIT 1;'
 		);
 		$stm->id = $req->ccform->subscription;
 		$stm->execute();
 
 		$sub = $stm->fetchObject();
+		$sub->print = $sub->print === '1';
+		$sub->online = $sub->online === '1';
+		$sub->pdf = $sub->pdf === '1';
 
 		if (
-			$sub->media === 'print'
-			and $sub->isLocal
+			$sub->print
+			and $sub->local
 			and ! in_array(intval($req->ccform->billing->zip), LOCAL_ZIPS)
 		) {
 			$resp->notify(
@@ -941,8 +947,8 @@ switch($req->form) {
 				true
 			)->focus('#ccform-subscription')->send();
 		} elseif (
-			$sub->media === 'print'
-			and !$sub->isLocal
+			$sub->print
+			and !$sub->local
 			and in_array(intval($req->ccform->billing->zip), LOCAL_ZIPS)
 		) {
 			$resp->notify(
@@ -985,32 +991,6 @@ switch($req->form) {
 		$items = new Items();
 		$items->addItem($item);
 
-		try {
-			if (!empty($sub->includes)) {
-				$includes = explode(',', $sub->includes);
-				$includes = array_map('intval', $includes);
-				foreach (array_filter($includes) as $include) {
-					if ($include == $sub->id) {
-						throw new \Exception("Recursive subscription for {$sub->name}.");
-					} else {
-						$stm->id = $include;
-						$stm->execute();
-						$included = $stm->fetchObject();
-						$included->price = 0;
-						$item = new Item(get_object_vars($included));
-						$items->addItem($item);
-					}
-				}
-			}
-		} catch(\Exception $e) {
-			$resp->notify(
-				'We are sorry, but there was an error',
-				'Please contact us for help with your subscription.',
-				ICONS['bug'],
-				true
-			)->send();
-		}
-
 		$request->addItems($items);
 		$response = $request();
 		if ($response->code == '1') {
@@ -1044,7 +1024,9 @@ switch($req->form) {
 					:status,
 					:expires
 				) ON DUPLICATE KEY
-				UPDATE `status` = :status, `sub_expires` = :expires;'
+				UPDATE
+					`status` = :status,
+					`sub_expires` = :expires;'
 			);
 
 			foreach ($request->getItems() as $item) {
