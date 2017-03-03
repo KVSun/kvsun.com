@@ -9,6 +9,7 @@ use \shgysk8zer0\Core\{
 	Listener,
 	Headers,
 	URL,
+	HTTPException,
 	Gravatar
 };
 use \shgysk8zer0\DOM\{HTML};
@@ -1017,7 +1018,7 @@ switch($req->form) {
 				'expires' => $expires->format($expires::W3C),
 			]);
 			if ($subscribe->rowCount() === 1) {
-				throw new \Exception('There was an error saving your subscription');
+				throw new HTTPException('There was an error saving your subscription', 200);
 			}
 			$response = $request();
 
@@ -1072,11 +1073,12 @@ switch($req->form) {
 					);
 				}
 			} else {
-				throw new \Exception($response);
+				throw new HTTPException($response, 200);
 			}
 
-		} catch (\Exception $e) {
+		} catch (HTTPException $e) {
 			$pdo->rollBack();
+			http_response_code($e->getCode());
 			$resp->notify(
 				'There was an error processing your payment',
 				$e->getMessage(),
