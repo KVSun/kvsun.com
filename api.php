@@ -57,6 +57,7 @@ if ($header->accept === 'application/json') {
 		$path = explode('/', trim($url->path));
 		$path = array_filter($path);
 		$path = array_values($path);
+		$user = restore_login();
 
 		if (empty($path)) {
 			// This would be a request for home
@@ -66,13 +67,33 @@ if ($header->accept === 'application/json') {
 			$page = new Category(PDO::load(DB_CREDS), "$url");
 		} elseif (count($path) === 2) {
 			$page = new Article(PDO::load(DB_CREDS), "$url");
-			if (! $page->is_free and ! user_can('paidArticles')) {
-				$resp->notify(
-					'You must be a subscriber to view this content',
-					'Please login to continue.',
-					DOMAIN . ICONS['sign-in']
-				)->showModal('#login-dialog')
-				->send();
+			if (! ($page->is_free or $user->hasPermission('paidArticles'))) {
+				if (is_null($user->status)) {
+					$resp->notify(
+						'You must be a subscriber to view this content',
+						'Please login or register to continue.',
+						DOMAIN . ICONS['sign-in']
+					)->showModal('#login-dialog')->send();
+				} else {
+					$dom = new HTML();
+					$dialog = $dom->body->append('dialog', null, [
+						'id' => 'ccform-dialog'
+					]);
+					$dialog->append('button', null, [
+						'type' => 'button',
+						'data-delete' => "#{$dialog->id}",
+					]);
+					make_cc_form($dialog);
+					$resp->append('body', $dialog);
+					$resp->showModal("#{$dialog->id}");
+					$resp->notify(
+						'You must be a paid subscriber to view this content',
+						'Please choose from these subscription plans',
+						DOMAIN . ICONS['credit-card'],
+						true
+					);
+					$resp->send();
+				}
 			}
 		} else {
 			$resp->notify(
