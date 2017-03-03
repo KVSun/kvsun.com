@@ -1029,7 +1029,7 @@ switch($req->form) {
 					'messages'      => $response->messages,
 					'errors'        => $response->errors,
 				]);
-				Console::info($request);
+				Console::info($request, $sub);
 			}
 
 			if ($response->code == '1') {
@@ -1063,6 +1063,7 @@ switch($req->form) {
 				);
 
 				if ($sub->print) {
+					# @todo Create a useful email
 					email(
 						['circulation@kvsun.com'],
 						"New online print subscription for {$req->ccform->card->name}",
@@ -1071,26 +1072,10 @@ switch($req->form) {
 					);
 				}
 			} else {
-				$pdo->rollBack();
-				$resp->notify(
-					'There was an error processing your subscription',
-					$response,
-					ICONS['credit-card'],
-					true
-				);
-
-				if (DEBUG) {
-					Console::log([
-					'respCode'      => $response->code,
-					'authCode'      => $response->authCode,
-					'transactionID' => $response->transactionID,
-					'messages'      => $response->messages,
-					'errors'        => $response->errors,
-					]);
-				}
+				throw new \Exception($response);
 			}
 
-		} catch (\Throwable $e) {
+		} catch (\Exception $e) {
 			$pdo->rollBack();
 			$resp->notify(
 				'There was an error processing your payment',
@@ -1098,7 +1083,24 @@ switch($req->form) {
 				ICONS['credit-card'],
 				true
 			);
+			if (DEBUG) {
+				Console::error($e);
+			}
+		} catch (\Throwable $e) {
+			$pdo->rollBack();
+			trigger_error($e->getMessage());
+			$resp->notify(
+				'There was an error processing your payment',
+				'Our server is experiencing difficulties for some reason.'
+				. PHP_EOL . 'Please contact us for support.',
+				ICONS['credit-card'],
+				true
+			);
+			if (DEBUG) {
+				Console::error($e);
+			}
 		}
+
 		break;
 
 	default:
