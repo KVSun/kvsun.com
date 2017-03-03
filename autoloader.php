@@ -80,12 +80,6 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
 
 function set_path(Array $path, Bool $use_existing = true): String
 {
-	if (
-		in_array(PHP_SAPI, ['cli', 'cli-server'])
-		or $_SERVER['SERVER_ADDR'] === $_SERVER['REMOTE_ADDR']
-	) {
-		array_unshift($path, '..');
-	}
 	$path = array_map('realpath', $path);
 	$path = join(\PATH_SEPARATOR, $path);
 	if ($use_existing === true) {
