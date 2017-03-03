@@ -148,6 +148,9 @@ function mail(
 			'sent'    => $time->format(\Datetime::W3C),
 		];
 		$email['sig'] = $private->sign(json_encode($email));
+		if (DEBUG) {
+			return true;
+		}
 
 		curl_setopt_array($ch, [
 			CURLOPT_RETURNTRANSFER => false,
