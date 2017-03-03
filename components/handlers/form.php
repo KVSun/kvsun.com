@@ -1035,6 +1035,7 @@ switch($req->form) {
 
 			if ($response->code == '1') {
 				$pdo->commit();
+				Listener::userSubscribed($user, $sub, $shipping);
 				$record = $pdo->prepare(
 					'INSERT INTO `transactions` (
 						`transactionID`,
@@ -1062,16 +1063,6 @@ switch($req->form) {
 					ICONS['credit-card'],
 					true
 				);
-
-				if ($sub->print) {
-					# @todo Create a useful email
-					email(
-						['circulation@kvsun.com'],
-						"New online print subscription for {$req->ccform->card->name}",
-						'',
-						['From' => 'no-reply@kvsun.com']
-					);
-				}
 			} else {
 				throw new HTTPException($response, 200);
 			}
