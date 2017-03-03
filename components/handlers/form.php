@@ -911,108 +911,90 @@ switch($req->form) {
 		}
 
 		$pdo = PDO::load(DB_CREDS);
-		$stm = $pdo->prepare(
-			'SELECT
-				`subscription_rates`.`id`,
-				`name`,
-				`description`,
-				`term`,
-				`price`,
-				`isLocal` AS `local`,
-				`includesPrint` AS `print`,
-				`permissions`.`paidArticles` AS `online`,
-				`permissions`.`eEdition` AS `pdf`
-			FROM `subscription_rates`
-			JOIN `permissions` ON `permissions`.`id` = `subscription_rates`.`role`
-			WHERE `subscription_rates`.`id` = :id
-			LIMIT 1;'
-		);
-		$stm->id = $req->ccform->subscription;
-		$stm->execute();
+		try {
+			$stm = $pdo->prepare(
+				'SELECT
+					`subscription_rates`.`id`,
+					`name`,
+					`description`,
+					`term`,
+					`price`,
+					`isLocal` AS `local`,
+					`includesPrint` AS `print`,
+					`role`,
+					`permissions`.`paidArticles` AS `online`,
+					`permissions`.`eEdition` AS `pdf`
+				FROM `subscription_rates`
+				JOIN `permissions` ON `permissions`.`id` = `subscription_rates`.`role`
+				WHERE `subscription_rates`.`id` = :id
+				LIMIT 1;'
+			);
+			$stm->id = $req->ccform->subscription;
+			$stm->execute();
 
-		$sub = $stm->fetchObject();
-		$sub->print = $sub->print === '1';
-		$sub->online = $sub->online === '1';
-		$sub->pdf = $sub->pdf === '1';
+			$sub = $stm->fetchObject();
+			$sub->print  = $sub->print  === '1';
+			$sub->online = $sub->online === '1';
+			$sub->pdf    = $sub->pdf    === '1';
 
-		if (
-			$sub->print
-			and $sub->local
-			and ! in_array(intval($req->ccform->billing->zip), LOCAL_ZIPS)
-		) {
-			$resp->notify(
-				'You do not qualify for this subscription',
-				'Please select from our out of Valley print subscriptions',
-				ICONS['credit-card'],
-				true
-			)->focus('#ccform-subscription')->send();
-		} elseif (
-			$sub->print
-			and !$sub->local
-			and in_array(intval($req->ccform->billing->zip), LOCAL_ZIPS)
-		) {
-			$resp->notify(
-				'You do not qualify for this subscription',
-				'Please select from our local print subscriptions',
-				ICONS['credit-card'],
-				true
-			)->focus('#ccform-subscription')->send();
-		}
+			// if (
+			// 	$sub->print
+			// 	and $sub->local
+			// 	and ! in_array(intval($req->ccform->billing->zip), LOCAL_ZIPS)
+			// ) {
+			// 	$resp->notify(
+			// 		'You do not qualify for this subscription',
+			// 		'Please select from our out of Valley print subscriptions',
+			// 		ICONS['credit-card'],
+			// 		true
+			// 	)->focus('#ccform-subscription')->send();
+			// } elseif (
+			// 	$sub->print
+			// 	and !$sub->local
+			// 	and in_array(intval($req->ccform->billing->zip), LOCAL_ZIPS)
+			// ) {
+			// 	$resp->notify(
+			// 		'You do not qualify for this subscription',
+			// 		'Please select from our local print subscriptions',
+			// 		ICONS['credit-card'],
+			// 		true
+			// 	)->focus('#ccform-subscription')->send();
+			// }
 
-		$creds = Credentials::loadFromIniFile(AUTHORIZE, DEBUG);
-		$expires = new \DateTime(
-			"{$req->ccform->card->expires->year}-{$req->ccform->card->expires->month}"
-		);
-
-		$card = new CreditCard(
-			$req->ccform->card->name,
-			$req->ccform->card->num,
-			$expires,
-			$req->ccform->card->csc
-		);
-
-		$request = new ChargeCard($creds, $card);
-		$request->setInvoice(rand(pow(10, 7), pow(10, 15) - 1));
-		$shipping = new ShippingAddress();
-		$shipping->fromAddress($billing);
-		$request->setShippingAddress($shipping);
-		$request->setBillingAddress($billing);
-
-		$item = new Item(get_object_vars($sub));
-		if (! $item->validate()) {
-			$resp->notify(
-				'Something went wrong',
-				'We seem to be missing information about that subscription.' .
-				PHP_EOL . 'Please contact us about this issue.',
-				ICONS['credit-card'],
-				true
-			)->send();
-		}
-		$items = new Items();
-		$items->addItem($item);
-
-		$request->addItems($items);
-		$response = $request();
-		if ($response->code == '1') {
-			$record = $pdo->prepare('INSERT INTO `transactions` (
-					`transactionID`,
-					`authCode`,
-					`userID`,
-					`subscriptionID`
-				) VALUES (
-					:transactionID,
-					:authCode,
-					:userID,
-					:subscription
-				);'
+			$creds = Credentials::loadFromIniFile(AUTHORIZE, DEBUG);
+			$expires = new \DateTime(
+				"{$req->ccform->card->expires->year}-{$req->ccform->card->expires->month}"
 			);
 
-			$record->execute([
-				'transactionID' => $response->transactionID,
-				'authCode'      => $response->authCode,
-				'userID'        => $user->id,
-				'subscription'  => $sub->id,
-			]);
+			$card = new CreditCard(
+				$req->ccform->card->name,
+				$req->ccform->card->num,
+				$expires,
+				$req->ccform->card->csc
+			);
+
+			$request = new ChargeCard($creds, $card);
+			$request->setInvoice(rand(pow(10, 7), pow(10, 15) - 1));
+			$shipping = new ShippingAddress();
+			$shipping->fromAddress($billing);
+			$request->setShippingAddress($shipping);
+			$request->setBillingAddress($billing);
+
+			$item = new Item(get_object_vars($sub));
+			if (! $item->validate()) {
+				$resp->notify(
+					'Something went wrong',
+					'We seem to be missing information about that subscription.' .
+					PHP_EOL . 'Please contact us about this issue.',
+					ICONS['credit-card'],
+					true
+				)->send();
+			}
+			$items = new Items();
+			$items->addItem($item);
+
+			$request->addItems($items);
+			$pdo->beginTransaction();
 
 			$subscribe = $pdo->prepare(
 				'INSERT INTO `subscribers` (
@@ -1023,58 +1005,99 @@ switch($req->form) {
 					:id,
 					:status,
 					:expires
-				) ON DUPLICATE KEY
-				UPDATE
-					`status` = :status,
+				) ON DUPLICATE KEY UPDATE
+					`status`      = :status,
 					`sub_expires` = :expires;'
 			);
 
-			foreach ($request->getItems() as $item) {
-				if (
-					isset($item->length, $item->media)
-					and $item->media === 'online'
-				) {
-					$expires = new \DateTime("+ {$item->length}");
-					$subscribe->id = $user->id;
-					$subscribe->status = get_role_id('subscriber');
-					$subscribe->expires = $expires->format('Y-m-d H:i:s');
-					$subscribe->execute();
+			$expires = new \DateTime($sub->term);
+			$subscribe->execute([
+				'id'      => $user->id,
+				'status'  => $sub->role,
+				'expires' => $expires->format($expires::W3C),
+			]);
+			if ($subscribe->rowCount() === 1) {
+				throw new \Exception('There was an error saving your subscription');
+			}
+			$response = $request();
+
+			if (DEBUG) {
+				Console::log([
+					'respCode'      => $response->code,
+					'authCode'      => $response->authCode,
+					'transactionID' => $response->transactionID,
+					'messages'      => $response->messages,
+					'errors'        => $response->errors,
+				]);
+				Console::info($request);
+			}
+
+			if ($response->code == '1') {
+				$pdo->commit();
+				$record = $pdo->prepare(
+					'INSERT INTO `transactions` (
+						`transactionID`,
+						`authCode`,
+						`userID`,
+						`subscriptionID`
+					) VALUES (
+						:transactionID,
+						:authCode,
+						:userID,
+						:subscription
+					);'
+				);
+				$record->execute([
+					'transactionID' => $response->transactionID,
+					'authCode'      => $response->authCode,
+					'userID'        => $user->id,
+					'subscription'  => $sub->id,
+				]);
+				$resp->remove('#ccform-dialog');
+
+				$resp->notify(
+					'Subscription successful',
+					$response,
+					ICONS['credit-card'],
+					true
+				);
+
+				if ($sub->print) {
+					email(
+						['circulation@kvsun.com'],
+						"New online print subscription for {$req->ccform->card->name}",
+						'',
+						['From' => 'no-reply@kvsun.com']
+					);
+				}
+			} else {
+				$pdo->rollBack();
+				$resp->notify(
+					'There was an error processing your subscription',
+					$response,
+					ICONS['credit-card'],
+					true
+				);
+
+				if (DEBUG) {
+					Console::log([
+					'respCode'      => $response->code,
+					'authCode'      => $response->authCode,
+					'transactionID' => $response->transactionID,
+					'messages'      => $response->messages,
+					'errors'        => $response->errors,
+					]);
 				}
 			}
 
+		} catch (\Throwable $e) {
+			$pdo->rollBack();
 			$resp->notify(
-				'Subscription successful',
-				$response,
-				ICONS['credit-card']
-			);
-			if (DEBUG) {
-				Console::log([
-					'respCode'      => $response->code,
-					'authCode'      => $response->authCode,
-					'transactionID' => $response->transactionID,
-					'messages'      => $response->messages,
-					'errors'        => $response->errors,
-				]);
-			}
-
-			$resp->remove('#ccform-dialog');
-		} else {
-			$resp->notify(
-				'There was an error processing your subscription',
-				$response,
+				'There was an error processing your payment',
+				$e->getMessage(),
 				ICONS['credit-card'],
 				true
 			);
-
-			if (DEBUG) {
-				Console::log([
-					'respCode'      => $response->code,
-					'authCode'      => $response->authCode,
-					'transactionID' => $response->transactionID,
-					'messages'      => $response->messages,
-					'errors'        => $response->errors,
-				]);
-			}
 		}
 		break;
 
