@@ -105,7 +105,7 @@ AddDefaultCharset utf-8
 # These files may be left by some text editors and can pose a great security
 # danger when anyone has access to them.
 
-<FilesMatch "(^#.*|~.*|\.(bak|ht.*|dav|conf(ig)?|dist|fla|inc|ini|log|psd|sql|sw[op]|asc|(ba)?sh|md|yml|lock|log|git.*|gpg|pgp))$">
+<FilesMatch "(^#.*|~.*|\.(bak|ht.*|dav|conf(ig)?|dist|fla|inc|ini|log|psd|sql|sw[op]|asc|(ba)?sh|md|yml|lock|log|git.*|gpg|pgp|pem))$">
 	Require all denied
 </FilesMatch>
 <FilesMatch "(autoloader|consts|unit|functions).php$">
@@ -214,6 +214,7 @@ AddDefaultCharset utf-8
 	ExpiresByType audio/ogg								"access plus 1 month"
 	ExpiresByType image/gif								"access plus 1 month"
 	ExpiresByType image/jpeg							"access plus 1 month"
+	ExpiresByType image/webp							"access plus 1 month"
 	ExpiresByType image/png								"access plus 1 month"
 	ExpiresByType video/mp4								"access plus 1 month"
 	ExpiresByType video/ogg								"access plus 1 month"
