@@ -78,7 +78,8 @@ if ($header->accept === 'application/json') {
 			$resp->notify(
 				'Invalid request',
 				"No content for {$url}",
-				DOMAIN . ICONS['circle-slash']
+				DOMAIN . ICONS['circle-slash'],
+				true
 			)->send();
 		}
 
@@ -129,8 +130,6 @@ if ($header->accept === 'application/json') {
 		$menu = COMPONENTS . 'menus' . DIRECTORY_SEPARATOR . $_GET['load_menu'] . '.html';
 		if (@file_exists($menu)) {
 			$resp->append('body', file_get_contents($menu));
-		} else {
-			$resp->notify('Request for menu', $_GET['load_menu']);
 		}
 	} elseif (array_key_exists('load_form', $_REQUEST)) {
 		switch($_REQUEST['load_form']) {
@@ -150,7 +149,12 @@ if ($header->accept === 'application/json') {
 			case 'update-user':
 				$user = User::load(DB_CREDS);
 				if (!isset($user->status)) {
-					$resp->notify('You must login for that', 'Cannot update data before logging in.');
+					$resp->notify(
+						'You must login for that',
+						'Cannot update data before logging in.',
+						ICONS['server'],
+						true
+					);
 					$resp->showModal('#login-dialog');
 					$resp->send();
 				}
@@ -170,7 +174,8 @@ if ($header->accept === 'application/json') {
 				if (!isset($user->status)) {
 					$resp->notify(
 						'You must be logged in for that',
-						'You will need to login to have an account to update'
+						'You will need to login to have an account to update',
+						ICONS['person']
 					);
 
 					$resp->showModal('#login-dialog');
@@ -178,7 +183,9 @@ if ($header->accept === 'application/json') {
 				} elseif ($user->hasPermission('paidArticles') or true) {
 					$resp->notify(
 						'You do not need to subscribe',
-						"Your subscription has not yet expired"
+						"Your subscription has not yet expired",
+						ICONS['calendar'],
+						true
 					)->send();
 				}
 
@@ -272,7 +279,12 @@ if ($header->accept === 'application/json') {
 						$resp->showModal("#{$dialog->id}");
 					} catch (\Throwable $e) {
 						trigger_error($e->getMessage());
-						$resp->notify('There was an error', $e->getMessage());
+						$resp->notify(
+							'There was an error',
+							$e->getMessage(),
+							ICONS['bug'],
+							true
+						);
 					}
 				}
 				break;
@@ -304,7 +316,8 @@ if ($header->accept === 'application/json') {
 			$resp->notify(
 				'Unauthorized',
 				'You are not authorized to upload files',
-				ICONS['alert']
+				ICONS['alert'],
+				true
 			)->remove('main > *')->remove('#admin_menu')->send();
 		}
 		$pdo = PDO::load(DB_CREDS);
@@ -411,7 +424,8 @@ if ($header->accept === 'application/json') {
 		$resp->notify(
 			'Invalid request',
 			'Try reloading or contact us to report this error',
-			DOMAIN . LOGO
+			DOMAIN . LOGO,
+			true
 		);
 	}
 	if (user_can('debug') or DEBUG) {

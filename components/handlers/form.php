@@ -193,7 +193,8 @@ switch($req->form) {
 						'There was an error installing',
 						'Database connection was successfully made, but there
 						was an error setting data.',
-						ICONS['bug']
+						ICONS['bug'],
+						true
 					);
 				}
 			} else {
@@ -202,7 +203,8 @@ switch($req->form) {
 					'Double check your database credentials and make sure that
 					the use is created and has access to the existing database
 					on the server. <https://dev.mysql.com/doc/refman/5.7/en/grant.html>',
-					ICONS['bug']
+					ICONS['bug'],
+					true
 				)->focus('#install-db-user');
 			}
 		} catch(\Exception $e) {
@@ -236,9 +238,18 @@ switch($req->form) {
 						if (empty($pdo->showTables())) {
 							$pdo->restore(DB_INSTALLER);
 							if (! $pdo->showTables()) {
-								$resp->notify('Error', 'Could not restore database.');
+								$resp->notify(
+									'Error',
+									'Could not restore database.',
+									ICONS['bug'],
+									true
+								);
 							} else {
-								$resp->notify('Installed', 'Created new default database.');
+								$resp->notify(
+									'Installed',
+									'Created new default database.',
+									ICONS['server']
+								);
 								//$resp->reload();
 								$resp->remove('form');
 								$dom = HTML::getInstance();
@@ -246,15 +257,29 @@ switch($req->form) {
 								$resp->append(['body' => "{$form[0]}"]);
 							}
 						} else {
-							$resp->notify('Installed', 'Using existing database.');
+							$resp->notify(
+								'Installed',
+								'Using existing database.',
+								ICONS['server']
+							);
 							$resp->reload();
 						}
 					} else {
-						$resp->notify('Error', 'Could not connect to database using given credentials.');
+						$resp->notify(
+							'Error',
+							'Could not connect to database using given credentials.',
+							ICONS['bug'],
+							true
+						);
 						unlink(DB_CREDS);
 					}
 				} catch(\Exception $e) {
-					$resp->notify('Error', $e->getMessage());
+					$resp->notify(
+						'Error',
+						$e->getMessage(),
+						ICONS['bug'],
+						true
+					);
 				}
 			} else {
 				$resp->notify('Missing input', 'Please fill out the form correctly.');
@@ -271,7 +296,8 @@ switch($req->form) {
 			$resp->notify(
 				'Login Rejected',
 				'Double check your username & password',
-				DOMAIN . ICONS['alert']
+				DOMAIN . ICONS['alert'],
+				true
 			);
 			$resp->focus('#login-email');
 			$resp->animate('#login-dialog', [
@@ -341,10 +367,10 @@ switch($req->form) {
 					$resp->notify(
 						'Error registering',
 						'There was an error saving your user info',
-						ICONS['bug']
+						ICONS['bug'],
+						true
 					);
 				}
-				$resp->send();
 			} catch(\Exception $e) {
 				Console::error($e);
 			}
@@ -352,12 +378,11 @@ switch($req->form) {
 			$resp->notify(
 				'Invalid registration entered',
 				'Please check your inputs',
-				ICONS['thmbsdown']
+				ICONS['thmbsdown'],
+				true
 			);
 			$resp->focus('register[username]');
-			$resp->send();
 		}
-
 		break;
 
 	case 'forgot_password':
@@ -366,13 +391,15 @@ switch($req->form) {
 			$resp->notify(
 				'Request received',
 				'If a matching user exists, an email has been sent. Check your email.',
-				ICONS['inbox']
+				ICONS['inbox'],
+				true
 			)->remove('#forgot_password_dialog');
 		} else {
 			$resp->notify(
 				'Missing user info',
 				'Double check your input and try again',
-				ICONS['alert']
+				ICONS['alert'],
+				true
 			)->focus(
 				'#forgot_password-user'
 			)->animate('#forgot_password_dialog', [
@@ -399,7 +426,8 @@ switch($req->form) {
 			$resp->notify(
 				'Invalid request',
 				'Could not find that user',
-				ICONS['bug']
+				ICONS['bug'],
+				true
 			);
 		}
 		if (! isset(
@@ -411,7 +439,8 @@ switch($req->form) {
 			$resp->notify(
 				'Password mismatch or too short',
 				'Double check your inputs',
-				ICONS['alert']
+				ICONS['alert'],
+				true
 			)->animate('dialog[open]', [
 				['transform' => 'none'],
 				['transform' => 'translateX(-5em) scale(0.9)'],
@@ -425,19 +454,22 @@ switch($req->form) {
 			$resp->notify(
 				'Something went wrong :(',
 				'Please contact us for support',
-				ICONS['bug']
+				ICONS['bug'],
+				true
 			);
 		} elseif ($user->updatePassword($reset->password)) {
 			$resp->notify(
 				"Password changed for {$user->name}",
 				'Your password has been updated and you are now signed in.',
-				new Gravatar($user->email)
+				new Gravatar($user->email),
+				true
 			)->remove('dialog[open]');
 		} else {
 			$resp->notify(
 				'There was an error updating your password',
 				'Either try again or contact us for support.',
-				ICONS['bug']
+				ICONS['bug'],
+				true
 			);
 		}
 		break;
@@ -505,7 +537,8 @@ switch($req->form) {
 			$resp->notify(
 				'Failed',
 				'Failed to update user data',
-				ICONS['bug']
+				ICONS['bug'],
+				true
 			);
 		}
 		break;
@@ -531,7 +564,8 @@ switch($req->form) {
 				$resp->notify(
 					'Cannot post comment',
 					'You seem to have your privacy settings blocking us from knowing which post you are trying to post a comment on.',
-					ICONS['comment-discussion']
+					ICONS['comment-discussion'],
+					true
 				)->send();
 			} else {
 				$url = $headers->referer;
@@ -542,13 +576,15 @@ switch($req->form) {
 					$resp->notify(
 						'You cannot post on this page',
 						'You seem to by trying to comment on the home page.',
-						ICONS['comment-discussion']
+						ICONS['comment-discussion'],
+						true
 					)->send();
 				} elseif (!isset($comment->text)) {
 					$resp->notify(
 						'We seem to be missing the comment',
 						'Double check that you\'ve filled out the comment box and try again.',
-						ICONS['comment-discussion']
+						ICONS['comment-discussion'],
+						true
 					)->send();
 				}
 				$user = restore_login();
@@ -566,7 +602,12 @@ switch($req->form) {
 					Listener::commentPosted($user, $url, $comment);
 					$resp->clear('comments');
 				} else {
-					$resp->notify('There was an error posting your comment.');
+					$resp->notify(
+						'There was an error posting your comment.',
+						'Something seems to have gone wrong.',
+						ICONS['bug'],
+						true
+					);
 				}
 			}
 		} else {
@@ -758,7 +799,8 @@ switch($req->form) {
 			$resp->notify(
 				'Missing info for post',
 				'Please make sure it has a title, author, and content.',
-				ICONS['thumbsdown']
+				ICONS['thumbsdown'],
+				true
 			)->send();
 		}
 
@@ -783,7 +825,8 @@ switch($req->form) {
 				$resp->notify(
 					'Error creating category',
 					'Try an existing category or contact an admin.',
-					ICONS['bug']
+					ICONS['bug'],
+					true
 				);
 			}
 			$url = explode('/', rtrim($post->url, '/'));
@@ -848,7 +891,8 @@ switch($req->form) {
 			$resp->notify(
 				'Error updating post',
 				$e->getMessage(),
-				ICONS['bug']
+				ICONS['bug'],
+				true
 			);
 		}
 		break;
@@ -861,7 +905,8 @@ switch($req->form) {
 			$resp->notify(
 				'Double check your address',
 				'Looks like you missed some info when entering your address',
-				ICONS['credit-card']
+				ICONS['credit-card'],
+				true
 			)->focus('#ccform-billing-first-name')->send();
 		}
 		$pdo = PDO::load(DB_CREDS);
@@ -892,7 +937,8 @@ switch($req->form) {
 			$resp->notify(
 				'You do not qualify for this subscription',
 				'Please select from our out of Valley print subscriptions',
-				ICONS['credit-card']
+				ICONS['credit-card'],
+				true
 			)->focus('#ccform-subscription')->send();
 		} elseif (
 			$sub->media === 'print'
@@ -902,7 +948,8 @@ switch($req->form) {
 			$resp->notify(
 				'You do not qualify for this subscription',
 				'Please select from our local print subscriptions',
-				ICONS['credit-card']
+				ICONS['credit-card'],
+				true
 			)->focus('#ccform-subscription')->send();
 		}
 
@@ -931,7 +978,8 @@ switch($req->form) {
 				'Something went wrong',
 				'We seem to be missing information about that subscription.' .
 				PHP_EOL . 'Please contact us about this issue.',
-				ICONS['credit-card']
+				ICONS['credit-card'],
+				true
 			)->send();
 		}
 		$items = new Items();
@@ -957,7 +1005,9 @@ switch($req->form) {
 		} catch(\Exception $e) {
 			$resp->notify(
 				'We are sorry, but there was an error',
-				'Please contact us for help with your subscription.'
+				'Please contact us for help with your subscription.',
+				ICONS['bug'],
+				true
 			)->send();
 		}
 
@@ -1030,7 +1080,8 @@ switch($req->form) {
 			$resp->notify(
 				'There was an error processing your subscription',
 				$response,
-				ICONS['credit-card']
+				ICONS['credit-card'],
+				true
 			);
 
 			if (DEBUG) {
