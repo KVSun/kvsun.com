@@ -104,10 +104,11 @@ if ($header->accept === 'application/json') {
 
 			case 'author_list':
 				$pdo = PDO::load(DB_CREDS);
-				$stm = $pdo->prepare('SELECT `name`
+				$stm = $pdo->prepare('SELECT DISTINCT(`name`)
 					FROM `user_data`
 					JOIN `subscribers` ON `subscribers`.`id` = `user_data`.`id`
-					WHERE `subscribers`.`status` <= :role;'
+					WHERE `subscribers`.`status` <= :role
+					UNION SELECT DISTINCT(`author`) FROM `posts`;'
 				);
 				$stm->role = get_role_id('freelancer');
 				$authors = $stm->execute()->getResults();
@@ -180,7 +181,7 @@ if ($header->accept === 'application/json') {
 
 					$resp->showModal('#login-dialog');
 					$resp->send();
-				} elseif ($user->hasPermission('paidArticles') or true) {
+				} elseif ($user->hasPermission('paidArticles') and ! DEBUG) {
 					$resp->notify(
 						'You do not need to subscribe',
 						"Your subscription has not yet expired",
