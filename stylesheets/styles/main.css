@@ -41,7 +41,21 @@ section.category {
 		flex: 2 0 40%;
 	}
 }
-
+article {
+	transform-origin: top;
+	animation: scale 800ms;
+}
+dialog[open] {
+	animation: show-dialog 600ms;
+}
+@keyframes show-dialog {
+	from {
+		transform: translateX(50vw) translateY(50vh) scale(0.1);
+	}
+	to {
+		transform: none;
+	}
+}
 /*#news {
 	font-family: GNUTypewriter;
 }

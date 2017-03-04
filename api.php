@@ -183,12 +183,6 @@ if ($header->accept === 'application/json') {
 				$dialog = user_update_form($user);
 				$resp->append('body', "$dialog");
 				$resp->showModal("#{$dialog->id}");
-				$resp->animate("#{$dialog->id}", [
-					['transform' => 'translateX(50vw) translateY(50vh) scale(0.1)'],
-					['transform' => 'none'],
-				], [
-					'duration' => 300,
-				]);
 				break;
 
 			case 'ccform':
