@@ -3,13 +3,9 @@ import {supportsAsClasses} from './std-js/support_test.es6';
 import {default as $, zQ} from './std-js/zq.es6';
 import * as mutations from './mutations.es6';
 import {popstate} from './kvsapi.es6';
-import PromisePolyfill from './es6-promise/dist/es6-promise.js';
+import './es6-promise/dist/es6-promise.js';
 import * as WebAPI from './WebAPI.es6';
 import * as URLUtils from './URLUtils.es6';
-
-if (!(window.Promise instanceof Function)) {
-	window.Promise = PromisePolyfill;
-}
 
 if (!(window.URLSearchParams instanceof Function)) {
 	window.URL = URLUtils.URL;

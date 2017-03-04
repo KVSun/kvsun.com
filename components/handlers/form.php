@@ -68,6 +68,7 @@ if (
 ) {
 	$req = new FormData($_REQUEST);
 } else {
+	http_response_code(HTTP::BAD_REQUEST);
 	$resp->notify(
 		'Error submitting form',
 		'Form name does not match submitted data.'
@@ -179,6 +180,7 @@ switch($req->form) {
 							'Reloading'
 						)->reload();
 					} else {
+						http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 						$resp->notify(
 							'Could not save credentials. Check permissions',
 							"`# chmod -R '{$_SERVER['DOCUMENT_ROOT']}'`" . PHP_EOL
@@ -190,6 +192,7 @@ switch($req->form) {
 						);
 					}
 				} else {
+					http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 					$resp->notify(
 						'There was an error installing',
 						'Database connection was successfully made, but there
@@ -199,6 +202,7 @@ switch($req->form) {
 					);
 				}
 			} else {
+				http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 				$resp->notify(
 					'Error installing',
 					'Double check your database credentials and make sure that
@@ -209,6 +213,7 @@ switch($req->form) {
 				)->focus('#install-db-user');
 			}
 		} catch(\Exception $e) {
+			http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 			trigger_error($e->getMessage());
 		} finally {
 			$resp->send();
@@ -218,12 +223,16 @@ switch($req->form) {
 
 	case 'install-form':
 		if (!is_dir(CONFIG)) {
+			http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 			$resp->notify('Config dir does not exist', CONFIG);
 		} elseif (! is_writable(CONFIG)) {
+			http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 			$resp->notify('Cannot write to config directory', CONFIG);
 		} elseif (file_exists(DB_CREDS)) {
+			http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 			$resp->notify('Already installed', 'Database config file exists.');
 		} elseif (! file_exists(DB_INSTALLER)) {
+			http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 			$resp->notify('SQL file not found', 'Please restore "default.sql" using Git.');
 		} else {
 			$installer = $_POST['install-form'];
@@ -239,6 +248,7 @@ switch($req->form) {
 						if (empty($pdo->showTables())) {
 							$pdo->restore(DB_INSTALLER);
 							if (! $pdo->showTables()) {
+								http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 								$resp->notify(
 									'Error',
 									'Could not restore database.',
@@ -266,6 +276,7 @@ switch($req->form) {
 							$resp->reload();
 						}
 					} else {
+						http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 						$resp->notify(
 							'Error',
 							'Could not connect to database using given credentials.',
@@ -275,6 +286,7 @@ switch($req->form) {
 						unlink(DB_CREDS);
 					}
 				} catch(\Exception $e) {
+					http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 					$resp->notify(
 						'Error',
 						$e->getMessage(),
@@ -283,6 +295,7 @@ switch($req->form) {
 					);
 				}
 			} else {
+				http_response_code(HTTP::BAD_REQUEST);
 				$resp->notify('Missing input', 'Please fill out the form correctly.');
 			}
 		}
@@ -294,6 +307,7 @@ switch($req->form) {
 		if ($user($req->login->email, $req->login->password)) {
 			Listener::login($user, isset($req->login->remember));
 		} else {
+			http_response_code(HTTP::BAD_REQUEST);
 			$resp->notify(
 				'Login Rejected',
 				'Double check your username & password',
@@ -365,6 +379,7 @@ switch($req->form) {
 				if ($user($req->register->email, $req->register->password)) {
 					Listener::login($user);
 				} else {
+					http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 					$resp->notify(
 						'Error registering',
 						'There was an error saving your user info',
@@ -373,9 +388,11 @@ switch($req->form) {
 					);
 				}
 			} catch(\Exception $e) {
+				http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 				Console::error($e);
 			}
 		} else {
+			http_response_code(HTTP::BAD_REQUEST);
 			$resp->notify(
 				'Invalid registration entered',
 				'Please check your inputs',
@@ -396,6 +413,7 @@ switch($req->form) {
 				true
 			)->remove('#forgot_password_dialog');
 		} else {
+			http_response_code(HTTP::BAD_REQUEST);
 			$resp->notify(
 				'Missing user info',
 				'Double check your input and try again',
@@ -424,6 +442,7 @@ switch($req->form) {
 			and $user = User::search(DB_CREDS, $username)
 			and isset($user->username, $user->email, $user->name)
 		)) {
+			http_response_code(HTTP::BAD_REQUEST);
 			$resp->notify(
 				'Invalid request',
 				'Could not find that user',
@@ -437,6 +456,7 @@ switch($req->form) {
 		) or ($reset->password !== $reset->repeat)
 			or ! preg_match('/^.{8,}$/', $reset->password)
 		) {
+			http_response_code(HTTP::BAD_REQUEST);
 			$resp->notify(
 				'Password mismatch or too short',
 				'Double check your inputs',
@@ -452,6 +472,7 @@ switch($req->form) {
 				'iterations' => 3,
 			])->focus('#password-reset-password');
 		} elseif(! $signer->verifyFormSignature($_POST['password-reset'])) {
+			http_response_code(HTTP::UNAUTHORIZED);
 			$resp->notify(
 				'Something went wrong :(',
 				'Please contact us for support',
@@ -466,6 +487,7 @@ switch($req->form) {
 				true
 			)->remove('dialog[open]');
 		} else {
+			http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 			$resp->notify(
 				'There was an error updating your password',
 				'Either try again or contact us for support.',
@@ -535,6 +557,7 @@ switch($req->form) {
 			);
 			$resp->remove('#update-user-dialog');
 		} else {
+			http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 			$resp->notify(
 				'Failed',
 				'Failed to update user data',
@@ -562,6 +585,7 @@ switch($req->form) {
 		if (user_can('comment')) {
 			$headers = Headers::getInstance();
 			if (!isset($headers->referer)) {
+				http_response_code(HTTP::UNAUTHORIZED);
 				$resp->notify(
 					'Cannot post comment',
 					'You seem to have your privacy settings blocking us from knowing which post you are trying to post a comment on.',
@@ -574,6 +598,7 @@ switch($req->form) {
 				if (!filter_var($url, FILTER_VALIDATE_URL, [
 					'flags' => FILTER_FLAG_PATH_REQUIRED
 				])) {
+					http_response_code(HTTP::BAD_REQUEST);
 					$resp->notify(
 						'You cannot post on this page',
 						'You seem to by trying to comment on the home page.',
@@ -581,6 +606,7 @@ switch($req->form) {
 						true
 					)->send();
 				} elseif (!isset($comment->text)) {
+					http_response_code(HTTP::BAD_REQUEST);
 					$resp->notify(
 						'We seem to be missing the comment',
 						'Double check that you\'ve filled out the comment box and try again.',
@@ -603,6 +629,7 @@ switch($req->form) {
 					Listener::commentPosted($user, $url, $comment);
 					$resp->clear('comments');
 				} else {
+					http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 					$resp->notify(
 						'There was an error posting your comment.',
 						'Something seems to have gone wrong.',
@@ -612,6 +639,7 @@ switch($req->form) {
 				}
 			}
 		} else {
+			http_response_code(HTTP::UNAUTHORIZED);
 			$resp->notify('You must be logged in to comment.');
 			$resp->showModal('#login-dialog');
 		}
@@ -619,6 +647,7 @@ switch($req->form) {
 
 	case 'comment-moderator-form':
 		if (! user_can('moderateComments')) {
+			http_response_code(HTTP::UNAUTHORIZED);
 			$resp->notify(
 				"I'm afraid I can't let you do that, Dave",
 				'You are not authorized to moderate comments.',
@@ -648,6 +677,7 @@ switch($req->form) {
 					ICONS['comment-discussion']
 				);
 			} catch (\Throwable $e) {
+				http_response_code(HTTP::UNAUTHORIZED);
 				trigger_error($e->getMessage());
 				$resp->notify(
 					'Error updating comments',
@@ -668,6 +698,7 @@ switch($req->form) {
 		$post = new FormData($_POST['new-post']);
 
 		if (! isset($post->author, $post->title, $post->content, $post->category)) {
+			http_response_code(HTTP::BAD_REQUEST);
 			$resp->notify(
 				'Missing info for post',
 				'Please make sure it has a title, author, and content.',
@@ -706,6 +737,7 @@ switch($req->form) {
 		);';
 		try {
 			if (! (category_exists($post->category) or make_category($post->category))) {
+				http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 				$resp->notify(
 					'Error creating category',
 					'Try an existing category or contact an admin.',
@@ -769,6 +801,7 @@ switch($req->form) {
 				Listener::contentPosted(get_cat_id($post->category));
 				$resp->reload();
 			} else {
+				http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 				$err = join(PHP_EOL, $stm->errorInfo());
 				trigger_error($err);
 				$resp->notify(
@@ -778,6 +811,7 @@ switch($req->form) {
 				);
 			}
 		} catch (\Throwable $e) {
+			http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 			trigger_error($e->getMessage());
 			$resp->notify('There was an error creating post', $e->getMessage());
 		}
@@ -797,6 +831,7 @@ switch($req->form) {
 				'flags' => FILTER_FLAG_PATH_REQUIRED,
 			])
 		) {
+			http_response_code(HTTP::BAD_REQUEST);
 			$resp->notify(
 				'Missing info for post',
 				'Please make sure it has a title, author, and content.',
@@ -823,6 +858,7 @@ switch($req->form) {
 
 		try {
 			if (! (category_exists($post->category) or make_category($post->category))) {
+				http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 				$resp->notify(
 					'Error creating category',
 					'Try an existing category or contact an admin.',
@@ -888,6 +924,7 @@ switch($req->form) {
 			}
 		} catch (\Throwable $e) {
 			$pdo->rollBack();
+			http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 			trigger_error($e->getMessage());
 			$resp->notify(
 				'Error updating post',
@@ -943,6 +980,7 @@ switch($req->form) {
 				and $sub->local
 				and ! in_array(intval($req->ccform->billing->zip), LOCAL_ZIPS)
 			) {
+				http_response_code(HTTP::BAD_REQUEST);
 				$resp->notify(
 					'You do not qualify for this subscription',
 					'Please select from our out of Valley print subscriptions',
@@ -954,6 +992,7 @@ switch($req->form) {
 				and !$sub->local
 				and in_array(intval($req->ccform->billing->zip), LOCAL_ZIPS)
 			) {
+				http_response_code(HTTP::BAD_REQUEST);
 				$resp->notify(
 					'You do not qualify for this subscription',
 					'Please select from our local print subscriptions',
@@ -983,6 +1022,7 @@ switch($req->form) {
 
 			$item = new Item(get_object_vars($sub));
 			if (! $item->validate()) {
+				http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 				$resp->notify(
 					'Something went wrong',
 					'We seem to be missing information about that subscription.' .
@@ -1082,6 +1122,7 @@ switch($req->form) {
 		} catch (\Throwable $e) {
 			$pdo->rollBack();
 			trigger_error($e->getMessage());
+			http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 			$resp->notify(
 				'There was an error processing your payment',
 				'Our server is experiencing difficulties for some reason.'
@@ -1098,6 +1139,7 @@ switch($req->form) {
 
 	default:
 		trigger_error('Unhandled form submission.');
+		http_response_code(HTTP::BAD_REQUEST);
 		header('Content-Type: application/json');
 		if (DEBUG) {
 			Console::info($req);

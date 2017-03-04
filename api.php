@@ -69,12 +69,14 @@ if ($header->accept === 'application/json') {
 			$page = new Article(PDO::load(DB_CREDS), "$url");
 			if (! ($page->is_free or $user->hasPermission('paidArticles'))) {
 				if (is_null($user->status)) {
+					http_response_code(HTTP::UNAUTHORIZED);
 					$resp->notify(
 						'You must be a subscriber to view this content',
 						'Please login or register to continue.',
 						DOMAIN . ICONS['sign-in']
 					)->showModal('#login-dialog')->send();
 				} else {
+					http_response_code(HTTP::PAYMENT_REQUIRED);
 					$dom = new HTML();
 					$dialog = $dom->body->append('dialog', null, [
 						'id' => 'ccform-dialog'
@@ -96,6 +98,7 @@ if ($header->accept === 'application/json') {
 				}
 			}
 		} else {
+			http_response_code(HTTP::NOT_FOUND);
 			$resp->notify(
 				'Invalid request',
 				"No content for {$url}",
@@ -103,6 +106,8 @@ if ($header->accept === 'application/json') {
 				true
 			)->send();
 		}
+
+		http_response_code($page->getStatus());
 
 		exit(json_encode($page));
 	} elseif (array_key_exists('form', $_REQUEST) and is_array($_REQUEST[$_REQUEST['form']])) {
@@ -129,7 +134,7 @@ if ($header->accept === 'application/json') {
 					FROM `user_data`
 					JOIN `subscribers` ON `subscribers`.`id` = `user_data`.`id`
 					WHERE `subscribers`.`status` <= :role
-					UNION SELECT DISTINCT(`author`) FROM `posts`;'
+					UNION SELECT DISTINCT(`author`) AS `name` FROM `posts`;'
 				);
 				$stm->role = get_role_id('freelancer');
 				$authors = $stm->execute()->getResults();
@@ -144,6 +149,7 @@ if ($header->accept === 'application/json') {
 				break;
 
 			default:
+				http_response_code(HTTP::BAD_REQUEST);
 				trigger_error("Request for unhandled list: {$_GET['list']}");
 				header('Content-Type: application/json');
 				exit('{}');
@@ -152,6 +158,8 @@ if ($header->accept === 'application/json') {
 		$menu = COMPONENTS . 'menus' . DIRECTORY_SEPARATOR . $_GET['load_menu'] . '.html';
 		if (@file_exists($menu)) {
 			$resp->append('body', file_get_contents($menu));
+		} else {
+			http_response_code(HTTP::BAD_REQUEST);
 		}
 	} elseif (array_key_exists('load_form', $_REQUEST)) {
 		switch($_REQUEST['load_form']) {
@@ -171,6 +179,7 @@ if ($header->accept === 'application/json') {
 			case 'update-user':
 				$user = User::load(DB_CREDS);
 				if (!isset($user->status)) {
+					http_response_code(HTTP::BAD_REQUEST);
 					$resp->notify(
 						'You must login for that',
 						'Cannot update data before logging in.',
@@ -188,6 +197,7 @@ if ($header->accept === 'application/json') {
 			case 'ccform':
 				$user = User::load(DB_CREDS);
 				if (!isset($user->status)) {
+					http_response_code(HTTP::BAD_REQUEST);
 					$resp->notify(
 						'You must be logged in for that',
 						'You will need to login to have an account to update',
@@ -295,6 +305,7 @@ if ($header->accept === 'application/json') {
 						$resp->showModal("#{$dialog->id}");
 					} catch (\Throwable $e) {
 						trigger_error($e->getMessage());
+						http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 						$resp->notify(
 							'There was an error',
 							$e->getMessage(),
@@ -302,6 +313,8 @@ if ($header->accept === 'application/json') {
 							true
 						);
 					}
+				} else {
+					http_response_code(HTTP::UNAUTHORIZED);
 				}
 				break;
 
@@ -323,11 +336,13 @@ if ($header->accept === 'application/json') {
 					$resp->showModal("#{$dialog->id}");
 					$resp->send();
 				} else {
+					http_response_code(HTTP::BAD_REQUEST);
 					$resp->notify('An error occured', "Request made for unknown form.");
 				}
 		}
 	} elseif(array_key_exists('upload', $_FILES)) {
 		if (! user_can('uploadMedia')) {
+			http_response_code(HTTP::UNAUTHORIZED);
 			trigger_error('Unauthorized upload attempted');
 			$resp->notify(
 				'Unauthorized',
@@ -418,9 +433,13 @@ if ($header->accept === 'application/json') {
 					]);
 				}
 				break;
+
+			default:
+				http_response_code(HTTP::BAD_REQUEST);
 		}
 	} elseif (array_key_exists('delete-comment', $_GET)) {
 		if (! user_can('moderateComments')) {
+			http_response_code(HTTP::UNAUTHORIZED);
 			$resp->notify(
 				"I'm afraid I can't let you do that, Dave",
 				'You are not authorized to moderate comments.',
@@ -430,6 +449,7 @@ if ($header->accept === 'application/json') {
 			$resp->notify('Comment deleted');
 			$resp->remove("#moderate-comments-row-{$_GET['delete-comment']}");
 		} else {
+			http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 			$resp->notify(
 				'Unable to delete comment',
 				'Check error log.',
@@ -437,6 +457,7 @@ if ($header->accept === 'application/json') {
 			);
 		}
 	} else {
+		http_response_code(HTTP::BAD_REQUEST);
 		$resp->notify(
 			'Invalid request',
 			'Try reloading or contact us to report this error',
