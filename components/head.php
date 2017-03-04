@@ -9,6 +9,7 @@ use \KVsun\KVSAPI\{Abstracts\Content as KVSAPI};
 
 return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 {
+	http_response_code($kvs->getStatus() ?? 200);
 	$dom->documentElement->itemscope = '';
 	$dom->documentElement->itemtype = 'https://schema.org/WebPage';
 	$head = $dom->head;
