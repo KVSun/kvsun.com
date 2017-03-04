@@ -69,12 +69,14 @@ if ($header->accept === 'application/json') {
 			$page = new Article(PDO::load(DB_CREDS), "$url");
 			if (! ($page->is_free or $user->hasPermission('paidArticles'))) {
 				if (is_null($user->status)) {
+					http_response_code(HTTP::UNAUTHORIZED);
 					$resp->notify(
 						'You must be a subscriber to view this content',
 						'Please login or register to continue.',
 						DOMAIN . ICONS['sign-in']
 					)->showModal('#login-dialog')->send();
 				} else {
+					http_response_code(HTTP::PAYMENT_REQUIRED);
 					$dom = new HTML();
 					$dialog = $dom->body->append('dialog', null, [
 						'id' => 'ccform-dialog'
