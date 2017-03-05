@@ -3,7 +3,7 @@ namespace KVSun\Functions;
 
 use \shgysk8zer0\Core\{PDO, Console, Listener, Gravatar, URL, Headers, FormData};
 use \shgysk8zer0\DOM\{HTML, HTMLElement, RSS};
-use \KVSun\KVSAPI\{Home, Category, Article, Picture};
+use \KVSun\KVSAPI\{Home, Category, Article, Picture, Abstracts\Content as KVSAPI};
 use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
 use \shgysk8zer0\Login\{User};
 use \shgysk8zer0\PHPCrypt\{PublicKey, PrivateKey, KeyPair, AES};
@@ -68,6 +68,37 @@ function build_dom(Array $path = array()): \DOMDocument
 	}
 	Listener::load();
 	return $dom;
+}
+
+/**
+ * Get Page content from URL
+ * @param  URL    $url Instance of URL class
+ * @return KVSAPI      Article, Category, Classifieds, etc.
+ */
+function get_page(URL $url): KVSAPI
+{
+	$path = explode('/', trim($url->path));
+	$path = array_filter($path);
+	$path = array_values($path);
+	$pdo  = PDO::load(DB_CREDS);
+
+	if (empty($path)) {
+		// This would be a request for home
+		// $categories = \KVSun\get_categories();
+		$page = new Home($pdo, "$url", get_categories('url'));
+	} elseif (count($path) === 1) {
+		switch ($path[0]) {
+			case 'classifieds':
+				$page = new Classifieds($pdo, '../Classifieds');
+				break;
+
+			default:
+				$page = new Category($pdo, "$url");
+		}
+	} elseif (count($path) === 2) {
+		$page = new Article($pdo, "$url");
+	}
+	return $page;
 }
 
 /**
@@ -1430,25 +1461,12 @@ function load(String ...$files): Array
 function load_file(String $file, String $ext = EXT)
 {
 	static $args = null;
-	$url = URL::getInstance();
-	$path = explode('/', trim($url->path));
-	$path = array_filter($path);
-	$path = array_values($path);
-
-	if (empty($path)) {
-		// This would be a request for home
-		$kvs = new Home(PDO::load(DB_CREDS), "$url", get_categories('url'));
-	} elseif (count($path) === 1) {
-		$kvs = new Category(PDO::load(DB_CREDS), "$url");
-	} else {
-		$kvs = new Article(PDO::load(DB_CREDS), "$url");
-	}
 	if (is_null($args)) {
-		$args = array(
+		$args = [
 			HTML::getInstance(),
 			PDO::load(DB_CREDS),
-			$kvs
-		);
+			get_page(URL::getInstance()),
+		];
 	}
 
 	try {
