@@ -4,6 +4,7 @@
 /keys/*.pem
 /node_modules/
 /vendor/
+/classifieds
 /stylesheets/styles/styles.css
 /images/icons.svg
 /scripts/custom.js

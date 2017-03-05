@@ -17,7 +17,7 @@
 	--border-color: #2D2D2D;
 	--default-cursor: auto;
 	--pointer: pointer;
-	
+
 	--nav-height: 2.3rem;
 	--nav-padding: 0.1rem;
 	/*========== Set background images, etc here ==========*/
@@ -52,7 +52,7 @@
 	--attachmnent-icon: 'A';
 	--fullscreen-icon: '%';
 	/*==================== Column Rules ====================*/
-	--col-width: 200px;
-	--col-gap: 3em;
+	--col-width: 350px;
+	--col-gap: 2em;
 	--col-rule: 5px dashed #333;
 }

@@ -1,4 +1,5 @@
 Options -Indexes +SymLinksIfOwnerMatch
+DirectoryIndex index.php
 php_value auto_prepend_file ./autoloader.php
 php_flag display_startup_errors off
 php_flag display_errors off

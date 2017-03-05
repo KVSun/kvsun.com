@@ -13,11 +13,12 @@ use \shgysk8zer0\Core\{
 };
 use \shgysk8zer0\DOM\{HTML, HTMLElement, RSS};
 use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
-use \KVSun\KVSAPI\{Home, Category, Article, Picture};
+use \KVSun\KVSAPI\{Home, Category, Article, Classifieds, Picture};
 use \shgysk8zer0\Login\{User};
 
 use function \KVSun\Functions\{
 	user_can,
+	get_page,
 	restore_login,
 	email,
 	get_role_id,
@@ -54,51 +55,82 @@ if ($header->accept === 'application/json') {
 	if (array_key_exists('url', $_GET)) {
 		$header->content_type = 'application/json';
 		$url = new URL($_GET['url']);
-		$path = explode('/', trim($url->path));
-		$path = array_filter($path);
-		$path = array_values($path);
-		$user = restore_login();
-
-		if (empty($path)) {
-			// This would be a request for home
-			// $categories = \KVSun\get_categories();
-			$page = new Home(PDO::load(DB_CREDS), "$url", get_categories('url'));
-		} elseif (count($path) === 1) {
-			$page = new Category(PDO::load(DB_CREDS), "$url");
-		} elseif (count($path) === 2) {
-			$page = new Article(PDO::load(DB_CREDS), "$url");
-			if (! ($page->is_free or $user->hasPermission('paidArticles'))) {
-				if (is_null($user->status)) {
-					http_response_code(HTTP::UNAUTHORIZED);
-					$resp->notify(
-						'You must be a subscriber to view this content',
-						'Please login or register to continue.',
-						DOMAIN . ICONS['sign-in']
-					)->showModal('#login-dialog')->send();
-				} else {
-					http_response_code(HTTP::PAYMENT_REQUIRED);
-					$dialog = make_dialog('ccform-dialog');
-					make_cc_form($dialog);
-					$resp->append('body', $dialog);
-					$resp->showModal("#{$dialog->id}");
-					$resp->notify(
-						'You must be a paid subscriber to view this content',
-						'Please choose from these subscription plans',
-						DOMAIN . ICONS['credit-card'],
-						true
-					);
-					$resp->send();
-				}
+		$page = get_page($url);
+		if (isset($page->is_free) and ! ($page->is_free or $user->hasPermission('paidArticles'))) {
+			if (is_null($user->status)) {
+				http_response_code(HTTP::UNAUTHORIZED);
+				$resp->notify(
+					'You must be a subscriber to view this content',
+					'Please login or register to continue.',
+					DOMAIN . ICONS['sign-in']
+				)->showModal('#login-dialog')->send();
+			} else {
+				http_response_code(HTTP::PAYMENT_REQUIRED);
+				$dialog = make_dialog('ccform-dialog');
+				make_cc_form($dialog);
+				$resp->append('body', $dialog);
+				$resp->showModal("#{$dialog->id}");
+				$resp->notify(
+					'You must be a paid subscriber to view this content',
+					'Please choose from these subscription plans',
+					DOMAIN . ICONS['credit-card'],
+					true
+				);
+				$resp->send();
 			}
-		} else {
-			http_response_code(HTTP::NOT_FOUND);
-			$resp->notify(
-				'Invalid request',
-				"No content for {$url}",
-				DOMAIN . ICONS['circle-slash'],
-				true
-			)->send();
 		}
+		// $path = explode('/', trim($url->path));
+		// $path = array_filter($path);
+		// $path = array_values($path);
+		// $user = restore_login();
+		//
+		// if (empty($path)) {
+		// 	// This would be a request for home
+		// 	// $categories = \KVSun\get_categories();
+		// 	$page = new Home(PDO::load(DB_CREDS), "$url", get_categories('url'));
+		// } elseif (count($path) === 1) {
+		// 	switch ($path[0]) {
+		// 		case 'classifieds':
+		// 			$page = new Classifieds(PDO::load(DB_CREDS), '../Classifieds');
+		// 			break;
+		//
+		// 		default:
+		// 			$page = new Category(PDO::load(DB_CREDS), "$url");
+		// 	}
+		// } elseif (count($path) === 2) {
+		// 	$page = new Article(PDO::load(DB_CREDS), "$url");
+		// 	if (isset($page->is_free) and ! ($page->is_free or $user->hasPermission('paidArticles'))) {
+		// 		if (is_null($user->status)) {
+		// 			http_response_code(HTTP::UNAUTHORIZED);
+		// 			$resp->notify(
+		// 				'You must be a subscriber to view this content',
+		// 				'Please login or register to continue.',
+		// 				DOMAIN . ICONS['sign-in']
+		// 			)->showModal('#login-dialog')->send();
+		// 		} else {
+		// 			http_response_code(HTTP::PAYMENT_REQUIRED);
+		// 			$dialog = make_dialog('ccform-dialog');
+		// 			make_cc_form($dialog);
+		// 			$resp->append('body', $dialog);
+		// 			$resp->showModal("#{$dialog->id}");
+		// 			$resp->notify(
+		// 				'You must be a paid subscriber to view this content',
+		// 				'Please choose from these subscription plans',
+		// 				DOMAIN . ICONS['credit-card'],
+		// 				true
+		// 			);
+		// 			$resp->send();
+		// 		}
+		// 	}
+		// } else {
+		// 	http_response_code(HTTP::NOT_FOUND);
+		// 	$resp->notify(
+		// 		'Invalid request',
+		// 		"No content for {$url}",
+		// 		DOMAIN . ICONS['circle-slash'],
+		// 		true
+		// 	)->send();
+		// }
 
 		http_response_code($page->getStatus());
 

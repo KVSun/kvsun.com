@@ -124,6 +124,10 @@ function updateContent(json) {
 		makeCategory(json.data);
 		break;
 
+	case 'classifieds':
+		makeClassifieds(json.data);
+		break;
+
 	default:
 		throw new Error(`Unsupported response type: ${json.type}`);
 	}
@@ -230,6 +234,46 @@ function makeHome(cats) {
 			main.appendChild(document.importNode(template, true));
 		}
 	});
+}
+
+function makeClassifieds(data) {
+	const main = document.querySelector('main');
+	const container = document.createElement('div');
+	let details = {};
+
+	container.class = 'classifieds';
+	container.dataset.cols = 'auto';
+
+	Object.keys(data.categories).forEach(i => {
+		if ((i in data.content) || (i in data.ads)) {
+			let summary = document.createElement('summary');
+			let title = document.createElement('b');
+			summary.appendChild(title);
+			details[i] = document.createElement('details');
+			details[i].setAttribute('open', '');
+			title.textContent = data.categories[i];
+			details[i].appendChild(summary);
+			container.appendChild(details[i]);
+		}
+		if (i in data.content) {
+			details[i].innerHTML += data.content[i];
+		}
+		if (i in data.ads) {
+			try {
+				data.ads[i].forEach(ad => {
+					let img = document.createElement('img');
+					img.at = ad.text;
+					img.src = new URL(ad.image, location.origin);
+					img.title = ad.text;
+					details[i].appendChild(img);
+				});
+			} catch (e) {
+				console.error(e);
+			}
+		}
+	});
+	Array.from(main.children).forEach(child => child.remove());
+	main.appendChild(container);
 }
 
 function makeArticle(post) {
