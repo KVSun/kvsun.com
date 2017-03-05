@@ -3,7 +3,14 @@ namespace KVSun\Functions;
 
 use \shgysk8zer0\Core\{PDO, Console, Listener, Gravatar, URL, Headers, FormData};
 use \shgysk8zer0\DOM\{HTML, HTMLElement, RSS};
-use \KVSun\KVSAPI\{Home, Category, Article, Picture, Abstracts\Content as KVSAPI};
+use \KVSun\KVSAPI\{
+	Home,
+	Category,
+	Article,
+	Classifieds,
+	Picture,
+	Abstracts\Content as KVSAPI
+};
 use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
 use \shgysk8zer0\Login\{User};
 use \shgysk8zer0\PHPCrypt\{PublicKey, PrivateKey, KeyPair, AES};
