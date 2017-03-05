@@ -1,11 +1,73 @@
 import * as fileUpload from './fileupload.es6';
-function buildArticleForm() {
+function buildArticleForm(name) {
 	const form = document.createElement('form');
+	const template = getTemplate('article-template');
+	const fieldset = document.createElement('fieldset');
+	const details = document.createElement('details');
+	const summary = document.createElement('summary');
+	const legend = document.createElement('legend');
+	const freeLabel = document.createElement('label');
+	const free = document.createElement('input');
+	const draftLabel = document.createElement('label');
+	const draft = document.createElement('input');
+	const keywords = document.createElement('input');
+	const description = document.createElement('textarea');
+	const keywordsLabel = document.createElement('label');
+	const descriptionLabel = document.createElement('label');
+	form.appendChild(fieldset);
+	fieldset.appendChild(legend);
+	fieldset.appendChild(details);
+	details.appendChild(summary);
+	details.appendChild(descriptionLabel);
+	details.appendChild(document.createElement('br'));
+	details.appendChild(description);
+	details.appendChild(document.createElement('br'));
+	details.appendChild(keywordsLabel);
+	details.appendChild(keywords);
+	details.appendChild(document.createElement('br'));
+	details.appendChild(free);
+	details.appendChild(freeLabel);
+	details.appendChild(document.createElement('br'));
+	details.appendChild(draft);
+	details.appendChild(draftLabel);
+	details.setAttribute('open', 'true');
+	summary.textContent = 'Show/hide options';
+	form.name = name;
+	form.action = new URL('api.php', location.origin);
+	form.method = 'POST';
 	form.addEventListener('dragOver', fileUpload.dragOverHandler);
 	form.addEventListener('dragEnd', fileUpload.dragEndHandler);
 	form.addEventListener('drop', fileUpload.dropHandler);
-	const template = getTemplate('article-template');
+	legend.textContent = 'Article options';
+	description.name = `${form.name}[description]`;
+	description.id = `${form.name}-description`;
+	description.placeholder = 'Article description (max 140 characters)';
+	description.setAttribute('maxlength', 140);
+	descriptionLabel.setAttribute('for', description.id);
+	descriptionLabel.textContent = 'Description';
+	description.autocomplete = false;
+	keywords.name = `${form.name}[keywords]`;
+	keywords.id = `${form.name}-keywords`;
+	keywords.placeholder = 'Article keywords/tags';
+	keywords.pattern = '[\\w ]+(,[\\w ]+)*';
+	keywords.autocomplete = false;
+	keywordsLabel.textContent = 'Keywords: ';
+	keywordsLabel.setAttribute('for', keywords.id);
+	draft.name = `${form.name}[draft]`;
+	draft.id = `${form.name}-draft`;
+	draftLabel.textContent = 'Draft?';
+	draftLabel.setAttribute('for', draft.id);
+	draft.type = 'checkbox';
+	free.name = `${form.name}[free]`;
+	free.type = 'checkbox';
+	free.id = `${form.name}-free`;
+	freeLabel.setAttribute('for', free.id);
+	freeLabel.textContent = 'Free?';
 	form.appendChild(template);
+	form.querySelector('footer').hidden = true;
+	form.querySelector('[itemprop="publisher"]').hidden = true;
+	form.querySelector('nav').hidden = true;
+
 	return form;
 }
 
@@ -24,10 +86,7 @@ function getTemplate(templateID) {
 
 export function makePost() {
 	const main = document.querySelector('main');
-	const form = buildArticleForm('article-template');
-	form.name = 'new-post';
-	form.action = new URL('api.php', location.origin);
-	form.method = 'POST';
+	const form = buildArticleForm('new-post');
 	try {
 		const header = form.querySelector('header');
 		const title = header.querySelector('[itemprop="headline"]').appendChild(document.createElement('input'));
@@ -35,7 +94,7 @@ export function makePost() {
 		const category = header.querySelector('[itemprop="articleSection"]').appendChild(document.createElement('input'));
 		const content = form.querySelector('[itemprop="articleBody"]');
 		const submit = form.appendChild(document.createElement('button'));
-		form.querySelector('footer').hidden = true;
+		Array.from(form.querySelectorAll('footer, nav')).forEach(el => el.hidden);
 		title.name = `${form.name}[title]`;
 		title.autocomplete = 'off';
 		title.required = true;
@@ -64,19 +123,28 @@ export function makePost() {
 	}
 }
 
-export function updatePost() {
+export async function updatePost() {
 	const main = document.querySelector('main');
-	if (main.querySelectorAll('[itemprop="mainEntityOfPage"]').length === 0) {
+	const url = new URL('api.php', location.origin);
+	const headers = new Headers();
+	url.searchParams.set('url', location.href);
+	headers.set('Accept', 'application/json');
+	let resp = await fetch(url, {
+		headers,
+		credentials: 'include'
+	});
+	if (resp.headers.get('Content-Type') !== 'application/json') {
+		throw new Error('Unsupported Content-Type in response');
+	}
+	const post = await resp.json();
+	if (post.type !== 'article') {
 		new Notification('Cannot edit post.', {
 			body: 'There is no post to edit.',
 			icon: '/images/octicons/lib/svg/circle-slash.svg'
 		});
 		return;
 	}
-	const form = buildArticleForm('article-template');
-	form.name = 'update-post';
-	form.action = new URL('api.php', location.origin);
-	form.method = 'POST';
+	const form = buildArticleForm('update-post');
 	try {
 		const header = form.querySelector('header');
 		const title = header.querySelector('[itemprop="headline"]').appendChild(document.createElement('input'));
@@ -85,7 +153,10 @@ export function updatePost() {
 		const content = form.querySelector('[itemprop="articleBody"]');
 		const submit = form.appendChild(document.createElement('button'));
 		const postURL = form.appendChild(document.createElement('input'));
-		form.querySelector('footer').hidden = true;
+		form.querySelector(`#${form.name}-keywords`).value = post.data.keywords.join(', ');
+		form.querySelector(`#${form.name}-description`).value = post.data.description;
+		form.querySelector(`#${form.name}-free`).checked = post.data.is_free;
+		form.querySelector(`#${form.name}-draft`).checked = post.data.draft;
 		title.name = `${form.name}[title]`;
 		title.autocomplete = 'off';
 		title.required = true;
@@ -96,7 +167,7 @@ export function updatePost() {
 		author.autocomplete = 'off';
 		author.setAttribute('list', 'author_list');
 		category.name = `${form.name}[category]`;
-		category.value = main.querySelector('[itemprop="articleSection"]').textContent;
+		category.value = post.data.category.name;
 		category.pattern = '[\\w ]+';
 		category.required = true;
 		category.autocomplete = 'off';
@@ -107,9 +178,9 @@ export function updatePost() {
 		content.dataset.inputName = `${form.name}[content]`;
 		submit.type = 'submit';
 		submit.textContent = 'Publish';
-		title.value = main.querySelector('[itemprop="headline"]').textContent;
-		author.value = main.querySelector('[itemprop="author"]').textContent;
-		content.innerHTML = main.querySelector('[itemprop="articleBody"]').innerHTML;
+		title.value = post.data.title;
+		author.value = post.data.author;
+		content.innerHTML = post.data.content;
 		postURL.type = 'hidden';
 		postURL.name = `${form.name}[url]`;
 		postURL.value = location.href;

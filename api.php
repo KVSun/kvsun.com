@@ -27,7 +27,7 @@ use function \KVSun\Functions\{
 	user_update_form,
 	make_cc_form,
 	make_datalist,
-	make_picture
+	make_dialog
 };
 
 use const \KVSun\Consts\{
@@ -77,14 +77,7 @@ if ($header->accept === 'application/json') {
 					)->showModal('#login-dialog')->send();
 				} else {
 					http_response_code(HTTP::PAYMENT_REQUIRED);
-					$dom = new HTML();
-					$dialog = $dom->body->append('dialog', null, [
-						'id' => 'ccform-dialog'
-					]);
-					$dialog->append('button', null, [
-						'type' => 'button',
-						'data-delete' => "#{$dialog->id}",
-					]);
+					$dialog = make_dialog('ccform-dialog');
 					make_cc_form($dialog);
 					$resp->append('body', $dialog);
 					$resp->showModal("#{$dialog->id}");
@@ -164,13 +157,7 @@ if ($header->accept === 'application/json') {
 	} elseif (array_key_exists('load_form', $_REQUEST)) {
 		switch($_REQUEST['load_form']) {
 			case 'forgot_password':
-				$doc = new HTML;
-				$dialog = $doc->body->append('dialog');
-				$dialog->id = 'forgot_password_dialog';
-				$dialog->append('button', null, [
-					'data-delete' => "#{$dialog->id}",
-				]);
-				$dialog->append('hr');
+				$dialog = make_dialog('forgot_password_dialog');
 				$dialog->importHTMLFile(COMPONENTS . DIRECTORY_SEPARATOR . 'forms' . DIRECTORY_SEPARATOR . 'forgot_password.html');
 				$resp->append('body', $dialog);
 				$resp->showModal("#{$dialog->id}");
@@ -215,14 +202,7 @@ if ($header->accept === 'application/json') {
 					)->send();
 				}
 
-				$dom = new HTML();
-				$dialog = $dom->body->append('dialog', null, [
-					'id' => 'ccform-dialog'
-				]);
-				$dialog->append('button', null, [
-					'type' => 'button',
-					'data-delete' => "#{$dialog->id}",
-				]);
+				$dialog = make_dialog('ccform-dialog');
 				make_cc_form($dialog);
 				$resp->append('body', $dialog);
 				$resp->showModal("#{$dialog->id}");
@@ -232,14 +212,7 @@ if ($header->accept === 'application/json') {
 				if (user_can('moderateComments')) {
 					try {
 						$comments = get_comments();
-						$doc = new HTML;
-						$dialog = $doc->body->append('dialog', null, [
-							'id' => 'comment-moderator',
-						]);
-						$dialog->append('button', null, [
-							'data-delete' => "#{$dialog->id}",
-						]);
-						$dialog->append('hr');
+						$dialog = make_dialog('comment-moderator');
 						$form = $dialog->append('form', null, [
 							'name' => 'comment-moderator-form',
 							'action' => DOMAIN . 'api.php',
@@ -322,15 +295,7 @@ if ($header->accept === 'application/json') {
 			// All HTML forms in forms/ should be considered publicly available
 				if (@file_exists("./components/forms/{$_REQUEST['load_form']}.html")) {
 					$form = file_get_contents("./components/forms/{$_REQUEST['load_form']}.html");
-					$dom = new HTML();
-					$dialog = $dom->body->append('dialog', null, [
-						'id' => "{$_REQUEST['load_form']}-dialog",
-					]);
-					$dialog->append('button', null, [
-						'type'        => 'button',
-						'data-delete' => "#{$dialog->id}",
-					]);
-					$dialog->append('br');
+					$dialog = make_dialog("{$_REQUEST['load_form']}-dialog");
 					$dialog->importHTML($form);
 					$resp->append('body', "{$dialog}");
 					$resp->showModal("#{$dialog->id}");
