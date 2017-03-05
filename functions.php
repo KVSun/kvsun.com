@@ -242,6 +242,7 @@ function add_post(FormData $post, PDO $pdo): Bool
 	$pdo->beginTransaction();
 	$stm = $pdo->prepare(
 		'INSERT INTO `posts` (
+			`sort`,
 			`cat-id`,
 			`title`,
 			`author`,
@@ -256,6 +257,7 @@ function add_post(FormData $post, PDO $pdo): Bool
 			`keywords`,
 			`description`
 		) VALUES (
+			:sort,
 			:cat,
 			:title,
 			:author,
@@ -270,6 +272,7 @@ function add_post(FormData $post, PDO $pdo): Bool
 			:keywords,
 			:description
 		) ON DUPLICATE KEY UPDATE
+			`sort`        = COALESCE(:sort,        `sort`),
 			`cat-id`      = COALESCE(:cat,         `cat-id`),
 			`title`       = COALESCE(:title,       `title`),
 			`author`      = COALESCE(:author,      `author`),
@@ -295,6 +298,7 @@ function add_post(FormData $post, PDO $pdo): Bool
 			$url = urlencode(strtolower(str_replace(' ', '-', strip_tags($post->title))));
 		}
 		$stm->title = strip_tags($post->title);
+		$stm->sort = $post->sort ?? 1;
 		$stm->cat = get_cat_id($post->category);
 		$stm->author = strip_tags($post->author);
 		$stm->draft = isset($post->draft) and $user->hasPermission('skipApproval');
