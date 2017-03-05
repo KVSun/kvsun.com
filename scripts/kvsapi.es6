@@ -247,9 +247,11 @@ function makeClassifieds(data) {
 	Object.keys(data.categories).forEach(i => {
 		if ((i in data.content) || (i in data.ads)) {
 			let summary = document.createElement('summary');
+			let title = document.createElement('b');
+			summary.appendChild(title);
 			details[i] = document.createElement('details');
 			details[i].setAttribute('open', '');
-			summary.textContent = data.categories[i];
+			title.textContent = data.categories[i];
 			details[i].appendChild(summary);
 			container.appendChild(details[i]);
 		}
