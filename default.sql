@@ -56,6 +56,21 @@ CREATE TABLE `categories` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `classifieds`
+--
+
+DROP TABLE IF EXISTS `classifieds`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `classifieds` (
+  `id` int(3) NOT NULL,
+  `name` varchar(30) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `head`
 --
 
@@ -91,7 +106,7 @@ CREATE TABLE `images` (
   `uploadedBy` int(13) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `imgPath` (`path`)
-) ENGINE=InnoDB AUTO_INCREMENT=100 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=111 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -164,6 +179,7 @@ DROP TABLE IF EXISTS `posts`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `posts` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sort` tinyint(1) NOT NULL DEFAULT '1',
   `cat-id` int(2) NOT NULL,
   `title` varchar(120) NOT NULL,
   `author` varchar(45) NOT NULL,
@@ -179,7 +195,7 @@ CREATE TABLE `posts` (
   `description` varchar(160) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `url` (`url`)
-) ENGINE=InnoDB AUTO_INCREMENT=31 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=36 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -212,7 +228,7 @@ CREATE TABLE `srcset` (
   `format` varchar(15) NOT NULL DEFAULT 'image/jpeg',
   `filesize` int(6) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=274 DEFAULT CHARSET=latin1;
+) ENGINE=InnoDB AUTO_INCREMENT=289 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -315,4 +331,4 @@ CREATE TABLE `users` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2017-03-03 11:47:37
+-- Dump completed on 2017-03-05 11:03:11
