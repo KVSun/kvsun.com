@@ -31,6 +31,7 @@ use \KVSun\KVSAPI\{Picture};
 use function \KVSun\Functions\{
 	restore_login,
 	user_can,
+	add_post,
 	get_role_id,
 	email,
 	password_reset_email,
@@ -38,7 +39,9 @@ use function \KVSun\Functions\{
 	category_exists,
 	make_category,
 	get_cat_id,
-	get_img_id
+	get_img_id,
+	make_dialog,
+	make_cc_form
 };
 
 use const \KVSun\Consts\{
@@ -355,7 +358,7 @@ switch($req->form) {
 					`id`,
 					`name`
 				) VALUES (
-					LAST_INSERT_ID(),
+					:id,
 					:name
 				);');
 				$subscribers = $pdo->prepare('INSERT INTO `subscribers` (
@@ -363,7 +366,7 @@ switch($req->form) {
 					`status`,
 					`sub_expires`
 				) VALUES (
-					LAST_INSERT_ID(),
+					:id,
 					:status,
 					NULL
 				);');
@@ -372,12 +375,24 @@ switch($req->form) {
 					'username' => strtolower($req->register->username),
 					'password' => password_hash($req->register->password, PASSWORD_DEFAULT)
 				]);
-				$user_data->execute(['name' => $req->register->name]);
-				$subscribers->execute(['status' => get_role_id('guest')]);
+				$id = $pdo->lastInsertId();
+				$user_data->execute([
+					'name' => $req->register->name,
+					'id'   => $id,
+				]);
+				$subscribers->execute([
+					'status' => get_role_id('guest'),
+					'id'     => $id,
+				]);
 				$pdo->commit();
 				$user = User::load(DB_CREDS);
 				if ($user($req->register->email, $req->register->password)) {
+					Listener::registered($user);
 					Listener::login($user);
+					$dialog = make_dialog('ccform-dialog');
+					make_cc_form($dialog);
+					$resp->append('body', $dialog);
+					$resp->showModal("#{$dialog->id}");
 				} else {
 					http_response_code(HTTP::INTERNAL_SERVER_ERROR);
 					$resp->notify(
@@ -693,9 +708,12 @@ switch($req->form) {
 		if (! user_can('createPosts')) {
 			http_response_code(HTTP::UNAUTHORIZED);
 			$resp->notify('Error', 'You must be logged in for that.')->send();
+		} else {
+
 		}
 
-		$post = new FormData($_POST['new-post']);
+		$post = $req->{'new-post'};
+		$pdo = PDO::load(DB_CREDS);
 
 		if (! isset($post->author, $post->title, $post->content, $post->category)) {
 			http_response_code(HTTP::BAD_REQUEST);
@@ -703,117 +721,20 @@ switch($req->form) {
 				'Missing info for post',
 				'Please make sure it has a title, author, and content.',
 				ICONS['thumbsdown']
-			)->send();
-		}
-
-		$pdo = PDO::load(DB_CREDS);
-		$pdo->beginTransaction();
-		$sql = 'INSERT INTO `posts` (
-			`cat-id`,
-			`title`,
-			`author`,
-			`content`,
-			`posted`,
-			`updated`,
-			`draft`,
-			`url`,
-			`img`,
-			`posted_by`,
-			`keywords`,
-			`description`
-		) VALUES (
-			:cat,
-			:title,
-			:author,
-			:content,
-			CURRENT_TIMESTAMP,
-			CURRENT_TIMESTAMP,
-			:draft,
-			:url,
-			:img,
-			:posted,
-			:keywords,
-			:description
-		);';
-		try {
-			if (! (category_exists($post->category) or make_category($post->category))) {
-				http_response_code(HTTP::INTERNAL_SERVER_ERROR);
-				$resp->notify(
-					'Error creating category',
-					'Try an existing category or contact an admin.',
-					ICONS['bug']
-				);
-			}
-			$stm = $pdo->prepare($sql);
-			$user = restore_login();
-			$stm->title = strip_tags($post->title);
-			$stm->cat = get_cat_id($post->category);
-			$stm->author = strip_tags($post->author);
-			$stm->draft = isset($post->draft) or ! user_can('skipApproval');
-			$stm->url = urlencode(strtolower(str_replace(' ', '-', strip_tags($post->title))));
-			$stm->posted = $user->id;
-			$stm->keywords = $post->keywords ?? null;
-			$stm->description = $post->description ?? null;
-
-			$article_dom = new \DOMDocument();
-			libxml_use_internal_errors(true);
-			$article_dom->loadHTML("<div>$post->content</div>");
-			libxml_clear_errors();
-
-			if ($figures = $article_dom->getElementsByTagName('figure')) {
-				$picture = new Picture($pdo);
-				$user = restore_login();
-				$main_img = null;
-				foreach ($figures as $figure) {
-					if ($figure->hasAttribute('data-image-id')) {
-						if (is_null($main_img)) {
-							$stm->img = $figure->getAttribute('data-image-id');
-						}
-						$microdata = $picture->parseFigure($figure);
-						if (! empty($microdata)) {
-							try {
-								$picture->addImage($microdata, $user);
-							} catch (\Exception $e) {
-							trigger_error($e->getMessage());
-							}
-						}
-						$figure->removeAttribute('itemprop');
-						$figure->removeAttribute('itemtype');
-						$figure->removeAttribute('itemscope');
-						while ($figure->hasChildNodes() and $node = $figure->firstChild) {
-							$figure->removeChild($node);
-						}
-					}
-				}
-			}
-			# Need to get the content out of DOM structured `<html><body><div>$content...`
-			$stm->content = $article_dom->saveHTML($article_dom->documentElement->firstChild->firstChild);
-
-			unset($article_dom, $imgs, $img, $id, $url);
-
-			if ($stm->execute() and intval($stm->errorCode()) === 0) {
-				$pdo->commit();
-				$resp->notify(
-					'Received post',
-					$post->title,
-					ICONS['thumbsup']
-				);
-				Listener::contentPosted(get_cat_id($post->category));
-				$resp->reload();
-			} else {
-				http_response_code(HTTP::INTERNAL_SERVER_ERROR);
-				$err = join(PHP_EOL, $stm->errorInfo());
-				trigger_error($err);
-				$resp->notify(
-					'Error creating post',
-					$err,
-					ICONS['bug']
-				);
-			}
-		} catch (\Throwable $e) {
-			http_response_code(HTTP::INTERNAL_SERVER_ERROR);
-			trigger_error($e->getMessage());
-			$resp->notify('There was an error creating post', $e->getMessage());
+			);
+		} elseif (add_post($post, $pdo)) {
+			$resp->notify(
+				'Post accepted',
+				'Article has been created or updated',
+				ICONS['thumbsup']
+			)->reload();
+		} else {
+			$resp->notify(
+				'Something went wrong',
+				'Please double check your inputs and contact an admin if you need help',
+				ICONS['bug'],
+				true
+			);
 		}
 		break;
 
@@ -824,6 +745,7 @@ switch($req->form) {
 		}
 
 		$post = $req->{'update-post'};
+		$pdo = PDO::load(DB_CREDS);
 
 		if (
 			!isset($post->category, $post->title, $post->author, $post->content, $post->url)
@@ -837,98 +759,17 @@ switch($req->form) {
 				'Please make sure it has a title, author, and content.',
 				ICONS['thumbsdown'],
 				true
-			)->send();
-		}
-
-		$pdo = PDO::load(DB_CREDS);
-		$pdo->beginTransaction();
-		$stm = $pdo->prepare(
-			'UPDATE `posts` SET
-				`cat-id` = COALESCE(:cat, `cat-id`),
-				`title` = COALESCE(:title, `title`),
-				`author` = COALESCE(:author, `author`),
-				`content` = COALESCE(:content, `content`),
-				`draft` = :draft,
-				`img` = COALESCE(:img, `img`),
-				`keywords` = COALESCE(:keywords, `keywords`),
-				`description` = COALESCE(:description, `description`)
-			WHERE `url` = :url
-			LIMIT 1;'
-		);
-
-		try {
-			if (! (category_exists($post->category) or make_category($post->category))) {
-				http_response_code(HTTP::INTERNAL_SERVER_ERROR);
-				$resp->notify(
-					'Error creating category',
-					'Try an existing category or contact an admin.',
-					ICONS['bug'],
-					true
-				);
-			}
-			$url = explode('/', rtrim($post->url, '/'));
-			$stm->cat = get_cat_id($post->category);
-			$stm->title = strip_tags($post->title);
-			$stm->author = strip_tags($post->author);
-			$stm->draft = isset($post->draft);
-			$stm->keywords = isset($post->keywords) ? strip_tags($post->keywords) : null;
-			$stm->description = isset($post->description) ? strip_tags($post->description) : null;
-			$stm->url = end($url);
-			$article_dom = new \DOMDocument();
-			libxml_use_internal_errors(true);
-			$article_dom->loadHTML("<div>{$post->content}</div>");
-			libxml_clear_errors();
-
-			if ($figures = $article_dom->getElementsByTagName('figure')) {
-				$picture = new Picture($pdo);
-				$user = restore_login();
-				$main_img = null;
-				foreach ($figures as $figure) {
-					if ($figure->hasAttribute('data-image-id')) {
-						if (is_null($main_img)) {
-							$stm->img = $figure->getAttribute('data-image-id');
-						}
-						$microdata = $picture->parseFigure($figure);
-						if (! empty($microdata)) {
-							try {
-								$picture->addImage($microdata, $user);
-							} catch (\Exception $e) {
-								trigger_error($e->getMessage());
-							}
-						}
-						$figure->removeAttribute('itemprop');
-						$figure->removeAttribute('itemtype');
-						$figure->removeAttribute('itemscope');
-						while ($figure->hasChildNodes() and $node = $figure->firstChild) {
-							$figure->removeChild($node);
-						}
-					}
-				}
-			}
-
-			# Need to get the content out of DOM structured `<html><body><div>$content...`
-			$stm->content = $article_dom->saveHTML($article_dom->documentElement->firstChild->firstChild);
-			unset($article_dom, $imgs, $img, $path, $id);
-			if ($stm->execute() and intval($stm->errorCode()) === 0) {
-				$pdo->commit();
-				$resp->notify(
-					'Received post',
-					$post->title,
-					ICONS['thumbsup']
-				);
-				Listener::contentPosted(get_cat_id($post->category));
-				$resp->reload();
-			} else {
-				$err = join(PHP_EOL, $stm->errorInfo());
-				throw new \RuntimeException($err);
-			}
-		} catch (\Throwable $e) {
-			$pdo->rollBack();
-			http_response_code(HTTP::INTERNAL_SERVER_ERROR);
-			trigger_error($e->getMessage());
+			);
+		} elseif (add_post($post, $pdo)) {
 			$resp->notify(
-				'Error updating post',
-				$e->getMessage(),
+				'Post accepted',
+				'Article has been created or updated',
+				ICONS['thumbsup']
+			)->reload();
+		} else {
+			$resp->notify(
+				'Something went wrong',
+				'Please double check your inputs and contact an admin if you need help',
 				ICONS['bug'],
 				true
 			);

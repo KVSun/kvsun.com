@@ -11,19 +11,19 @@ use \KVsun\KVSAPI\{Abstracts\Content as KVSAPI};
 
 const ATTRS = array(
 	'class' => 'cat-link',
-	'role' => 'button',
+	'role'  => 'button',
 );
 
 return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 {
 	$nav = $dom->body->append('nav', null, [
-		'role' => 'navigation',
+		'role'  => 'navigation',
+		'class' => 'flex sticky',
 	]);
-	$nav->class = 'flex sticky';
 	$home = $nav->append('a', null, array_merge(ATTRS, [
 		'href'  => DOMAIN,
 		'rel'   => 'bookmark',
-		'title' => 'Home'
+		'title' => 'Home',
 	]));
 	use_icon('home', $home, [
 		'class' => 'icon'
@@ -31,6 +31,7 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 
 	$pages = $pdo('SELECT `name`, `url`, `icon` FROM `pages`');
 	$categories = $pdo('SELECT `name`, `icon`, `url-name` AS `url` FROM `categories`');
+
 	foreach($categories as $cat) {
 		if (isset($cat->icon)) {
 			$add = $nav->append('a', null, array_merge(ATTRS, [
@@ -47,6 +48,7 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 			]));
 		}
 	}
+
 	foreach($pages as $page) {
 		if (isset($page->icon)) {
 			$url = new URL($page->url);
@@ -67,6 +69,7 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 			]));
 		}
 	}
+
 	$avatar = $nav->append('img', null, [
 		'id'     => 'user-avatar',
 		'width'  => 64,
@@ -74,6 +77,7 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 		'class'  => 'round',
 		'role'   => 'button',
 	]);
+
 	$user = restore_login();
 	if (isset($user->email)) {
 		$avatar->src = new Gravatar($user->email);

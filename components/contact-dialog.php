@@ -3,15 +3,11 @@ namespace KVSun\Components\ContactDialog;
 
 use \shgysk8zer0\DOM\{HTML};
 use \shgysk8zer0\Core\{PDO, Gravatar};
+use function \KVSun\Functions\{make_dialog};
 
 return function (HTML $dom, PDO $pdo)
 {
-	$dialog = $dom->body->append('dialog');
-	$dialog->id = basename(__FILE__, '.php');
-	$dialog->append('button', null, [
-		'data-close' => "#{$dialog->id}",
-		'type'       => 'button',
-	]);
+	$dialog = make_dialog(basename(__FILE__, '.php'), $dom->body);
 
 	$users = $pdo('SELECT `user` as `email`, `name`, `position`, `tel` FROM `users`');
 	foreach ($users as $user) {

@@ -2,7 +2,7 @@
 namespace KVSun\Components\Footer;
 
 use const \KVSun\Consts\{DOMAIN, DEBUG};
-use function \KVSun\Functions\{use_icon};
+use function \KVSun\Functions\{use_icon, make_dialog};
 
 use \shgysk8zer0\DOM\HTML;
 use \shgysk8zer0\Core\PDO;
@@ -13,24 +13,8 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 	$footer = $dom->body->append('footer');
 	$package = json_decode(file_get_contents('package.json'));
 
-	$login = $footer->append('dialog', null, [
-		'id'   => 'login-dialog',
-		'role' => 'contentinfo',
-	]);
-
-	$login->append('button', null, [
-		'type' => 'button',
-		'data-close' => "#{$login->id}",
-	]);
-
-	$register = $footer->append('dialog', null, [
-		'id' => 'registration-dialog'
-	]);
-	$register->append('button', null, [
-		'type' => 'button',
-		'data-close' => "#{$register->id}",
-	]);
-	$register->append('br');
+	$login = make_dialog('login-dialog', $footer);
+	$register = make_dialog('registration-dialog', $footer);
 
 	$register->importHTMLFile('components/register.html');
 	$login->importHTMLFile('components/forms/login.html');

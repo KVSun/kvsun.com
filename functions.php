@@ -1,9 +1,9 @@
 <?php
 namespace KVSun\Functions;
 
-use \shgysk8zer0\Core\{PDO, Console, Listener, Gravatar, URL, Headers};
+use \shgysk8zer0\Core\{PDO, Console, Listener, Gravatar, URL, Headers, FormData};
 use \shgysk8zer0\DOM\{HTML, HTMLElement, RSS};
-use \KVSun\KVSAPI\{Home, Category, Article};
+use \KVSun\KVSAPI\{Home, Category, Article, Picture};
 use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
 use \shgysk8zer0\Login\{User};
 use \shgysk8zer0\PHPCrypt\{PublicKey, PrivateKey, KeyPair, AES};
@@ -228,6 +228,131 @@ function password_reset_email(User $user): Bool
 }
 
 /**
+ * Create or update a post
+ * @param  FormData $post Data for post submitted by form
+ * @param  PDO      $pdo  Database instance
+ * @return Bool           Whether or not the post was created / updated
+ */
+function add_post(FormData $post, PDO $pdo): Bool
+{
+	if (! isset($post->author, $post->title, $post->content, $post->category)) {
+		return false;
+	}
+
+	$pdo->beginTransaction();
+	$stm = $pdo->prepare(
+		'INSERT INTO `posts` (
+			`cat-id`,
+			`title`,
+			`author`,
+			`content`,
+			`posted`,
+			`updated`,
+			`draft`,
+			`isFree`,
+			`url`,
+			`img`,
+			`posted_by`,
+			`keywords`,
+			`description`
+		) VALUES (
+			:cat,
+			:title,
+			:author,
+			:content,
+			CURRENT_TIMESTAMP,
+			CURRENT_TIMESTAMP,
+			:draft,
+			:free,
+			:url,
+			:img,
+			:posted,
+			:keywords,
+			:description
+		) ON DUPLICATE KEY UPDATE
+			`cat-id`      = COALESCE(:cat,         `cat-id`),
+			`title`       = COALESCE(:title,       `title`),
+			`author`      = COALESCE(:author,      `author`),
+			`content`     = COALESCE(:content,     `content`),
+			`updated`     = CURRENT_TIMESTAMP,
+			`draft`       = :draft,
+			`isFree`      = :free,
+			`img`         = :img,
+			`keywords`    = COALESCE(:keywords,    `keywords`),
+			`description` = COALESCE(:description, `description`);'
+	);
+	try {
+		if (! (category_exists($post->category) or make_category($post->category))) {
+			return false;
+		}
+		$user = restore_login();
+		if (isset($post->url) and filter_var($post->url, FILTER_VALIDATE_URL, [
+			'flags' => FILTER_FLAG_PATH_REQUIRED,
+		])) {
+			$url = $url = explode('/', trim($post->url, '/'));
+			$url = end($url);
+		} else {
+			$url = urlencode(strtolower(str_replace(' ', '-', strip_tags($post->title))));
+		}
+		$stm->title = strip_tags($post->title);
+		$stm->cat = get_cat_id($post->category);
+		$stm->author = strip_tags($post->author);
+		$stm->draft = isset($post->draft) and $user->hasPermission('skipApproval');
+		$stm->free = isset($post->free);
+		$stm->url = trim($url, '/');
+		$stm->posted = $user->id;
+		$stm->keywords = $post->keywords ?? null;
+		$stm->description = $post->description ?? null;
+
+		$article_dom = new \DOMDocument();
+		libxml_use_internal_errors(true);
+		$article_dom->loadHTML("<div>$post->content</div>");
+		libxml_clear_errors();
+
+		if ($figures = $article_dom->getElementsByTagName('figure')) {
+			$picture = new Picture($pdo);
+			$main_img = null;
+			foreach ($figures as $figure) {
+				if ($figure->hasAttribute('data-image-id')) {
+					if (is_null($main_img)) {
+						$stm->img = $figure->getAttribute('data-image-id');
+					}
+					$microdata = $picture->parseFigure($figure);
+					if (! empty($microdata)) {
+						try {
+							$picture->addImage($microdata, $user);
+						} catch (\Exception $e) {
+						trigger_error($e->getMessage());
+						}
+					}
+					$figure->removeAttribute('itemprop');
+					$figure->removeAttribute('itemtype');
+					$figure->removeAttribute('itemscope');
+					while ($figure->hasChildNodes() and $node = $figure->firstChild) {
+						$figure->removeChild($node);
+					}
+				}
+			}
+		}
+		# Need to get the content out of DOM structured `<html><body><div>$content...`
+		$stm->content = $article_dom->saveHTML($article_dom->documentElement->firstChild->firstChild);
+
+		unset($article_dom, $imgs, $img, $id, $url);
+
+		if ($stm->execute() and intval($stm->errorCode()) === 0) {
+			$pdo->commit();
+			Listener::contentPosted(get_cat_id($post->category));
+			return true;
+		} else {
+			throw new \RuntimeException(join(PHP_EOL, $stm->errorInfo()));
+		}
+	} catch (\Throwable $e) {
+		trigger_error($e->getMessage());
+		return false;
+	}
+}
+
+/**
  * Get an array of User role names/ids
  * @return Array [{name: $name, id: $id}, ...]
  */
@@ -419,6 +544,38 @@ function get_picture(HTMLElement $parent, \stdClass $img): Bool
 	} else {
 		return false;
 	}
+}
+
+/**
+ * Creates a `<dialog>` and appends it to optional $parent
+ * @param  String      $id     The HTML ID attribute to set
+ * @param  HTMLElement $parent Optional parent element
+ * @param  Arary       $attrs  An array of additional attributes to set on `<dialog>`
+ * @return HTMLElement         The `<dialog>`
+ */
+function make_dialog(
+	String      $id,
+	HTMLElement $parent = null,
+	Array       $attrs = array()
+): HTMLElement
+{
+	// Assume that, of there is not a parent element, the dialog is to be
+	// deleted rather than closed.
+	if (is_null($parent)) {
+		$dom       = new HTML();
+		$parent    = $dom->body;
+		$data_attr = 'data-delete';
+	} else {
+		$data_attr = 'data-close';
+	}
+	$attrs['id'] = $id;
+	$dialog = $parent->append('dialog', null, $attrs);
+	$dialog->append('nav')->append('button', null, [
+		'type'     => 'button',
+		$data_attr => "#{$dialog->id}",
+	]);
+	$dialog->append('hr');
+	return $dialog;
 }
 
 /**
@@ -814,21 +971,15 @@ function get_category(String $cat, Int $limit = 20): Array
  */
 function user_update_form(User $user): \DOMElement
 {
-	$dom = new HTML();
-	$dialog = $dom->body->append('dialog', null, [
-		'id' => 'update-user-dialog',
-	]);
-	$dialog->append('br');
-	$logout = $dialog->append('button', null, [
+	$dialog = make_dialog('update-user-dialog');
+	$logout = $dialog->getElementsByTagName('nav')->item(0)->append('button', null, [
 		'type' => 'buton',
 		'title' => 'Logout',
+		'class' => 'icon',
 		'data-request' => 'action=logout',
 		'data-confirm' => 'Are you sure you want to logout?',
 	]);
 	use_icon('sign-out', $logout, ['height' => 32, 'width' => 32]);
-	$dialog->append('button', null, [
-		'data-delete' => "#{$dialog->id}",
-	]);
 
 	$form = $dialog->append('form', null, [
 		'name' => 'user-update',
