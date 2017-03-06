@@ -723,6 +723,7 @@ switch($req->form) {
 				ICONS['thumbsdown']
 			);
 		} elseif (add_post($post, $pdo)) {
+			Listener::contentPosted($post);
 			$resp->notify(
 				'Post accepted',
 				'Article has been created or updated',
@@ -761,6 +762,7 @@ switch($req->form) {
 				true
 			);
 		} elseif (add_post($post, $pdo)) {
+			Listener::contentUpdated($post);
 			$resp->notify(
 				'Post accepted',
 				'Article has been created or updated',
