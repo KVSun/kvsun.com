@@ -331,90 +331,106 @@ switch($req->form) {
 		break;
 
 	case 'register':
-		if (
-			isset(
+		try {
+			if (! isset(
 				$req->register,
 				$req->register->username,
 				$req->register->email,
 				$req->register->name,
-				$req->register->password
-			)
-			and filter_var($req->register->email, \FILTER_VALIDATE_EMAIL)
-		) {
-			try {
-				$pdo = PDO::load(DB_CREDS);
-				$pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-				$pdo->beginTransaction();
-				$users = $pdo->prepare('INSERT INTO `users` (
-					`email`,
-					`username`,
-					`password`
-				) VALUES (
-					:email,
-					:username,
-					:password
-				);');
-				$user_data = $pdo->prepare('INSERT INTO `user_data` (
-					`id`,
-					`name`
-				) VALUES (
-					:id,
-					:name
-				);');
-				$subscribers = $pdo->prepare('INSERT INTO `subscribers` (
-					`id`,
-					`status`,
-					`sub_expires`
-				) VALUES (
-					:id,
-					:status,
-					NULL
-				);');
-				$users->execute([
-					'email'    => strtolower($req->register->email),
-					'username' => strtolower($req->register->username),
-					'password' => password_hash($req->register->password, PASSWORD_DEFAULT)
-				]);
-				$id = $pdo->lastInsertId();
-				$user_data->execute([
-					'name' => $req->register->name,
-					'id'   => $id,
-				]);
-				$subscribers->execute([
-					'status' => get_role_id('guest'),
-					'id'     => $id,
-				]);
-				$pdo->commit();
-				$user = User::load(DB_CREDS);
-				if ($user($req->register->email, $req->register->password)) {
-					Listener::registered($user);
-					Listener::login($user);
-					$dialog = make_dialog('ccform-dialog');
-					make_cc_form($dialog);
-					$resp->append('body', $dialog);
-					$resp->showModal("#{$dialog->id}");
-				} else {
-					http_response_code(HTTP::INTERNAL_SERVER_ERROR);
-					$resp->notify(
-						'Error registering',
-						'There was an error saving your user info',
-						ICONS['bug'],
-						true
-					);
-				}
-			} catch(\Exception $e) {
-				http_response_code(HTTP::INTERNAL_SERVER_ERROR);
-				Console::error($e);
+				$req->register->password,
+				$req->register->repeat
+			)) {
+				throw new HTTPException('Not all required fields have been entered', HTTP::BAD_REQUEST);
+			} elseif (! filter_var($req->register->email, FILTER_VALIDATE_EMAIL)) {
+				throw new HTTPException('Invalid email address', HTTP::BAD_REQUEST);
+			} elseif (strlen($req->register->password) < 8) {
+				throw new HTTPException('Please enter a password of 8 or more characters', HTTP::BAD_REQUEST);
+			} elseif ($req->register->password !== $req->register->repeat) {
+				throw new HTTPException('Password repeat does not match', HTTP::BAD_REQUEST);
+			} elseif (! preg_match('/^[\w]{5,20}}$/', $req->register->username)) {
+				throw new HTTPException('Please enter a valid alph-numberic username [5-20 characters]', HTTP::BAD_REQUEST);
 			}
-		} else {
-			http_response_code(HTTP::BAD_REQUEST);
+			$pdo = PDO::load(DB_CREDS);
+			$pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+			$pdo->beginTransaction();
+			$users = $pdo->prepare('INSERT INTO `users` (
+				`email`,
+				`username`,
+				`password`
+			) VALUES (
+				:email,
+				:username,
+				:password
+			);');
+			$user_data = $pdo->prepare('INSERT INTO `user_data` (
+				`id`,
+				`name`
+			) VALUES (
+				:id,
+				:name
+			);');
+			$subscribers = $pdo->prepare('INSERT INTO `subscribers` (
+				`id`,
+				`status`,
+				`sub_expires`
+			) VALUES (
+				:id,
+				:status,
+				NULL
+			);');
+			$users->execute([
+				'email'    => strtolower($req->register->email),
+				'username' => strtolower($req->register->username),
+				'password' => password_hash($req->register->password, PASSWORD_DEFAULT)
+			]);
+			$id = $pdo->lastInsertId();
+			$user_data->execute([
+				'name' => $req->register->name,
+				'id'   => $id,
+			]);
+			$subscribers->execute([
+				'status' => get_role_id('guest'),
+				'id'     => $id,
+			]);
+			$pdo->commit();
+			$user = User::load(DB_CREDS);
+			if ($user($req->register->email, $req->register->password)) {
+				Listener::registered($user);
+				Listener::login($user);
+				$dialog = make_dialog('ccform-dialog');
+				make_cc_form($dialog);
+				$resp->append('body', $dialog);
+				$resp->showModal("#{$dialog->id}");
+			} else {
+				throw new \RuntimeException('Error creating user');
+			}
+		} catch (HTTPException $e) {
+			http_response_code($e->getCode());
 			$resp->notify(
-				'Invalid registration entered',
-				'Please check your inputs',
-				ICONS['thmbsdown'],
+				'Error creating user',
+				$e->getMessage(),
+				ICONS['thumbsdown'],
 				true
 			);
-			$resp->focus('register[username]');
+			$resp->animate('#registration-dialog', [
+				['transform' => 'none'],
+				['transform' => 'translateX(5em)scale(0.9)'],
+				['transform' => 'translateX(-5em)scale(1.1)'],
+				['transform' => 'none']
+			], [
+				'duration'   => 100,
+				'iterations' => 3,
+			]);
+			$resp->focus('#register-username');
+		} catch(\Throwable $e) {
+			http_response_code(HTTP::INTERNAL_SERVER_ERROR);
+			trigger_error($e->getMessage());
+			$resp->notify(
+				'An error has occured',
+				'Please contact us for support.',
+				ICONS['bug'],
+				true
+			);
 		}
 		break;
 
