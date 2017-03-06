@@ -916,7 +916,7 @@ switch($req->form) {
 
 			if ($response->code == '1') {
 				$pdo->commit();
-				Listener::userSubscribed($user, $sub, $shipping);
+				Listener::printSubscription($user, $sub, $shipping);
 				$record = $pdo->prepare(
 					'INSERT INTO `transactions` (
 						`transactionID`,
