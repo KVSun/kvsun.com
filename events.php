@@ -1,8 +1,27 @@
 <?php
 namespace KVSun\Events;
 
-use \shgysk8zer0\Core\{Console, Listener, Gravatar, Timer, JSON_Response as Resp};
+use \shgysk8zer0\Core\{
+	Console,
+	PDO,
+	Listener,
+	FormData,
+	Gravatar,
+	Timer,
+	JSON_Response as Resp
+};
+
 use \shgysk8zer0\Login\{User};
+
+use \shgysk8zer0\DOM\{
+	HTML,
+	HTMLElement,
+	RSS
+};
+
+use \shgysk8zer0\Authorize\{
+	ShippingAddress
+};
 
 use const \KVSun\Consts\{
 	ICONS,
@@ -14,7 +33,11 @@ use const \KVSun\Consts\{
 	ERROR_LOG
 };
 
-use function \KVSun\Functions\{user_can};
+use function \KVSun\Functions\{
+	user_can,
+	email,
+	html_email
+};
 
 /**
  * Responds to login events
@@ -133,6 +156,45 @@ function dev_exception_handler(\Throwable $e)
 	]);
 }
 
+function comment_posted(User $user, String $url, FormData $comment): Bool
+{
+	$to      = ['editor@kvsun.com'];
+	$subject = "New comment on {$_SERVER['HTTP_HOST']}";
+	$headers = ['From' => 'notifications@kvsun.com'];
+	$message = new HTML;
+
+	$body = $message->body;
+	$body->append('h3', "New comment by {$user->name}");
+	$body->append('a', $url, ['href' => $url]);
+	$body->append('blockquote', $comment->text);
+	return html_email($to, $subject, $message, $headers);
+}
+
+/**
+ * Event triggered to notify circulation of a new print subscription by email
+ * @param  User            $user    User that made the transaction
+ * @param  stdClass        $sub     Subscription info from database
+ * @param  ShippingAddress $address Address entered in form
+ * @return Bool                     Whether or not the email was sent
+ */
+function print_subscription(User $user, \stdClass $sub, ShippingAddress $address): Bool
+{
+	$to      = ['circulation@kvsun.com'];
+	$subject = 'New print subscription made online';
+	$headers = ['From' => 'notifications@kvsun.com'];
+	$message = new HTML();
+	$expires = new \DateTime($sub->term);
+
+	$body = $message->body;
+	$body->append('h3', "New {$sub->name} subscription for {$user->name}");
+	$info = $body->append('ul');
+	$info->append('li', "Subscriber: {$address->first_name} {$address->last_name}");
+	$info->append('li', "Expires: {$expires->format('D. M j, Y')}");
+	$info->append('li', "Address: {$address->address}, {$address->city}, {$address->state} {$address->zip}");
+
+	return html_email($to, $subject, $message, $headers);
+}
+
 new Listener('error', __NAMESPACE__ . '\error_handler');
 
 new Listener('exception', __NAMESPACE__ . '\exception_handler');
@@ -140,6 +202,10 @@ new Listener('exception', __NAMESPACE__ . '\exception_handler');
 new Listener('login', __NAMESPACE__ . '\login_handler');
 
 new Listener('logout', __NAMESPACE__ . '\logout_handler');
+
+new Listener('printSubscription', __NAMESPACE__ . '\print_subscription');
+
+new Listener('commentPosted', __NAMESPACE__ . '\comment_posted');
 
 if (user_can('debug') or DEBUG) {
 	$timer = new Timer();

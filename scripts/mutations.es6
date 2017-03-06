@@ -196,12 +196,14 @@ export function bootstrap() {
 			query('[list]', node).forEach(eventHandler.getDatalist);
 		}
 		query('[autofocus]', node).forEach(input => input.focus());
-		query(
-			'a[href]:not([target="_blank"]):not([download]):not([href*="\#"])',
-			node
-		).filter(link => link.origin === location.origin).forEach(a => {
-			a.addEventListener('click', eventHandler.getLink);
-		});
+		if ((fetch instanceof Function) && (URL instanceof Function) && ('searchParams' in URL.prototype)) {
+			query(
+				'a[href]:not([target="_blank"]):not([download]):not([href*="\#"])',
+				node
+			).filter(link => link.origin === location.origin).forEach(a => {
+				a.addEventListener('click', eventHandler.getLink);
+			});
+		}
 		query('form[name]', node).filter(eventHandler.sameoriginFrom).forEach(form => {
 			form.addEventListener('submit', eventHandler.submitForm);
 		});
