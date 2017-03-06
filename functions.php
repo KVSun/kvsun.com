@@ -1618,12 +1618,12 @@ function import_users(String $members, String $users): Int
 
 	$imported = 0;
 	$roles = [
-		'Online Subscription (1 year)' => 5,
-		'Staff' => 2,
-		'E-Edition (1 year)' => 6,
-		'Online Subscription (6 months)' => 5,
-		'E-Edition (6 months)' => 6,
-		'Online Subscription (1 month)' => 5,
+		'Online Subscription (1 year)'   => 7,
+		'Staff'                          => 2,
+		'E-Edition (1 year)'             => 6,
+		'Online Subscription (6 months)' => 7,
+		'E-Edition (6 months)'           => 6,
+		'Online Subscription (1 month)'  => 7,
 	];
 	foreach ($members as $username => $member) {
 		$pdo->beginTransaction();
@@ -1633,9 +1633,9 @@ function import_users(String $members, String $users): Int
 			}
 			if (array_key_exists($username, $users)) {
 				$users_stm->execute([
-					'email' => $member['email'],
+					'email'    => strtolower($member['email']),
 					'password' => $users[$username]['user_pass'],
-					'username' => $username,
+					'username' => strtolower($username),
 				]);
 				if (intval($users_stm->errorCode()) !== 0) {
 					$err = join(PHP_EOL, $users_stm->errorInfo());
@@ -1653,9 +1653,9 @@ function import_users(String $members, String $users): Int
 					$name= null;
 				}
 				$user_data_stm->execute([
-					'id' => $user_id,
+					'id'   => $user_id,
 					'name' => $name,
-					'tel' => isset($member['phone']) ? $member['tel'] : null,
+					'tel'  => isset($member['phone']) ? $member['tel'] : null,
 				]);
 				if (intval($user_data_stm->errorCode()) !== 0) {
 					$err = join(PHP_EOL, $user_data_stm->errorInfo());
