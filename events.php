@@ -156,6 +156,20 @@ function dev_exception_handler(\Throwable $e)
 	]);
 }
 
+function comment_posted(User $user, String $url, FormData $comment): Bool
+{
+	$to      = ['editor@kvsun.com'];
+	$subject = "New comment on {$_SERVER['HTTP_HOST']}";
+	$headers = ['From' => 'notifications@kvsun.com'];
+	$message = new HTML;
+
+	$body = $message->body;
+	$body->append('h3', "New comment by {$user->name}");
+	$body->append('a', $url, ['href' => $url]);
+	$body->append('blockquote', $comment->text);
+	return html_email($to, $subject, $message, $headers);
+}
+
 /**
  * Event triggered to notify circulation of a new print subscription by email
  * @param  User            $user    User that made the transaction
@@ -190,6 +204,8 @@ new Listener('login', __NAMESPACE__ . '\login_handler');
 new Listener('logout', __NAMESPACE__ . '\logout_handler');
 
 new Listener('printSubscription', __NAMESPACE__ . '\print_subscription');
+
+new Listener('commentPosted', __NAMESPACE__ . '\comment_posted');
 
 if (user_can('debug') or DEBUG) {
 	$timer = new Timer();
