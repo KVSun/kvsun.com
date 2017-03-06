@@ -357,7 +357,7 @@ function add_post(FormData $post, PDO $pdo): Bool
 			foreach ($figures as $figure) {
 				if ($figure->hasAttribute('data-image-id')) {
 					if (is_null($main_img)) {
-						$stm->img = $figure->getAttribute('data-image-id');
+						$main_img = $figure->getAttribute('data-image-id');
 					}
 					$microdata = $picture->parseFigure($figure);
 					if (! empty($microdata)) {
@@ -376,6 +376,7 @@ function add_post(FormData $post, PDO $pdo): Bool
 				}
 			}
 		}
+		$stm->img = $main_img;
 		# Need to get the content out of DOM structured `<html><body><div>$content...`
 		$stm->content = $article_dom->saveHTML($article_dom->documentElement->firstChild->firstChild);
 
@@ -383,7 +384,6 @@ function add_post(FormData $post, PDO $pdo): Bool
 
 		if ($stm->execute() and intval($stm->errorCode()) === 0) {
 			$pdo->commit();
-			Listener::contentPosted(get_cat_id($post->category));
 			return true;
 		} else {
 			throw new \RuntimeException(join(PHP_EOL, $stm->errorInfo()));
