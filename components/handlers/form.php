@@ -60,7 +60,7 @@ use const \KVSun\Consts\{
 
 function is_tel(String $input)
 {
-	return preg_match('/^\d\\-\d{3}-\d{3}\-\d{4}$/', $input) ? $input : null;
+	return preg_match('/^(\d-?)?\(?\d{3}(-|\))?\d{3}-?\d{4}$/', $input) ? $input : null;
 }
 
 $resp = Resp::getInstance();
