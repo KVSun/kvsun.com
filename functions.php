@@ -983,16 +983,17 @@ function get_category(String $cat, Int $limit = 20): Array
 		$pdo = PDO::load(DB_CREDS);
 		$stm = $pdo->prepare(
 			"SELECT
-			`posts`.`title`,
-			`posts`.`author`,
-			`posts`.`content`,
-			`posts`.`posted`,
-			`posts`.`updated`,
-			`posts`.`keywords`,
-			`posts`.`description`,
-			`posts`.`url`,
-			`categories`.`name` AS `category`,
-			`categories`.`url-name` AS `catURL`
+				`posts`.`title`,
+				`posts`.`author`,
+				`posts`.`content`,
+				`posts`.`posted`,
+				`posts`.`updated`,
+				`posts`.`keywords`,
+				`posts`.`description`,
+				`posts`.`url`,
+				`posts`.`isFree`,
+				`categories`.`name` AS `category`,
+				`categories`.`url-name` AS `catURL`
 			FROM `categories`
 			JOIN `posts` ON `categories`.`id` = `posts`.`cat-id`
 			WHERE `categories`.`url-name` = :cat
@@ -1552,6 +1553,9 @@ function build_rss(String $category): RSS
 			http_response_code(HTTP::NO_CONTENT);
 		} else {
 			foreach ($articles as $article) {
+				if (!$article->isFree) {
+					$article->content = $article->description;
+				}
 				$article->posted = new \DateTime($article->posted);
 				$rss->addItem($article);
 			}
