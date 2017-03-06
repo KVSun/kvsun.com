@@ -166,11 +166,11 @@ export async function updatePost() {
 		const content = form.querySelector('[itemprop="articleBody"]');
 		const submit = form.appendChild(document.createElement('button'));
 		const postURL = form.appendChild(document.createElement('input'));
-		form.getElementById(`${form.name}-keywords`).value = post.data.keywords.join(', ');
-		form.getElementById(`${form.name}-description`).value = post.data.description;
-		form.getElementById(`${form.name}-free`).checked = post.data.is_free;
-		form.getElementById(`${form.name}-draft`).checked = post.data.draft;
-		form.getElementById(`${form.name}-sort`).value = post.data.sort;
+		form.querySelector(`#${form.name}-keywords`).value = post.data.keywords.join(', ');
+		form.querySelector(`#${form.name}-description`).value = post.data.description;
+		form.querySelector(`#${form.name}-free`).checked = post.data.is_free;
+		form.querySelector(`#${form.name}-draft`).checked = post.data.draft;
+		form.querySelector(`#${form.name}-sort`).value = post.data.sort;
 		title.name = `${form.name}[title]`;
 		title.autocomplete = 'off';
 		title.required = true;
