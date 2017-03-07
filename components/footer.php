@@ -16,7 +16,7 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 	$login = make_dialog('login-dialog', $footer);
 	$register = make_dialog('registration-dialog', $footer);
 
-	$register->importHTMLFile('components/register.html');
+	$register->importHTMLFile('components/forms/register.html');
 	$login->importHTMLFile('components/forms/login.html');
 
 	$register->getElementById('registration-form')->action = DOMAIN . 'api.php';

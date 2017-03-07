@@ -36,7 +36,8 @@ use const \KVSun\Consts\{
 use function \KVSun\Functions\{
 	user_can,
 	email,
-	html_email
+	html_email,
+	build_rss
 };
 
 /**
@@ -72,6 +73,7 @@ function login_handler(User $user, Bool $remember = true): Resp
 		return $resp;
 	}
 }
+
 /**
  * Handles logout events
  * @param  User $user The user logging out
@@ -156,6 +158,29 @@ function dev_exception_handler(\Throwable $e)
 	]);
 }
 
+/**
+ * Build RSS feed on new/updated posts
+ * @param  FormData $post Data submitted by form
+ * @return void
+ */
+function content_posted(FormData $post)
+{
+	try {
+		$cat = str_replace(' ', '-', strtolower($post->category));
+		$rss = build_rss($cat);
+		$rss->save("rss/{$cat}.rss");
+	} catch (\Throwable $e) {
+		trigger_error($e->getMessage());
+	}
+}
+
+/**
+ * Send email notification on new comments
+ * @param  User     $user    User posting comment
+ * @param  String   $url     URL comment posted on
+ * @param  FormData $comment Comment data from submitted form
+ * @return Bool              Whether or not the email was sent
+ */
 function comment_posted(User $user, String $url, FormData $comment): Bool
 {
 	$to      = ['editor@kvsun.com'];
@@ -204,6 +229,10 @@ new Listener('login', __NAMESPACE__ . '\login_handler');
 new Listener('logout', __NAMESPACE__ . '\logout_handler');
 
 new Listener('printSubscription', __NAMESPACE__ . '\print_subscription');
+
+new Listener('contentPosted', __NAMESPACE__ . '\content_posted');
+
+new Listener('contentUpdated', __NAMESPACE__ . '\content_posted');
 
 new Listener('commentPosted', __NAMESPACE__ . '\comment_posted');
 

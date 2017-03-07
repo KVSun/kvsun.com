@@ -357,7 +357,7 @@ function add_post(FormData $post, PDO $pdo): Bool
 			foreach ($figures as $figure) {
 				if ($figure->hasAttribute('data-image-id')) {
 					if (is_null($main_img)) {
-						$stm->img = $figure->getAttribute('data-image-id');
+						$main_img = $figure->getAttribute('data-image-id');
 					}
 					$microdata = $picture->parseFigure($figure);
 					if (! empty($microdata)) {
@@ -376,6 +376,7 @@ function add_post(FormData $post, PDO $pdo): Bool
 				}
 			}
 		}
+		$stm->img = $main_img;
 		# Need to get the content out of DOM structured `<html><body><div>$content...`
 		$stm->content = $article_dom->saveHTML($article_dom->documentElement->firstChild->firstChild);
 
@@ -383,7 +384,6 @@ function add_post(FormData $post, PDO $pdo): Bool
 
 		if ($stm->execute() and intval($stm->errorCode()) === 0) {
 			$pdo->commit();
-			Listener::contentPosted(get_cat_id($post->category));
 			return true;
 		} else {
 			throw new \RuntimeException(join(PHP_EOL, $stm->errorInfo()));
@@ -983,16 +983,17 @@ function get_category(String $cat, Int $limit = 20): Array
 		$pdo = PDO::load(DB_CREDS);
 		$stm = $pdo->prepare(
 			"SELECT
-			`posts`.`title`,
-			`posts`.`author`,
-			`posts`.`content`,
-			`posts`.`posted`,
-			`posts`.`updated`,
-			`posts`.`keywords`,
-			`posts`.`description`,
-			`posts`.`url`,
-			`categories`.`name` AS `category`,
-			`categories`.`url-name` AS `catURL`
+				`posts`.`title`,
+				`posts`.`author`,
+				`posts`.`content`,
+				`posts`.`posted`,
+				`posts`.`updated`,
+				`posts`.`keywords`,
+				`posts`.`description`,
+				`posts`.`url`,
+				`posts`.`isFree`,
+				`categories`.`name` AS `category`,
+				`categories`.`url-name` AS `catURL`
 			FROM `categories`
 			JOIN `posts` ON `categories`.`id` = `posts`.`cat-id`
 			WHERE `categories`.`url-name` = :cat
@@ -1552,6 +1553,9 @@ function build_rss(String $category): RSS
 			http_response_code(HTTP::NO_CONTENT);
 		} else {
 			foreach ($articles as $article) {
+				if (!$article->isFree) {
+					$article->content = $article->description;
+				}
 				$article->posted = new \DateTime($article->posted);
 				$rss->addItem($article);
 			}
