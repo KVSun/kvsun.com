@@ -308,5 +308,5 @@ function makeArticle(post) {
 }
 
 function formatDate(date) {
-	return `${Days[date.getDay()]} ${Months[date.getMonth()]}, ${date.getFullYear()} at ${date.toLocaleTimeString()}`;
+	return `${Days[date.getDay()]} ${Months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()} at ${date.toLocaleTimeString()}`;
 }
