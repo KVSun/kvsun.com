@@ -333,17 +333,21 @@ function add_post(FormData $post, PDO $pdo): Bool
 			$url = $url = explode('/', trim($post->url, '/'));
 			$url = end($url);
 		} else {
-			$url = urlencode(strtolower(str_replace(' ', '-', strip_tags($post->title))));
+			$url = strtolower(preg_replace(
+				'/[^A-z\d\-]/',
+				null,
+				str_replace([' ', '^'], ['-', null], $post->title)
+			));
 		}
-		$stm->title = strip_tags($post->title);
-		$stm->sort = $post->sort ?? 1;
-		$stm->cat = get_cat_id($post->category);
-		$stm->author = strip_tags($post->author);
-		$stm->draft = isset($post->draft) and $user->hasPermission('skipApproval');
-		$stm->free = isset($post->free);
-		$stm->url = trim($url, '/');
-		$stm->posted = $user->id;
-		$stm->keywords = $post->keywords ?? null;
+		$stm->title       = strip_tags($post->title);
+		$stm->sort        = $post->sort ?? 1;
+		$stm->cat         = get_cat_id($post->category);
+		$stm->author      = strip_tags($post->author);
+		$stm->draft       = isset($post->draft) and $user->hasPermission('skipApproval');
+		$stm->free        = isset($post->free);
+		$stm->url         = trim($url, '/');
+		$stm->posted      = $user->id;
+		$stm->keywords    = $post->keywords ?? null;
 		$stm->description = $post->description ?? null;
 
 		$article_dom = new \DOMDocument();
