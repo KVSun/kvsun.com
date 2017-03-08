@@ -91,7 +91,7 @@ if ($header->accept === 'application/json') {
 			case 'categories':
 				$pdo = PDO::load(DB_CREDS);
 				$cats = $pdo('SELECT `name` FROM `categories`');
-				$doc = new \DOMDocument();
+				$doc = new \DOMDocument('1.0', 'UTF-8');
 				$doc->appendChild($doc->createElement('datalist'));
 				$doc->documentElement->setAttribute('id', 'categories');
 				foreach ($cats as $cat) {
