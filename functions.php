@@ -316,6 +316,7 @@ function add_e_edition(
 	$add = $parent->append('a', null, array_merge($attrs, [
 		'href'  => $url,
 		'title' => 'E-Edition',
+		'id'    => 'E-Edition-link',
 	]));
 	$add->append('span', 'E-Edition&nbsp;', ['class' => 'desktop-only']);
 	use_icon('section-e-edition', $add, ['class' => 'icon']);
