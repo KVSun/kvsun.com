@@ -1,11 +1,11 @@
 <?php
 namespace KVSun\Components\Nav;
 
-use function \KVSun\Functions\{use_icon, restore_login};
+use function \KVSun\Functions\{use_icon, restore_login, add_e_edition};
 
 use const \KVSun\Consts\{DOMAIN, ICONS};
 
-use \shgysk8zer0\DOM\{HTML};
+use \shgysk8zer0\DOM\{HTML, HTMLElement};
 use \shgysk8zer0\Core\{PDO, Gravatar, URL};
 use \KVsun\KVSAPI\{Abstracts\Content as KVSAPI};
 
@@ -70,6 +70,12 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 		}
 	}
 
+	$user = restore_login();
+
+	if ($user->hasPermission('eEdition')) {
+		add_e_edition($nav, ATTRS);
+	}
+
 	$avatar = $nav->append('img', null, [
 		'id'     => 'user-avatar',
 		'width'  => 64,
@@ -78,7 +84,6 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 		'role'   => 'button',
 	]);
 
-	$user = restore_login();
 	if (isset($user->email)) {
 		$avatar->src = new Gravatar($user->email);
 		$avatar->data_load_form = 'update-user';
