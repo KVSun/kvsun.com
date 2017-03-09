@@ -86,7 +86,7 @@ function logout_handler(User $user): Resp
 		$resp = Resp::getInstance();
 		$resp->notify('Success', 'You have been logged out.', DOMAIN . ICONS['sign-out']);
 		$resp->close('dialog[open]');
-		$resp->remove('#update-user-dialog, #admin_menu');
+		$resp->remove('#update-user-dialog, #admin_menu', '#E-Edition-link');
 		$resp->attributes('#user-avatar', 'src', DOMAIN . ICONS['sign-in']);
 		$resp->attributes('#user-avatar', 'data-load-form', false);
 		$resp->attributes('#user-avatar', 'data-show-modal', '#login-dialog');
