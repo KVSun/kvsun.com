@@ -70,7 +70,7 @@ function build_dom(Array $path = array()): \DOMDocument
 		$dom->body->ifIE('</div>');
 
 	} else {
-		$dom = new \DOMDocument();
+		$dom = new \DOMDocument('1.0', 'UTF-8');
 		$dom->loadHTMLFile(COMPONENTS . 'install.html');
 	}
 	Listener::load();
@@ -408,7 +408,8 @@ function add_post(FormData $post, PDO $pdo): Bool
 		$stm->keywords    = $post->keywords ?? null;
 		$stm->description = $post->description ?? null;
 
-		$article_dom = new \DOMDocument();
+		$article_dom = new \DOMDocument('1.0', 'UTF-8');
+		$post->content = utf8_from_word($post->content);
 		libxml_use_internal_errors(true);
 		$article_dom->loadHTML("<div>$post->content</div>");
 		libxml_clear_errors();
@@ -439,8 +440,16 @@ function add_post(FormData $post, PDO $pdo): Bool
 			}
 		}
 		$stm->img = $main_img;
+
+		$article_dom->saveHTMLFile('test.html');
+
+		$html = $article_dom->saveHTML($article_dom->documentElement->firstChild->firstChild);
+		$encoding = mb_detect_encoding($html);
+		if ($encoding !== 'UTF-8') {
+			$html = iconv($encoding, 'UTF-8', $post->content);
+		}
 		# Need to get the content out of DOM structured `<html><body><div>$content...`
-		$stm->content = $article_dom->saveHTML($article_dom->documentElement->firstChild->firstChild);
+		$stm->content = $html;
 
 		unset($article_dom, $imgs, $img, $id, $url);
 
@@ -454,6 +463,53 @@ function add_post(FormData $post, PDO $pdo): Bool
 		trigger_error($e->getMessage());
 		return false;
 	}
+}
+
+function utf8_from_word(String $string): String
+{
+	$search = [                 // www.fileformat.info/info/unicode/<NUM>/ <NUM> = 2018
+		"\xC2\xAB",     // « (U+00AB) in UTF-8
+		"\xC2\xBB",     // » (U+00BB) in UTF-8
+		"\xE2\x80\x98", // ‘ (U+2018) in UTF-8
+		"\xE2\x80\x99", // ’ (U+2019) in UTF-8
+		"\xE2\x80\x9A", // ‚ (U+201A) in UTF-8
+		"\xE2\x80\x9B", // ‛ (U+201B) in UTF-8
+		"\xE2\x80\x9C", // “ (U+201C) in UTF-8
+		"\xE2\x80\x9D", // ” (U+201D) in UTF-8
+		"\xE2\x80\x9E", // „ (U+201E) in UTF-8
+		"\xE2\x80\x9F", // ‟ (U+201F) in UTF-8
+		"\xE2\x80\xB9", // ‹ (U+2039) in UTF-8
+		"\xE2\x80\xBA", // › (U+203A) in UTF-8
+		"\xE2\x80\x93", // – (U+2013) in UTF-8
+		"\xE2\x80\x94", // — (U+2014) in UTF-8
+		"\xE2\x80\xA6",  // … (U+2026) in UTF-8
+		"\xC3\x82",//,"Â",
+		"\xC3\x83",
+		"&nbsp;",
+	];
+
+	$replacements = [
+		"<<",
+		">>",
+		"'",
+		"'",
+		"'",
+		"'",
+		'"',
+		'"',
+		'"',
+		'"',
+		"<",
+		">",
+		"-",
+		"-",
+		"...",
+		null,
+		null,
+		null,
+	];
+
+	return str_replace($search, $replacements, $string);
 }
 
 /**
@@ -1353,7 +1409,7 @@ function setcookie(
 
 function make_datalist(String $name, Array $items, Bool $return_string = true)
 {
-	$tmp = new \DOMDocument();
+	$tmp = new \DOMDocument('1.0', 'UTF-8');
 	$datalist = $tmp->appendChild($tmp->createElement('datalist'));
 	$datalist->setAttribute('id', $name);
 	foreach ($items as $item) {
