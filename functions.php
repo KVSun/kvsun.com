@@ -266,6 +266,64 @@ function password_reset_email(User $user): Bool
 }
 
 /**
+ * Modifies a date to be the date of the most recent publication
+ * @param  DateTime $date Date to modify
+ * @return DateTime       Modified date
+ */
+function get_pub_date(\DateTime $date = null): \DateTime
+{
+	if (is_null($date)) {
+		$date = new \DateTime('now');
+	} else {
+		$date = clone($date);
+	}
+
+	$dow = intval($date->format('N'));
+
+	// If $dow !== 3 ('Wednesday'), modify to be closest Wednesday
+	if ($dow !== 3) {
+		$date->modify(3 - $dow . ' days');
+	}
+
+	return $date;
+}
+
+/**
+ * Appends an E-Edition link to $parent element
+ * @param  HTMLElement         $parent Element to append to
+ * @param  Array               $attrs  Array of attributes to set on link
+ * @param  DateTime            $date   Optional date to create link for
+ * @return HTMLElement         E-Edition link element
+ */
+function add_e_edition(
+	HTMLElement $parent = null,
+	Array       $attrs  = array(),
+	\DateTime   $date   = null
+): HTMLElement
+{
+	if (is_null($parent)) {
+		$dom = new HTML();
+		$parent = $dom->body;
+	}
+
+	if (is_null($date)) {
+		$date = new \DateTime('now');
+	}
+
+	$url = new URL('https://cloud.kvsun.com/s/W3Dfy1RkyAzvRAO');
+	$url->query->path = get_pub_date($date)->format('Y/m/d');
+
+	$add = $parent->append('a', null, array_merge($attrs, [
+		'href'  => $url,
+		'title' => 'E-Edition',
+		'id'    => 'E-Edition-link',
+	]));
+	$add->append('span', 'E-Edition&nbsp;', ['class' => 'desktop-only']);
+	use_icon('section-e-edition', $add, ['class' => 'icon']);
+	return $add;
+}
+
+/**
  * Create or update a post
  * @param  FormData $post Data for post submitted by form
  * @param  PDO      $pdo  Database instance

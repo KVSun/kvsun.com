@@ -37,7 +37,8 @@ use function \KVSun\Functions\{
 	user_can,
 	email,
 	html_email,
-	build_rss
+	build_rss,
+	add_e_edition
 };
 
 /**
@@ -61,6 +62,12 @@ function login_handler(User $user, Bool $remember = true): Resp
 		$resp->enable(join(', ', LOGGED_IN_ONLY));
 		$resp->disable(join(', ', LOGGED_OUT_ONLY));
 		$resp->attributes('#user-avatar', 'src', "$grav");
+		if (user_can('eEdition')) {
+			$resp->before('#user-avatar', add_e_edition(null, [
+				'class' => 'cat-link',
+				'role'  => 'button',
+			]));
+		}
 		if (user_can('createPosts', 'editPosts')) {
 			$resp->attributes('main', 'contextmenu', 'admin_menu');
 		}
@@ -86,7 +93,7 @@ function logout_handler(User $user): Resp
 		$resp = Resp::getInstance();
 		$resp->notify('Success', 'You have been logged out.', DOMAIN . ICONS['sign-out']);
 		$resp->close('dialog[open]');
-		$resp->remove('#update-user-dialog, #admin_menu');
+		$resp->remove('#update-user-dialog, #admin_menu, #E-Edition-link');
 		$resp->attributes('#user-avatar', 'src', DOMAIN . ICONS['sign-in']);
 		$resp->attributes('#user-avatar', 'data-load-form', false);
 		$resp->attributes('#user-avatar', 'data-show-modal', '#login-dialog');
