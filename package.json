@@ -1,6 +1,6 @@
 {
   "name": "kv-sun",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Kern Valley Sun",
   "keywords": [
     "kvsun",
@@ -12,7 +12,7 @@
     "url": "https://chriszuber.com"
   },
   "contributors": [],
-  "homepage": "https://dev.kvsun.com",
+  "homepage": "https://kernvalleysun.com",
   "license": "GPL-3.0",
   "repository": {
     "type": "git",
@@ -31,6 +31,7 @@
     "build:icons": "svg-sprite-generate -c images/icons.csv -o images/icons.svg",
     "build:ctags": "ctags --langmap='php:.php,javascript:.es6' --exclude='*.js' --exclude='node_modules/' --exclude='vendor/' --exclude='stylesheets/' -h '.php.es6' -R",
     "build:all": "npm run build:icons && npm run build:css && npm run build:js",
+    "sync:uploads": "rsync -d -v --progress -z -s -r czuber@kernvalleysun.com:/var/www/html/kvsun.com/images/uploads/ ./images/uploads/",
     "lint:js": "eslint --ext .es6 scripts/",
     "lint:php": "php unit.php",
     "watch:js": "webpack -w",
