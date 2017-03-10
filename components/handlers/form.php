@@ -724,8 +724,6 @@ switch($req->form) {
 		if (! user_can('createPosts')) {
 			http_response_code(HTTP::UNAUTHORIZED);
 			$resp->notify('Error', 'You must be logged in for that.')->send();
-		} else {
-
 		}
 
 		$post = $req->{'new-post'};
