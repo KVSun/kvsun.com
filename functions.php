@@ -441,8 +441,6 @@ function add_post(FormData $post, PDO $pdo): Bool
 		}
 		$stm->img = $main_img;
 
-		$article_dom->saveHTMLFile('test.html');
-
 		$html = $article_dom->saveHTML($article_dom->documentElement->firstChild->firstChild);
 		$encoding = mb_detect_encoding($html);
 		if ($encoding !== 'UTF-8') {
