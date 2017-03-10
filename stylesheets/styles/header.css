@@ -1,13 +1,20 @@
 body > header {
 	order: 0;
 	height: 15rem;
+	margin-bottom: calc(-1 * var(--nav-height));
 	background-image: var(--logo), var(--river-l);
 	background-size: contain, cover;
 	background-repeat: no-repeat;
-	background-position: right bottom, 0 36%;
+	background-position: right bottom, center bottom;
+}
+@media (min-width: 800px) {
+	body > header {
+	 background-attachment: scroll, fixed;
+	}
 }
 @media (max-width: 800px) {
 	body > header {
+		background-position: bottom right, 0 35%;
 		background-image: var(--logo), var(--river-m);
 	}
 }
