@@ -56,7 +56,15 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 				$a->append('h6', "Posted on {$article->posted} by {$article->author}");
 				$a->class = 'currentColor';
 				if (isset($article->img)) {
-					$picture = $pictures->getPicture($article->img, $a);
+					$pictures->getPicture(
+						$article->img,
+						$a,
+						[
+							'(max-width: 800px) 96%',
+							'14vw',
+						],
+						false
+					);
 				}
 			}
 		} catch (\Throwable $e) {
