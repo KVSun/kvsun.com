@@ -71,7 +71,15 @@ function make_rail(\DOMElement $parent, PDO $pdo, Int $limit = 7, Int $size = 25
 			$link = $parent->append('a', null, [
 				'href' => DOMAIN . "{$post->catURL}/{$post->url}",
 			]);
-			$picture->getPicture($post->img, $link);
+			$picture->getPicture(
+				$post->img,
+				$link,
+				[
+					'(max-width: 800px) 100%',
+					'30vw'
+				],
+				false
+			);
 			$link->append('p', "{$post->category} &raquo; {$post->title}");
 			$parent->append('hr');
 		};
