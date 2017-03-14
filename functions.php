@@ -44,15 +44,11 @@ use const \KVSun\Consts\{
  * @param  Array        $path            URL path as an array
  * @return DOMDocument                   The resulting document build
  */
-function build_dom(Array $path = array()): \DOMDocument
+function build_dom(): \DOMDocument
 {
 	if (@file_exists(DB_CREDS) and PDO::load(DB_CREDS)->connected) {
 		HTMLElement::$import_path = COMPONENTS;
 		$dom = HTML::getInstance();
-		if (!empty($path) and file_exists(PAGES_DIR . "{$path[0]}.php")) {
-			require PAGES_DIR . "{$path[0]}.php";
-			exit();
-		}
 		// If IE, show update and hide rest of document
 		$dom->body->ifIE(
 			file_get_contents(COMPONENTS . 'update.html')

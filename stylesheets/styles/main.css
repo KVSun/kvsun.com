@@ -42,11 +42,24 @@ section.category {
 	}
 }
 article {
-	transform-origin: top;
-	animation: scale 800ms;
+	z-index: 0;
+	transform-origin: left;
+	padding: 0.8rem;
+	background: whitesmoke;
+}
+@media (min-width: 800px) {
+	article {
+		animation: page-fold 800ms ease-in;
+	}
 }
 dialog[open] {
 	animation: show-dialog 600ms;
+}
+@keyframes page-fold {
+	from {
+		box-shadow: 1rem 1rem 1rem rgba(20, 20, 20, 0.8);
+		transform: rotateY(-94deg);
+	}
 }
 @keyframes show-dialog {
 	from {

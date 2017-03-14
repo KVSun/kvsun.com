@@ -117,11 +117,6 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 			'sizes' => 'any',
 		]);
 	}
-	$head->append('link', null, [
-		'rel' => 'stylesheet',
-		'type' => 'text/css',
-		'href' => DEBUG ? DOMAIN . DEV_STYLE : DOMAIN . STYLE,
-	]);
 
 	foreach(SCRIPTS as $script) {
 		$head->append('script', null, [
@@ -130,4 +125,10 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 			'type' => 'application/javascript',
 		]);
 	}
+
+	$head->append('link', null, [
+		'rel' => 'stylesheet',
+		'type' => 'text/css',
+		'href' => DEBUG ? DOMAIN . DEV_STYLE : DOMAIN . STYLE,
+	]);
 };

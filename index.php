@@ -1,11 +1,7 @@
 <?php
 namespace KVSun\Index;
-
-use const \KVSun\Consts\{CSP as CSP_POLICY, DEBUG};
-
-use function \KVSun\Functions\{build_dom, get_path};
-use function \KVSun\Consts\{defined};
-
+use const \KVSun\Consts\{CSP as CSP_POLICY};
+use function \KVSun\Functions\{build_dom};
 use \shgysk8zer0\Core\{CSP};
 
 if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
@@ -14,4 +10,4 @@ if (in_array(PHP_SAPI, ['cli', 'cli-server'])) {
 
 (new CSP(CSP_POLICY))();
 
-exit(build_dom(get_path())->saveHTML());
+exit(build_dom()->saveHTML());
