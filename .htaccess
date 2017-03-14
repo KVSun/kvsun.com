@@ -13,14 +13,14 @@ php_flag log_errors on
 	Header set X-Frame-Options "SAMEORIGIN"
 	Header set X-Content-Type-Options nosniff
 	Header set X-XSS-Protection "1; mode=block"
-	Header set Cache-Control "public, must-revalidate, proxy-revalidate, no-transform"
+	# Header set Cache-Control "public, must-revalidate, proxy-revalidate, no-transform"
 	Header set X-UA-Compatible "IE=edge,chrome=1"
 	Header set Connection "Keep-Alive"
 	# Header set Content-Security-Policy "default-src 'self'; img-src 'self' https://travis-ci.org https://api.travis-ci.org https://badges.gitter.im https://i.imgur.com"
 	# `mod_headers` can't match based on the content-type, however, we only
 	# want to send this header for HTML pages and not for the other resources
 	<FilesMatch "\.(appcache|crx|css|eot|gif|htc|ico|jpe?g|js|m4a|m4v|manifest|mp4|oex|oga|ogg|ogv|otf|pdf|png|safariextz|svg|svgz|ttf|vcf|webapp|webm|webp|woff2?|xml|xpi)$">
-		Header set Cache-Control "public, must-revalidate, proxy-revalidate, no-transform"
+		# Header set Cache-Control "public, must-revalidate, proxy-revalidate, no-transform"
 		Header unset X-Frame-Options
 		Header unset X-XSS-Protection
 		Header unset X-UA-Compatible
@@ -168,7 +168,7 @@ AddDefaultCharset utf-8
 # <IfModule headers_module>
 # 	Header unset ETag
 # </IfModule>
-# FileETag None
+FileETag MTime
 
 # ------------------------------------------------------------------------------
 # | Expires headers (for better cache control)								 |
