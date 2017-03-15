@@ -393,16 +393,16 @@ function add_post(FormData $post, PDO $pdo): Bool
 				str_replace([' ', '^'], ['-', null], $post->title)
 			));
 		}
-		$stm->title       = strip_tags($post->title);
+		$stm->title       = utf8_encode(strip_tags($post->title));
 		$stm->sort        = $post->sort ?? 1;
 		$stm->cat         = get_cat_id($post->category);
-		$stm->author      = strip_tags($post->author);
+		$stm->author      = utf8_encode(strip_tags($post->author));
 		$stm->draft       = isset($post->draft) and $user->hasPermission('skipApproval');
 		$stm->free        = isset($post->free);
 		$stm->url         = trim($url, '/');
 		$stm->posted      = $user->id;
-		$stm->keywords    = $post->keywords ?? null;
-		$stm->description = $post->description ?? null;
+		$stm->keywords    = utf8_encode(trim($post->keywords)) ?? null;
+		$stm->description = utf8_encode(trim($post->description)) ?? null;
 
 		$article_dom = new \DOMDocument('1.0', 'UTF-8');
 		$post->content = utf8_from_word($post->content);
