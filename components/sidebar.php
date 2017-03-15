@@ -15,6 +15,43 @@ return function (HTML $dom, PDO $pdo)
 		'role' => 'sidebar',
 	]);
 
+	$sidebar->append('a', null, [
+		'href' => 'http://www.kvhd.org/',
+	], [
+		['img', null, [
+			'src'    => DOMAIN . sprintf('images/ads/kvhd%d.jpg', rand(1,4)),
+			'alt'    => 'KVHD',
+			'height' => 250,
+			'width'  => 300,
+		]]
+	]);
+
+	$sidebar->append('br');
+
+	$sidebar->append('a', null, [
+		'href' => 'http://www.frandy.net/',
+	], [
+		['img', null, [
+			'src'    => DOMAIN . 'images/ads/frandy.jpg',
+			'alt'    => 'Frandy Park Campground',
+			'height' => 521,
+			'width'  => 625,
+		]]
+	]);
+	$sidebar->append('br');
+
+	$sidebar->append('a', null, [
+		'href' => 'http://zapquote4.appspot.com/home?agentpath=hpthal',
+	], [
+		['img', null, [
+			'src'    => DOMAIN . 'images/ads/thal.jpg',
+			'alt'    => 'Harry P. Thal Insurance Agency',
+			'height' => 521,
+			'width'  => 625,
+		]]
+	]);
+	$sidebar->append('br');
+
 	// $search = $sidebar->append('form', null, [
 	// 	'name'   => 'search',
 	// 	'action' => DOMAIN . 'api.php',
@@ -39,7 +76,7 @@ return function (HTML $dom, PDO $pdo)
 	// 	'class' => 'icon',
 	// ]);
 
-	make_rail($sidebar->append('div', null, ['class' => 'center']), $pdo, 7);
+	// make_rail($sidebar->append('div', null, ['class' => 'center']), $pdo, 7);
 
 
 
