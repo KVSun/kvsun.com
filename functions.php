@@ -354,7 +354,7 @@ function add_post(FormData $post, PDO $pdo): Bool
 			:title,
 			:author,
 			:content,
-			CURRENT_TIMESTAMP,
+			CURRENT_DATE,
 			CURRENT_TIMESTAMP,
 			:draft,
 			:free,
