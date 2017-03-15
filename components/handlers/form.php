@@ -347,7 +347,7 @@ switch($req->form) {
 				throw new HTTPException('Please enter a password of 8 or more characters', HTTP::BAD_REQUEST);
 			} elseif ($req->register->password !== $req->register->repeat) {
 				throw new HTTPException('Password repeat does not match', HTTP::BAD_REQUEST);
-			} elseif (! preg_match('/^[\w]{5,20}}$/', $req->register->username)) {
+			} elseif (! preg_match('/^[\w]{5,20}$/', $req->register->username)) {
 				throw new HTTPException('Please enter a valid alph-numberic username [5-20 characters]', HTTP::BAD_REQUEST);
 			}
 			$pdo = PDO::load(DB_CREDS);
