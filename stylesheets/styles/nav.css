@@ -2,7 +2,7 @@ body > nav {
 	order: 1;
 	padding: var(--nav-padding) 0;
 	top: 0;
-	z-index: 10;
+	z-index: 2;
 }
 body > nav > :not(#user-avatar) {
 	height: var(--nav-height);
