@@ -1,4 +1,7 @@
 import * as fileUpload from './fileupload.es6';
+const TITLE_PATTERN = '[\\w\'\\-\\.:;, ]+';
+const AUTHOR_PATTERN = '[\\w\\. ]+';
+const KEYWORD_PATTERN = '[\\w ]+(,[\\w ]+)*';
 function buildArticleForm(name) {
 	const form = document.createElement('form');
 	const template = getTemplate('article-template');
@@ -54,7 +57,7 @@ function buildArticleForm(name) {
 	keywords.name = `${form.name}[keywords]`;
 	keywords.id = `${form.name}-keywords`;
 	keywords.placeholder = 'Article keywords/tags';
-	keywords.pattern = '[\\w ]+(,[\\w ]+)*';
+	keywords.pattern = KEYWORD_PATTERN;
 	keywords.autocomplete = false;
 	keywordsLabel.textContent = 'Keywords: ';
 	keywordsLabel.setAttribute('for', keywords.id);
@@ -112,10 +115,12 @@ export function makePost() {
 		title.autocomplete = 'off';
 		title.required = true;
 		title.placeholder = 'Title';
+		title.pattern = TITLE_PATTERN;
 		author.name = `${form.name}[author]`;
 		author.autocomplete = 'off';
 		author.required = true;
 		author.placeholder = 'Author';
+		author.pattern = AUTHOR_PATTERN;
 		category.name = `${form.name}[category]`;
 		category.pattern = '[\\w ]+';
 		category.required = true;
@@ -175,10 +180,12 @@ export async function updatePost() {
 		title.autocomplete = 'off';
 		title.required = true;
 		title.placeholder = 'Title';
+		title.pattern = TITLE_PATTERN;
 		author.name = `${form.name}[author]`;
 		author.required = true;
 		author.placeholder = 'Author';
 		author.autocomplete = 'off';
+		author.pattern = AUTHOR_PATTERN;
 		author.setAttribute('list', 'author_list');
 		category.name = `${form.name}[category]`;
 		category.value = post.data.category.name;
