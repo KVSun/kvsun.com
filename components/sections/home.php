@@ -49,11 +49,12 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 			use_icon('rss', $feed, ['class' => 'icon currentColor']);
 
 			foreach ($section->posts as $article) {
+				$date = new \DateTime($article->posted);
 				$el = $container->append('span', null, ['class' => 'article-thumb']);
 				$a = $el->appendChild($dom->createElement('a'));
 				$a->href = DOMAIN . ltrim($article->url, '/');
 				$a->append('h4', $article->title);
-				$a->append('h6', "Posted on {$article->posted} by {$article->author}");
+				$a->append('h6', "Posted on {$date->format(DATE_FORMAT)} by {$article->author}");
 				$a->class = 'currentColor';
 				if (isset($article->img)) {
 					$pictures->getPicture(

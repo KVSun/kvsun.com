@@ -6,15 +6,13 @@ use function \KVSun\Functions\{use_icon};
 use const \KVSun\Consts\{DOMAIN, DATETIME_FORMAT};
 
 use \shgysk8zer0\DOM\{HTML};
-use \shgysk8zer0\Core\{PDO, DateTime};
+use \shgysk8zer0\Core\{PDO};
 use \KVSun\KVSAPI\{Abstracts\Content as KVSAPI};
 
 return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 {
 	$section_template = $dom->getElementById('section-template');
 	$main = $dom->getElementsByTagName('main')->item(0);
-	$date = new DateTime('last week');
-	$date->format = DATETIME_FORMAT;
 
 	$xpath = new \DOMXPath($dom);
 

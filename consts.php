@@ -27,7 +27,7 @@ const ERROR_LOG = 'errors.log';
 const EXCEPTION_LOG = 'exceptions.log';
 const CRLF = "\r\n";
 
-const DATE_FORMAT = 'D. M j, Y \a\t h:m:s A';
+const DATE_FORMAT = 'D. M j, Y';
 const DATETIME_FORMAT = \DATETIME::W3C;
 
 const LOGO = 'images/sun-icons/256.png';
