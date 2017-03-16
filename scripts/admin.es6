@@ -83,7 +83,6 @@ function buildArticleForm(name) {
 	form.querySelector('footer').hidden = true;
 	form.querySelector('[itemprop="publisher"]').hidden = true;
 	form.querySelector('nav').hidden = true;
-
 	return form;
 }
 
@@ -205,6 +204,46 @@ export async function updatePost() {
 		postURL.type = 'hidden';
 		postURL.name = `${form.name}[url]`;
 		postURL.value = location.href;
+
+		Array.from(form.querySelectorAll('figure')).forEach(figure => {
+			figure.contentEditable = false;
+			let cite = figure.querySelector('[itemprop="name"]');
+			let caption = figure.querySelector('[itemprop="caption"]');
+			let picture = figure.querySelector('picture');
+			let figcaption = figure.querySelector('figcaption');
+			if (picture) {
+				if (! figcaption) {
+					figcaption = document.createElement('figcaption');
+					figure.appendChild(figcaption);
+				}
+				if (! cite) {
+					cite = document.createElement('cite');
+					cite.itemprop = 'creator';
+					cite.itemtype = 'http://schema.org/Person';
+					cite.itemscope = '';
+					cite.textContent = 'Photo by ';
+					let by = document.createElement('span');
+					by.itemprop = 'name';
+					by.contentEditable = 'true';
+					by.textContent = '      ';
+					cite.appendChild(by);
+					figcaption.insertAdjacentElement('afterbegin', cite);
+				} else {
+					cite.contentEditable = 'true';
+				}
+
+				if (! caption) {
+					caption = document.createElement('blockquote');
+					caption.contentEditable = 'true';
+					caption.itemprop = 'caption';
+					cite.insertAdjacentElement('beforeend', caption);
+				} else {
+					caption.contentEditable = 'true';
+				}
+			} else {
+				figure.remove();
+			}
+		});
 	} catch (e) {
 		console.error(e);
 	} finally {
