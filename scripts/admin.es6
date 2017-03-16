@@ -218,14 +218,14 @@ export async function updatePost() {
 				}
 				if (! cite) {
 					cite = document.createElement('cite');
-					cite.itemprop = 'creator';
-					cite.itemtype = 'http://schema.org/Person';
-					cite.itemscope = '';
+					cite.setAttribute('itemprop', 'creator');
+					cite.setAttribute('itemtype', 'http://schema.org/Person');
+					cite.setAttribute('itemscope', '');
 					cite.textContent = 'Photo by ';
 					let by = document.createElement('span');
-					by.itemprop = 'name';
+					by.setAttribute('itemprop', 'name');
 					by.contentEditable = 'true';
-					by.textContent = '      ';
+					by.textContent = '{PHOTOGRAPHER}';
 					cite.appendChild(by);
 					figcaption.insertAdjacentElement('afterbegin', cite);
 				} else {
@@ -235,7 +235,8 @@ export async function updatePost() {
 				if (! caption) {
 					caption = document.createElement('blockquote');
 					caption.contentEditable = 'true';
-					caption.itemprop = 'caption';
+					caption.setAttribute('itemprop', 'caption');
+					caption.textContent = '{CAPTION}';
 					cite.insertAdjacentElement('beforeend', caption);
 				} else {
 					caption.contentEditable = 'true';
