@@ -4,6 +4,15 @@ import {parseResponse} from './std-js/functions.es6';
 import getPage from './kvsapi.es6';
 import SocialShare from './std-js/socialshare.es6';
 
+export function dataToggleClass() {
+	if (this.dataset.hasOwnProperty('toggleClass')) {
+		let json = JSON.parse(this.dataset.toggleClass);
+		Object.keys(json).forEach(sel => {
+			$(sel).each(el => el.classList.toggle(json[sel]));
+		});
+	}
+}
+
 export function dataShare() {
 	if (this.dataset.hasOwnProperty('share')) {
 		switch(this.dataset.share) {
