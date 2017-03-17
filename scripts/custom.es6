@@ -6,6 +6,7 @@ import {popstate} from './kvsapi.es6';
 import './es6-promise/dist/es6-promise.js';
 import * as WebAPI from './WebAPI.es6';
 import * as URLUtils from './URLUtils.es6';
+import './analytics.js';
 
 if (!(window.URLSearchParams instanceof Function)) {
 	window.URL = URLUtils.URL;
@@ -64,3 +65,5 @@ $(document.body).bootstrap().watch(
 );
 
 window.addEventListener('popstate', popstate);
+ga('create', 'UA-93891150-1', 'auto');
+ga('send', 'pageview');
