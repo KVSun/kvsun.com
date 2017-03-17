@@ -64,7 +64,7 @@ const CSP          = array(
 	'script-src'   => ["'self'"],
 	'style-src'    => ["'self'", "'unsafe-inline'"],
 	'media-src'    => ['*'],
-	'report-uri'   => '/csp.php',
+	'report-uri'   => 'https://kvsun.report-uri.io/r/default/csp/enforce ',
 );
 
 const HTML_TEMPLATES = [
