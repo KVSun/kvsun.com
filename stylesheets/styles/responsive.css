@@ -13,3 +13,8 @@
 		display: none;
 	}
 }
+@media (min-width: 801px) {
+	.mobile-only {
+		display: none;
+	}
+}
