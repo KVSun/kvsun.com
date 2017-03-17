@@ -32,6 +32,9 @@ const Days = [
 ];
 
 export default async function getPage(page) {
+	if (typeof ga === 'function') {
+		ga('send', 'pageview', page);
+	}
 	return loadPage(page);
 }
 
@@ -62,6 +65,9 @@ export function popstate(pop) {
 			('state' in pop) && pop.state !== null
 			&& REQUIRED.every(prop => (prop in pop.state))
 		) {
+			if (typeof ga === 'function') {
+				ga('send', 'pageview', pop.state.url);
+			}
 			updateContent(pop.state);
 		} else {
 			loadPage(document.location);
