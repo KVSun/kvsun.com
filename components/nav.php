@@ -19,6 +19,7 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 	$nav = $dom->body->append('nav', null, [
 		'role'  => 'navigation',
 		'class' => 'flex sticky',
+		'id'    => 'main-nav',
 	]);
 	$home = $nav->append('a', null, array_merge(ATTRS, [
 		'href'  => DOMAIN,
@@ -60,9 +61,9 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 			use_icon($page->icon, $add, [
 				'class' => 'icon',
 			]);
-			if ($url->host !== $_SERVER['HTTP_HOST']) {
-				$add->target = '_blank';
-			}
+			// if ($url->host !== $_SERVER['HTTP_HOST']) {
+			// 	$add->target = '_blank';
+			// }
 		} else {
 			$nav->append('a', $page->name, array_merge(ATTRS, [
 				'href' => DOMAIN . $page->url,

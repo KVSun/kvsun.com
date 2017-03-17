@@ -319,6 +319,7 @@ if ($header->accept === 'application/json') {
 				}
 				$figure = $picture->getFigure($parent_id);
 				$dom = $figure->ownerDocument;
+				$figure->setAttribute('contenteditable', 'false');
 				$caption = $figure->appendChild($dom->createElement('figcaption'));
 				$cite = $caption->appendChild($dom->createElement('cite', "Photo by&nbsp;"));
 				$cite->setAttribute('itemprop', 'creator');
@@ -326,9 +327,11 @@ if ($header->accept === 'application/json') {
 				$cite->setAttribute('itemscope', null);
 				$credit = $cite->appendChild($dom->createElement('span', '{PHOTOGRAPHER}'));
 				$credit->setAttribute('itemprop', 'name');
+				$credit->setAttribute('contenteditable', 'true');
 				$caption->appendChild($dom->createElement('br'));
 				$cap = $caption->appendChild($dom->createElement('blockquote', '{CAPTION}'));
 				$cap->setAttribute('itemprop', 'caption');
+				$cap->setAttribute('contenteditable', 'true');
 
 				$pdo->commit();
 				exit($figure->ownerDocument->saveHTML($figure));

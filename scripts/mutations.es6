@@ -145,6 +145,14 @@ export const watcher = {
 			}
 			break;
 
+		case 'data-toggle-class':
+			if (this.target.dataset.hasOwnProperty('toggleClass')) {
+				this.target.addEventListener('click', eventHandler.dataToggleClass);
+			} else {
+				this.target.removeEventListener('click', eventHandler.dataToggleClass);
+			}
+			break;
+
 		default:
 			console.error(`Unhandled attribute in watch: "${this.attributeName}"`);
 		}
@@ -170,7 +178,8 @@ export const attributeTree = [
 	'data-request',
 	'data-share',
 	'data-fullscreen',
-	'data-admin'
+	'data-admin',
+	'data-toggle-class'
 ];
 
 export function bootstrap() {
@@ -233,6 +242,9 @@ export function bootstrap() {
 		});
 		query('[data-delete]', node).forEach(el => {
 			el.addEventListener('click', eventHandler.dataDelete);
+		});
+		query('[data-toggle-class]', node).forEach(el => {
+			el.addEventListener('click', eventHandler.dataToggleClass);
 		});
 		query('[data-admin]', node).forEach(el => {
 			if (Admin[el.dataset.admin] instanceof Function) {

@@ -1,10 +1,12 @@
 {
   "name": "kv-sun",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Kern Valley Sun",
   "keywords": [
     "kvsun",
-    "Kern Valley Sun"
+    "Kern Valley Sun",
+	"newspaper",
+	"Kern Valley"
   ],
   "author": {
     "name": "Chris Zuber",
