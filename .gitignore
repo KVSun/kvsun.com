@@ -1,4 +1,6 @@
 /config/*.json
+/*.html
+/*.txt
 /config/.*
 /config/*.ini
 /keys/*.pem
