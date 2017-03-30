@@ -329,7 +329,7 @@ function makeArticle(post) {
 	main.appendChild(document.importNode(template, true));
 }
 
-function makeContact(info) {
+function makeContact(/*info*/) {
 	const template = getTemplate('itemtype-Organization');
 	const main = document.querySelector('main');
 	Array.from(main.children).forEach(child => child.remove());
