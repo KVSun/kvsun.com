@@ -8,6 +8,7 @@ use \KVSun\KVSAPI\{
 	Category,
 	Article,
 	Classifieds,
+	Contact,
 	Picture,
 	Abstracts\Content as KVSAPI
 };
@@ -93,6 +94,10 @@ function get_page(URL $url): KVSAPI
 		switch ($path[0]) {
 			case 'classifieds':
 				$page = new Classifieds($pdo, '../Classifieds');
+				break;
+
+			case 'contacting-us':
+				$page = new Contact($pdo, '/contacting-us');
 				break;
 
 			default:
