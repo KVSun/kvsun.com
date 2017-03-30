@@ -73,3 +73,6 @@
 [submodule "scripts/jscrypt"]
 	path = scripts/jscrypt
 	url = git://github.com/shgysk8zer0/jscrypt.git
+[submodule "classes/shgysk8zer0/schema"]
+	path = classes/shgysk8zer0/schema
+	url = git://github.com/shgysk8zer0/schema.git
