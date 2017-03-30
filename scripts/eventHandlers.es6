@@ -216,19 +216,24 @@ export function matchInput(input) {
 }
 
 export function getLink(click) {
-	click.preventDefault();
 	if (this.classList.contains('disabled') || this.pathname === location.pathname) {
-		return;
+		if (this.hash.length) {
+			let target = document.getElementById(this.hash.substr(1));
+			if (target) {
+				target.scrollIntoView({behavior: 'smooth', block: 'start'});
+			}
+		}
 	} else {
+		click.preventDefault();
 		this.classList.add('disabled');
+		getPage(this.href).then(() => {
+			this.classList.remove('disabled');
+		}).catch(error => {
+			this.classList.remove('disabled');
+			console.error(error);
+		});
 	}
 
-	getPage(this.href).then(() => {
-		this.classList.remove('disabled');
-	}).catch(error => {
-		this.classList.remove('disabled');
-		console.error(error);
-	});
 }
 
 export function toggleDetails() {

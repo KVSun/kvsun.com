@@ -74,5 +74,8 @@ return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 		'class' => 'logo',
 		'title' => 'Subscribe to our YouTube channel',
 	]));
+	$footer->append('a', 'Contact us', [
+		'href' => DOMAIN . 'contacting-us',
+	]);
 	$footer->append('b', sprintf('&copy;&nbsp;%d&nbsp;%s', date('Y'), $kvs->getHead()->title));
 };

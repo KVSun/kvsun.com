@@ -49,10 +49,22 @@ async function loadPage(page) {
 			headers,
 			credentials: 'include'
 		});
-		document.querySelector('main').scrollIntoView({
-			behavior: 'smooth',
-			block: 'start'
-		});
+		if (location.hash.length) {
+			let target = document.getElementById(location.hash.substr(1));
+			if (target instanceof Element) {
+				target.scrollIntoView({
+					behavior: 'smooth',
+					block: 'start'
+				});
+			} else {
+				location.hash = '';
+			}
+		} else {
+			document.querySelector('main').scrollIntoView({
+				behavior: 'smooth',
+				block: 'start'
+			});
+		}
 		return updatePage(resp);
 	} catch(e) {
 		console.error(e);
@@ -105,6 +117,7 @@ function getTitle(json) {
 function update(json) {
 	if (REQUIRED.every(prop => prop in json)) {
 		let url = new URL(json.url.path, location.origin);
+		url.hash = location.hash;
 		history.pushState(json, getTitle(json), url);
 		return updateContent(json);
 	} else {
@@ -115,7 +128,6 @@ function update(json) {
 }
 
 function updateContent(json) {
-	console.info(json);
 	document.title = getTitle(json);
 	switch(json.type) {
 	case 'home':
@@ -132,6 +144,10 @@ function updateContent(json) {
 
 	case 'classifieds':
 		makeClassifieds(json.data);
+		break;
+
+	case 'contact':
+		makeContact(json.data);
 		break;
 
 	default:
@@ -309,6 +325,13 @@ function makeArticle(post) {
 	add_comments(article.querySelector('footer'), post.comments);
 	commentCount.setAttribute('itemprop', 'commentCount');
 	commentCount.setAttribute('content', post.comments.length);
+	Array.from(main.children).forEach(child => child.remove());
+	main.appendChild(document.importNode(template, true));
+}
+
+function makeContact(/*info*/) {
+	const template = getTemplate('itemtype-Organization');
+	const main = document.querySelector('main');
 	Array.from(main.children).forEach(child => child.remove());
 	main.appendChild(document.importNode(template, true));
 }

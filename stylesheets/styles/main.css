@@ -55,6 +55,16 @@ article {
 dialog[open] {
 	animation: show-dialog 600ms;
 }
+[itemprop="employee"], [itemprop="employees"] {
+	background: #eee;
+	display: inline-block;
+	margin: 0.8rem;
+	min-width: 25vw;
+	padding: 0.5rem;
+	border: 0.05rem solid #222;
+	box-shadow: var(--shadow);
+	text-align: center;
+}
 @keyframes page-fold {
 	from {
 		box-shadow: 1rem 1rem 1rem rgba(20, 20, 20, 0.8);
