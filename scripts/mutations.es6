@@ -207,7 +207,7 @@ export function bootstrap() {
 		query('[autofocus]', node).forEach(input => input.focus());
 		if ((fetch instanceof Function) && (URL instanceof Function) && ('searchParams' in URL.prototype)) {
 			query(
-				'a[href]:not([target="_blank"]):not([download]):not([href*="\#"])',
+				'a[href]:not([target="_blank"]):not([download])',
 				node
 			).filter(link => link.origin === location.origin).forEach(a => {
 				a.addEventListener('click', eventHandler.getLink);
