@@ -610,9 +610,11 @@ switch($req->form) {
 				if ($users->updatePassword($creds->password, $creds->email)) {
 					$resp->notify(
 						'Success',
-						"Credentails for {$creds->email} have been updated"
+						"Credentails for {$creds->email} have been updated",
+						ICONS['person']
 					)->remove('#user-password-dialog');
 				} else {
+					http_response_code(HTTP::BAD_REQUEST);
 					$resp->notify(
 						"Update failed",
 						"Either {$creds->email} does not exist or there was a server error",
@@ -620,13 +622,20 @@ switch($req->form) {
 					);
 				}
 			} else {
-				$resp->notify('Missing info');
+				http_response_code(HTTP::BAD_REQUEST);
+				$resp->notify(
+					'Missing or invalid input',
+					'Double check your inputs and try again',
+					ICONS['thumbsdown']
+				);
 				$resp->focus('#admin-user-password-email');
 			}
 		} else {
+			http_response_code(HTTP::UNAUTHORIZED);
 			$resp->notify(
 				'Unauthorized',
-				'You are not allowed to update user info'
+				'You are not allowed to update user info',
+				ICONS['circle-slash']
 			);
 		}
 		break;
