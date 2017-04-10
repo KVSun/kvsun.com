@@ -272,6 +272,68 @@ if ($header->accept === 'application/json') {
 				}
 				break;
 
+			case 'admin-user-password':
+				if (user_can('alterUsers')) {
+					$pdo = PDO::load(DB_CREDS);
+					$dialog = make_dialog('user-password-dialog');
+
+					$form = $dialog->append('form', null, [
+						'name'         => 'admin-user-password',
+						'action'       => 'api.php',
+						'method'       => 'post',
+						'autocomplete' => 'off',
+					]);
+
+					$fieldset = $form->append('fieldset');
+					$fieldset->append('legend', 'Update user password');
+
+					$users = $fieldset->append('datalist', null, [
+						'id' => 'user-emails-list',
+					]);
+
+					array_map(
+						function(\stdClass $user) use ($users)
+						{
+							$users->append('option', null, ['value' => "{$user->email}"]);
+						},
+						$pdo('SELECT `email` FROM `users`;')
+					);
+
+					$fieldset->append('label', 'User Email: ')->append('input', null, [
+						'name'         => "{$form->name}[email]",
+						'id'           => "{$form->name}-email",
+						'type'         => 'email',
+						'list'         => $users->id,
+						'placeholder'  => 'user@example.com',
+						'autocomplete' => 'off',
+						'required'     => '',
+					]);
+
+					$fieldset->append('br');
+
+					$fieldset->append('label', 'New Password ')->append('input', null, [
+						'name'        => "{$form->name}[password]",
+						'id'          => "{$form->name}-password",
+						'placeholder' => '*************',
+						'pattern'     => '.{8,}',
+						'required'    => ''
+					]);
+
+					$form->append('br');
+
+					$form->append('button', 'Submit', [
+						'type' => 'submit',
+					]);
+					$resp->append('body', "{$dialog}");
+					$resp->showModal("#{$dialog->id}");
+				} else {
+					$resp->notify(
+						'Unauthorized',
+						'You do not have permission to update user info'
+					);
+				}
+				break;
+
 			default:
 			// All HTML forms in forms/ should be considered publicly available
 				if (@file_exists("./components/forms/{$_REQUEST['load_form']}.html")) {
