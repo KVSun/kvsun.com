@@ -598,6 +598,48 @@ switch($req->form) {
 		}
 		break;
 
+	case 'admin-user-password':
+		if (user_can('alterUsers')) {
+			$creds = $req->{'admin-user-password'};
+			if (
+				isset($creds->email, $creds->password)
+				and filter_var($creds->email, FILTER_VALIDATE_EMAIL)
+				and strlen($creds->password) >= 8
+			) {
+				$users = User::load(DB_CREDS);
+				if ($users->updatePassword($creds->password, $creds->email)) {
+					$resp->notify(
+						'Success',
+						"Credentails for {$creds->email} have been updated",
+						ICONS['person']
+					)->remove('#user-password-dialog');
+				} else {
+					http_response_code(HTTP::BAD_REQUEST);
+					$resp->notify(
+						"Update failed",
+						"Either {$creds->email} does not exist or there was a server error",
+						ICONS['bug']
+					);
+				}
+			} else {
+				http_response_code(HTTP::BAD_REQUEST);
+				$resp->notify(
+					'Missing or invalid input',
+					'Double check your inputs and try again',
+					ICONS['thumbsdown']
+				);
+				$resp->focus('#admin-user-password-email');
+			}
+		} else {
+			http_response_code(HTTP::UNAUTHORIZED);
+			$resp->notify(
+				'Unauthorized',
+				'You are not allowed to update user info',
+				ICONS['circle-slash']
+			);
+		}
+		break;
+
 	case 'search':
 		$resp->notify('Search results', 'Check console for more info');
 		$pdo = PDO::load(DB_CREDS);
