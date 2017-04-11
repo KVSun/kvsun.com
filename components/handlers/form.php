@@ -646,7 +646,10 @@ switch($req->form) {
 			try {
 				if (user_can('uploadMedia', 'createPosts')) {
 					$listing = $req->business_directory;
-					if (isset($listing->name, $listing->start, $listing->category, $listing->text)) {
+					if (
+						isset($listing->name, $listing->category)
+						and (isset($listing->img) or ! empty($listing->text))
+					) {
 							$pdo->beginTransaction();
 							$stm = $pdo->prepare(
 								'INSERT INTO `businessDirectory`(
@@ -666,7 +669,7 @@ switch($req->form) {
 								);'
 							);
 							Console::info([$listing, $_FILES['business_directory']]);
-							if ($tmp = $_FILES['business_directory']['tmp_name']['file']) {
+							if ($tmp = $_FILES['business_directory']['tmp_name']['file'] ?? false) {
 								if (move_uploaded_file(
 									$_FILES['business_directory']['tmp_name']['file'],
 									"{$_SERVER['DOCUMENT_ROOT']}/images/uploads/{$_FILES['business_directory']['name']['file']}"
@@ -681,12 +684,12 @@ switch($req->form) {
 							$stm->name = $listing->name;
 							$stm->category = $listing->category;
 							$stm->description = nl2br(htmlentities(strip_tags($listing->text), ENT_HTML5));
-							$stm->start = $listing->start;
+							$stm->start = $listing->start ?? date('Y-m-d');
 							$stm->end = $listing->end ?? null;
 							$stm->img = $img;
 							$stm->execute();
 							if ($pdo->lastInsertId()) {
-								Console::table($pdo('SELECT * FROM `businessDirectory`;'));
+								Console::table($pdo('SELECT * FROM `businessDirectory`'));
 								$pdo->rollBack();
 								$resp->notify(
 									'Form submitted',

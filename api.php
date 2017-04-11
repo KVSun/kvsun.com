@@ -246,7 +246,6 @@ if ($header->accept === 'application/json') {
 					'name'        => "{$form->name}[text]",
 					'id'          => "{$form->name}-text",
 					'placeholder' => 'Ad text/description',
-					'required'    => '',
 				]);
 				$fieldset->append('br');
 				$fieldset->append('label', 'File: ')->append('input', null, [
