@@ -208,14 +208,17 @@ if ($header->accept === 'application/json') {
 				'required'    => '',
 			]);
 			$fieldset->append('br');
-			$fieldset->append('label', 'Category: ')->append('select', null, [
+			$select = $fieldset->append('label', 'Category: ')->append('select', null, [
 				'name' => "{$form->name}[category]",
 				'id'   => "{$form->name}-category",
 				'required' => ''
-			], [
-				['option', 'Pick a category', ['value' => null]],
-				['option', 'Contractors'],
 			]);
+			$select->append('option', 'Pick a category', ['value' => null]);
+			foreach (['Contractors'] as $cat) {
+				$select->append('option', $cat);
+			}
+			unset($select, $cat);
+
 			$fieldset->append('br');
 			$fieldset->append('label', 'Start: ')->append('input', null, [
 				'type'        => 'date',
