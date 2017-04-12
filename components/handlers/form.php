@@ -708,6 +708,7 @@ switch($req->form) {
 									'Check console',
 									ICONS['alert']
 								);
+								$resp->clear('business_directory');
 							} else {
 								throw new HTTPException(
 									'Failed to save listing. Does the listing already exist?',
@@ -715,7 +716,6 @@ switch($req->form) {
 								);
 							}
 							$resp->html('dialog[open] legend', nl2br($listing->text));
-						// $resp->remove('#business_directory_form');
 					} else {
 						throw new HTTPException('Double check your inputs', HTTP::BAD_REQUEST);
 					}
@@ -741,6 +741,9 @@ switch($req->form) {
 				);
 			} catch (\Throwable $e) {
 				http_response_code(HTTP::INTERNAL_SERVER_ERROR);
+				if (DEBUG) {
+					Console::error($e);
+				}
 				if ($pdo->inTransaction()) {
 					$pdo->rollBack();
 				}
