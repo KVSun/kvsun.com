@@ -9,6 +9,7 @@ use \KVSun\KVSAPI\{Abstracts\Content as KVSAPI};
 return function (HTML $dom, PDO $pdo, KVSAPI $kvs)
 {
 	$main = $dom->getElementsByTagName('main')->item(0);
+	$main->append('h3', $kvs->title, ['class' => 'center']);
 	$template = $dom->getElementById('business-listing');
 	$container = $main->append('div', null, ['data-cols' => 'auto']);
 	$xpath = new \DOMXPath($dom);

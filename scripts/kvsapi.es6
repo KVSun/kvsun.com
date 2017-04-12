@@ -372,8 +372,11 @@ function makeBusinessDirectory(data) {
 	const main = document.querySelector('main');
 	const template = getTemplate('business-listing');
 	const container = document.createElement('div');
+	const title = document.createElement('h3');
 	container.dataset.cols = 'auto';
-	console.info(data);
+	title.textContent = data.title;
+	title.classList.add('center');
+
 	Object.keys(data.categories).forEach(category => {
 		let list = data.categories[category];
 		let details = document.createElement('details');
@@ -402,13 +405,10 @@ function makeBusinessDirectory(data) {
 			} else {
 				desc.remove();
 			}
-			// let img = document.createElement('img');
-			// img.src = item.image;
-			// img.alt = item.name;
-			// details.appendChild(img);
 		});
 	});
 	Array.from(main.children).forEach(child => child.remove());
+	main.appendChild(title);
 	main.appendChild(container);
 }
 
