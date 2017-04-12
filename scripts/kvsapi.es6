@@ -334,24 +334,82 @@ function makeArticle(post) {
 }
 
 function makeBusinessDirectory(data) {
+	/**
+	 * $main = $dom->getElementsByTagName('main')->item(0);
+ 	$template = $dom->getElementById('business-listing');
+ 	$container = $main->append('div', null, ['data-cols' => 'auto']);
+ 	$xpath = new \DOMXPath($dom);
+
+ 	foreach ($kvs->categories as $category => $list) {
+ 		$details = $container->append('details', null, ['open' => null]);
+ 		$details->append('summary', $category);
+
+ 		foreach ($list as $item) {
+ 			$org = $details->append('div');
+ 			foreach ($template->childNodes as $node) {
+ 				$org->appendChild($node->cloneNode(true));
+ 			}
+ 			$name = $xpath->query('.//*[@itemprop="legalName"]', $org)->item(0);
+ 			$img = $xpath->query('.//*[@itemprop="image"]', $org)->item(0);
+ 			$desc = $xpath->query('.//*[@itemprop="description"]', $org)->item(0);
+ 			$name->textContent = $item->name;
+ 			if (isset($item->image)) {
+ 				$img->src = DOMAIN . ltrim($item->image, '/');
+ 				$img->content = $img->src;
+ 			} else {
+ 				$img->parentNode->removeChild($img);
+ 			}
+
+ 			if (isset($item->text)) {
+ 				$desc->textContent = $item->text;
+ 			} else {
+ 				$desc->parentNode->removeChild($desc);
+ 			}
+ 		}
+ 	}
+	 * @type {[type]}
+	 */
 	const main = document.querySelector('main');
-	Array.from(main.children).forEach(child => child.remove());
+	const template = getTemplate('business-listing');
+	const container = document.createElement('div');
+	container.dataset.cols = 'auto';
 	console.info(data);
 	Object.keys(data.categories).forEach(category => {
 		let list = data.categories[category];
 		let details = document.createElement('details');
 		let summary = document.createElement('summary');
+
 		summary.textContent = category;
 		details.appendChild(summary);
 		details.setAttribute('open', '');
-		main.appendChild(details);
+		container.appendChild(details);
 		list.forEach(item => {
-			let img = document.createElement('img');
-			img.src = item.image;
-			img.alt = item.name;
-			details.appendChild(img);
+			let node = details.appendChild(template.firstElementChild.cloneNode(true));
+			let img = node.querySelector('[itemprop="image"]');
+			let name = node.querySelector('[itemprop="legalName"]');
+			let desc = node.querySelector('[itemprop="description"]');
+			name.textContent = item.name;
+			if ('image' in item) {
+				img.src = `${location.origin}${item.image}`;
+				img.setAttribute('content', img.src);
+				img.setAttribute('alt', item.name);
+			} else {
+				img.remove();
+			}
+
+			if ('text' in item) {
+				desc.textContent = item.text;
+			} else {
+				desc.remove();
+			}
+			// let img = document.createElement('img');
+			// img.src = item.image;
+			// img.alt = item.name;
+			// details.appendChild(img);
 		});
 	});
+	Array.from(main.children).forEach(child => child.remove());
+	main.appendChild(container);
 }
 
 function makeContact(/*info*/) {
