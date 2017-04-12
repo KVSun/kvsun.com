@@ -215,11 +215,23 @@ if ($header->accept === 'application/json') {
 				]);
 				$select->append('option', 'Pick a category', ['value' => null]);
 				foreach ([
+					'Contractors-General Builders',
+					'Masonry',
+					'Electric',
+					'Plumbing',
+					'Landscaping',
+					'Painting',
+					'Concrete',
+					'Heating &amp; Cooling',
+					'Tile',
+					'Drywall',
+					'Roofing',
 					'Home Services',
 					'Paralegal Services',
-					'Collision Services',
-					'Tax Prep &amp; Consulting',
 					'Miscellaneous Services',
+					'Collision Services',
+					'Tax Prep Consulting',
+					'Notary Public',
 				] as $cat) {
 					$select->append('option', $cat);
 				}
