@@ -10,7 +10,8 @@ use \shgysk8zer0\Core\{
 	Headers,
 	URL,
 	HTTPException,
-	Gravatar
+	Gravatar,
+	UploadFile
 };
 use \shgysk8zer0\DOM\{HTML};
 use \shgysk8zer0\Core_API as API;
@@ -639,6 +640,121 @@ switch($req->form) {
 			);
 		}
 		break;
+
+		case 'business_directory':
+			$pdo = PDO::load(DB_CREDS);
+			try {
+				if (user_can('uploadMedia', 'createPosts')) {
+					$listing = $req->business_directory;
+					if (isset($listing->name, $listing->category)) {
+							$pdo->beginTransaction();
+							$stm = $pdo->prepare(
+								'INSERT INTO `businessDirectory`(
+									`name`,
+									`category`,
+									`description`,
+									`start`,
+									`end`,
+									`img`
+								) VALUES (
+									:name,
+									:category,
+									:description,
+									:start,
+									:end,
+									:img
+								);'
+							);
+							Console::info([$listing, $_FILES['business_directory']]);
+							if (is_uploaded_file($_FILES['business_directory']['tmp_name']['file'])) {
+								if (move_uploaded_file(
+									$_FILES['business_directory']['tmp_name']['file'],
+									"{$_SERVER['DOCUMENT_ROOT']}/images/uploads/{$_FILES['business_directory']['name']['file']}"
+								)) {
+									$img = sprintf('/images/uploads/%s', urlencode($_FILES['business_directory']['name']['file']));
+								} else {
+									throw new HTTPException('Failed to save upload', HTTP::INTERNAL_SERVER_ERROR);
+								}
+							} else {
+								$img = null;
+							}
+							$stm->name = $listing->name;
+							$stm->category = $listing->category;
+							$stm->description = empty($listing->text) ? null
+								: nl2br(htmlentities(strip_tags($listing->text), ENT_HTML5));
+							$stm->start = $listing->start ?? date('Y-m-d');
+							$stm->end = $listing->end ?? null;
+							$stm->img = $img;
+							$stm->execute();
+							if ($pdo->lastInsertId()) {
+								Console::table($pdo(
+									'SELECT
+										`name`,
+										`category`,
+										`description` AS `text`,
+										`start`,
+										`end`,
+										`img` AS `image`
+									FROM `businessDirectory`
+									WHERE `start` >= CURRENT_DATE
+									AND (
+										`end` IS NULL
+										OR `end` >= CURRENT_DATE
+									);'
+								));
+								$pdo->commit();
+								$resp->notify(
+									'Form submitted',
+									'Check console',
+									ICONS['alert']
+								);
+								$resp->clear('business_directory');
+							} else {
+								throw new HTTPException(
+									'Failed to save listing. Does the listing already exist?',
+									HTTP::INTERNAL_SERVER_ERROR
+								);
+							}
+							$resp->html('dialog[open] legend', nl2br($listing->text));
+					} else {
+						throw new HTTPException('Double check your inputs', HTTP::BAD_REQUEST);
+					}
+				} else {
+					throw new HTTPException('Unauthorized', HTTP::UNAUTHORIZED);
+					http_response_code(HTTP::UNAUTHORIZED);
+					$resp->notify(
+						'Unauthorized',
+						'You do not have access to that',
+						ICONS['alert']
+					);
+				}
+			} catch (HTTPException $e) {
+				http_response_code($e->getCode());
+				if ($pdo->inTransaction()) {
+					$pdo->rollBack();
+				}
+				$resp->notify(
+					'An error occured',
+					$e->getMessage(),
+					ICONS['alert'],
+					true
+				);
+			} catch (\Throwable $e) {
+				http_response_code(HTTP::INTERNAL_SERVER_ERROR);
+				if (DEBUG) {
+					Console::error($e);
+				}
+				if ($pdo->inTransaction()) {
+					$pdo->rollBack();
+				}
+				$resp->notify(
+					'An unknown error occured',
+					'Please contact an admin for support',
+					ICONS['bug'],
+					true
+				);
+			}
+			break;
 
 	case 'search':
 		$resp->notify('Search results', 'Check console for more info');

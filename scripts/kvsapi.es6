@@ -150,6 +150,10 @@ function updateContent(json) {
 		makeContact(json.data);
 		break;
 
+	case 'businessdirectory':
+		makeBusinessDirectory(json.data);
+		break;
+
 	default:
 		throw new Error(`Unsupported response type: ${json.type}`);
 	}
@@ -327,6 +331,50 @@ function makeArticle(post) {
 	commentCount.setAttribute('content', post.comments.length);
 	Array.from(main.children).forEach(child => child.remove());
 	main.appendChild(document.importNode(template, true));
+}
+
+function makeBusinessDirectory(data) {
+	const main = document.querySelector('main');
+	const template = getTemplate('business-listing');
+	const container = document.createElement('div');
+	const title = document.createElement('h3');
+	container.dataset.cols = 'auto';
+	title.textContent = data.title;
+	title.classList.add('center');
+
+	Object.keys(data.categories).forEach(category => {
+		let list = data.categories[category];
+		let details = document.createElement('details');
+		let summary = document.createElement('summary');
+
+		summary.textContent = category;
+		details.appendChild(summary);
+		details.setAttribute('open', '');
+		container.appendChild(details);
+		list.forEach(item => {
+			let node = details.appendChild(template.firstElementChild.cloneNode(true));
+			let img = node.querySelector('[itemprop="image"]');
+			let name = node.querySelector('[itemprop="legalName"]');
+			let desc = node.querySelector('[itemprop="description"]');
+			name.textContent = item.name;
+			if ('image' in item) {
+				img.src = `${location.origin}${item.image}`;
+				img.setAttribute('content', img.src);
+				img.setAttribute('alt', item.name);
+			} else {
+				img.remove();
+			}
+
+			if ('text' in item) {
+				desc.textContent = item.text;
+			} else {
+				desc.remove();
+			}
+		});
+	});
+	Array.from(main.children).forEach(child => child.remove());
+	main.appendChild(title);
+	main.appendChild(container);
 }
 
 function makeContact(/*info*/) {

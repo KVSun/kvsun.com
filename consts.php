@@ -70,6 +70,7 @@ const CSP          = array(
 const HTML_TEMPLATES = [
 	TEMPLATE_DIR . 'article.html',
 	TEMPLATE_DIR . 'section.html',
+	TEMPLATE_DIR . 'business-listing.html',
 	TEMPLATE_DIR . 'itemtypes/imageobject.html',
 	TEMPLATE_DIR . 'itemtypes/organization.html',
 	TEMPLATE_DIR . 'itemtypes/person.html',

@@ -189,6 +189,96 @@ if ($header->accept === 'application/json') {
 				$resp->showModal("#{$dialog->id}");
 				break;
 
+			case 'business_directory':
+				$dialog = make_dialog('business_directory_form');
+				$form = $dialog->append('form', null, [
+					'name' => 'business_directory',
+					'action' => DOMAIN . 'api.php',
+					'method' => 'post',
+				]);
+				$fieldset = $form->append('fieldset');
+				$fieldset->append('legend', 'Business directory');
+
+				$fieldset->append('label', 'Name: ')->append('input', null, [
+					'type'        => 'text',
+					'name'        => "{$form->name}[name]",
+					'id'          => "{$form->name}-name",
+					'pattern'     => '[\w\-,\.\? ]+',
+					'placeholder' => 'name',
+					'required'    => '',
+				]);
+				$fieldset->append('br');
+				$select = $fieldset->append('label', 'Category: ')->append('select', null, [
+					'name' => "{$form->name}[category]",
+					'id'   => "{$form->name}-category",
+					'required' => ''
+				]);
+				$select->append('option', 'Pick a category', ['value' => null]);
+				foreach ([
+					'Contractors-General Builders',
+					'Masonry',
+					'Electric',
+					'Plumbing',
+					'Landscaping',
+					'Painting',
+					'Concrete',
+					'Heating &amp; Cooling',
+					'Tile',
+					'Drywall',
+					'Roofing',
+					'Home Services',
+					'Paralegal Services',
+					'Miscellaneous Services',
+					'Collision Services',
+					'Tax Prep Consulting',
+					'Notary Public',
+				] as $cat) {
+					$select->append('option', $cat);
+				}
+				unset($select, $cat);
+
+				$fieldset->append('br');
+				$fieldset->append('label', 'Start: ')->append('input', null, [
+					'type'        => 'date',
+					'name'        => "{$form->name}[start]",
+					'id'          => "{$form->name}-start",
+					'value'       => date('Y-m-d'),
+					'min'         => date('Y-m-d'),
+					'pattern'     => '\d{4}(-\d{2}){2}',
+					'placeholder' => 'yyyy-mm-dd',
+					'required'    => '',
+				]);
+				$fieldset->append('br');
+				$fieldset->append('label', 'End: ')->append('input', null, [
+					'type'        => 'date',
+					'name'        => "{$form->name}[end]",
+					'id'          => "{$form->name}-end",
+					'value'       => date('Y-m-d', strtotime('1 week')),
+					'min'         => date('Y-m-d', strtotime('1 week')),
+					'pattern'     => '\d{4}(-\d{2}){2}',
+					'placeholder' => 'yyyy-mm-dd',
+				]);
+				$fieldset->append('br');
+				$fieldset->append('label', 'Text: ')->append('textarea', null, [
+					'type'        => 'text',
+					'name'        => "{$form->name}[text]",
+					'id'          => "{$form->name}-text",
+					'placeholder' => 'Ad text/description',
+				]);
+				$fieldset->append('br');
+				$fieldset->append('label', 'File: ')->append('input', null, [
+					'type'   => 'file',
+					'name'   => "{$form->name}[file]",
+					'id'     => "{$form->name}-file",
+					'accept' => 'image/jpeg',
+				]);
+				$form->append('button', 'Submit', [
+					'type' => 'submit',
+				]);
+				$resp->append('body', $dialog);
+				$resp->showModal("#{$dialog->id}");
+				break;
+
 			case 'moderate':
 				if (user_can('moderateComments')) {
 					try {

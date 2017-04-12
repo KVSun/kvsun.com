@@ -10,6 +10,7 @@ use \KVSun\KVSAPI\{
 	Classifieds,
 	Contact,
 	Picture,
+	BusinessDirectory,
 	Abstracts\Content as KVSAPI
 };
 use \shgysk8zer0\Core_API\{Abstracts\HTTPStatusCodes as HTTP};
@@ -98,6 +99,10 @@ function get_page(URL $url): KVSAPI
 
 			case 'contacting-us':
 				$page = new Contact($pdo, '/contacting-us');
+				break;
+
+			case 'businessdirectory':
+				$page = new BusinessDirectory($pdo, '/businessdirectory');
 				break;
 
 			default:
