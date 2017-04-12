@@ -150,6 +150,10 @@ function updateContent(json) {
 		makeContact(json.data);
 		break;
 
+	case 'businessdirectory':
+		makeBusinessDirectory(json.data);
+		break;
+
 	default:
 		throw new Error(`Unsupported response type: ${json.type}`);
 	}
@@ -327,6 +331,27 @@ function makeArticle(post) {
 	commentCount.setAttribute('content', post.comments.length);
 	Array.from(main.children).forEach(child => child.remove());
 	main.appendChild(document.importNode(template, true));
+}
+
+function makeBusinessDirectory(data) {
+	const main = document.querySelector('main');
+	Array.from(main.children).forEach(child => child.remove());
+	console.info(data);
+	Object.keys(data.categories).forEach(category => {
+		let list = data.categories[category];
+		let details = document.createElement('details');
+		let summary = document.createElement('summary');
+		summary.textContent = category;
+		details.appendChild(summary);
+		details.setAttribute('open', '');
+		main.appendChild(details);
+		list.forEach(item => {
+			let img = document.createElement('img');
+			img.src = item.image;
+			img.alt = item.name;
+			details.appendChild(img);
+		});
+	});
 }
 
 function makeContact(/*info*/) {
