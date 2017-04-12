@@ -214,7 +214,13 @@ if ($header->accept === 'application/json') {
 					'required' => ''
 				]);
 				$select->append('option', 'Pick a category', ['value' => null]);
-				foreach (['Contractors'] as $cat) {
+				foreach ([
+					'Home Services',
+					'Paralegal Services',
+					'Collision Services',
+					'Tax Prep &amp; Consulting',
+					'Miscellaneous Services',
+				] as $cat) {
 					$select->append('option', $cat);
 				}
 				unset($select, $cat);
