@@ -203,7 +203,7 @@ if ($header->accept === 'application/json') {
 					'type'        => 'text',
 					'name'        => "{$form->name}[name]",
 					'id'          => "{$form->name}-name",
-					'pattern'     => '[\w\-,\.\?]+',
+					'pattern'     => '[\w\-,\.\? ]+',
 					'placeholder' => 'name',
 					'required'    => '',
 				]);
