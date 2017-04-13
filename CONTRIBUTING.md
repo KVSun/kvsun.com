@@ -127,6 +127,14 @@ Since this project minifies and packages all JavaScript using Babel & Webpack, w
 the exception of `custom.es6`, all script **MUST NOT** execute any code, but only
 import/export functions, classes, etc.
 
+Browsers are beginning to support modules natively, allowing for usage of original
+JavaScript for production. To enable module support in Firefox 54, go to "about:config"
+and set `dom.moduleScripts.enabled` to true.
+
+```HTML
+<script type="module" async src="/scripts/custom.es6"></script>
+```
+
 ### Example module exporting
 ```js
 // module.es6
