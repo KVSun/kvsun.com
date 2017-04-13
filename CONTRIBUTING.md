@@ -7,6 +7,7 @@
 -   [PHP Contributions](#php)
 -   [JavaScript Contributions](#javascript)
 -   [CSS Contributions](#css)
+-   [HTML notes](#html-notes)
 -   [Icons](#icons)
 -   [Git Submodules used](./.gitmodules)
 -   [NPM Modules / Dev dependencies](./package.json)
@@ -89,6 +90,16 @@ Since the minimum PHP version is 7.0, we can use code similar to the following:
 <?php
 namespace KVSun\Sample;
 
+// Alias a collection of classes from a package
+use \Namespace\{Class1, Class2};
+
+// Alias functions
+use func \Library\{func_1, func_2};
+
+
+// Alias constants
+use const \KVSun\Consts\{CONST1, CONST2};
+
 /**
  * Sums up a list of numbers
  * @param Float $nums A list of numbers
@@ -115,6 +126,14 @@ and have an extension of `.es6`.
 Since this project minifies and packages all JavaScript using Babel & Webpack, with
 the exception of `custom.es6`, all script **MUST NOT** execute any code, but only
 import/export functions, classes, etc.
+
+Browsers are beginning to support modules natively, allowing for usage of original
+JavaScript for production. To enable module support in Firefox 54, go to "about:config"
+and set `dom.moduleScripts.enabled` to true.
+
+```HTML
+<script type="module" async src="/scripts/custom.es6"></script>
+```
 
 ### Example module exporting
 ```js
@@ -145,10 +164,10 @@ const LOCAL_ONLY = 'For internal use only';
 
 ### Example module importing
 ```js
-// Imports default module export as foo
+// Imports default module export as MyClass
 import MyClass from './module.es6';
 
-// Import and alias
+// Import and alias. Imports `bar` from 'module.es6' as `foo`
 import {foo as bar} from './path/to/module.es6';
 
 // Import module exports by name
@@ -170,6 +189,10 @@ be new, `import` and `export` in JavaScript, and `@import` and `--var-name: valu
 are official standards. In the case of CSS, browser support does exist, and so
 this project will use `@import` and CSS variables in favor of SASS or LESS.
 
+Instead, PostCSS and CSSNext are used to transpile development CSS into production
+CSS, minifying, adding vendor prefixed versions of various rules, and handing all
+`@import` and `--var`/`var()` in the process.
+
 ```css
 /* Import from other stylesheets */
 @import "path/to/style.css";
@@ -183,7 +206,7 @@ this project will use `@import` and CSS variables in favor of SASS or LESS.
 .foo {
 	color: var(--foo);
 }
-/* Easily set multiple bakgrounds */
+/* Easily set multiple backgrounds */
 .some-class {
 	background-image: var(--bg-1) var(--bg-2);
 }
@@ -198,18 +221,65 @@ this project will use `@import` and CSS variables in favor of SASS or LESS.
 }
 ```
 
+## HTML Notes
+*With the exception of `<menu>` (which is only required for admins/devs), all
+of the following have a polyfill or appropriate fallback used.*
+-   [`<menu>` & `<menuitem>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menu)
+-   [`<dialog>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog)
+-   [`<details>` & `<summary>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/details)
+-   [`<template>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template)
+-   [`<input>` & `<form>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input)
+
+`<menu type="context">` creates a context menu, which is a great way to provide
+a clean, easy to navigate interface without worrying about cluttering the UI. Due
+to lack of support, this should only be used for a convenient alternative for users,
+or for functionality reserved for admins.
+
+`<dialog>`s are HTML elements that provide the asthetics and functionality of
+a "modal" using standard HTML. These elements have two main methods (`show` and `showModal`)
+which are controlled by JavaScript to change their visibility. Any element may
+set a `data-show` or `data-show-modal` attribute with a value of the selector of
+the `<dialog>` to `show` or `showModal`, respectively. If your `<dialog>` is intended
+to be visible initially, just set the `open` attribute (`<dialog open="">`).
+
+`<details>` are an HTML standard for creating collapsible content. Unless the
+`open` attribute is set on a `<details>` element, only its `<summary>` child is
+visible.  Clicking on `<summary>` toggles the `open` attribute on its `<details>`
+parent.
+
+`<template>`s are used by JavaScript and PHP to create and format content from
+data. As much as is possible, `<template>`s should use `itemtype` and `itemprop`
+attributes, as defined by [schema.org](https://schema.org). This will provide
+better SEO, allow for rich search results (cards, in Google), and also offer
+well documented mapping from properties to content *(`Article.author` -> <div itemprop="author">)*.
+
+You should also familiarize yourself with client-side `<form>` validation methods,
+such as `pattern`, `autocomplete`, and the various `type`s. These attributes
+can make for a much better user experience by providing instant feedback to
+users when they are missing a `required` input. Still, this is no substitute
+for server-side validation. The `shgysk8zer0\DOMValidator\` classes are a WIP to
+provide the  same validation that occurs client-side on the server, checking
+`pattern`, `required`, `type`, etc.
+
 ## Icons
-Wherever possible, all icons are to be created in SVG and minified. PNGs may then be created in whatever size is appropriate. Also, all commonly used icons are to be added to `images/icons.svg` so that they may be used using `<symbol>` and `<use xlink:href/>`. These are automatically generated
+Wherever possible, all icons are to be created in SVG and minified. PNGs may
+then be created in whatever size is appropriate. Also, all commonly used icons
+are to be added to `images/icons.svg` so that they may be used using `<symbol>`
+and `<use xlink:href/>`. These are automatically generated
 using `npm run build:icons`. To add more icons, simply add them to the
 list located in `images/icons.csv` as `$id,path/to/icon.svg`. They may then be used
 with `<use xlink:href="/images/icons.svg#$id">`.
 
 ## NPM
-Several useful modules are included for Node users, which is strongly recommended for all development aside from PHP. Simply run `npm install` after download to install all Node modules and Git submodules. There are also several NPM scripts configured, which may be run using `npm run $script`.
+Several useful modules are included for Node users, which is strongly recommended
+for all development aside from PHP. Simply run `npm install` after download to
+install all Node modules and Git submodules. There are also several NPM scripts
+configured, which may be run using `npm run $script`.
+
 -   `build:css` which transpiles and minifies CSS
 -   `build:js` which transpiles and minifies JavaScript
--   `build:icons` which creates SVG sprites from `images/icons.json`
+-   `build:icons` which creates SVG sprites from `images/icons.csv`
 -   `build:all` which runs all of the above
--   `update` which updates Git submodules recursively, installing any new ones
 -   `test` which runs any configured tests
+
 NPM also has a `postinstall` script which will automatically install and update
